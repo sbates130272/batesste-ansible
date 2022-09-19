@@ -3,7 +3,11 @@
 # Create the user batesste and make them a sudoer. Also copy in my SSH
 # key file so I can use it inside the new machine.
 
-- name: Create an account for batesste
+- name: Update package cache (assumes apt)
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install my favourite packages
   ansible.builtin.package:
     name:
       - build-essential
