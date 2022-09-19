@@ -1,0 +1,12 @@
+# Copyright (c) Stephen Bates, 2022
+#
+# Clone and update the tmux-scripts repo. Note we set the repo as a
+# git-based remote so this can only run once my private ssh key is
+# installed.
+
+- name: Checkout tmux-scripts in the ~/.tmux folder. Update if needed.
+  ansible.builtin.git:
+    repo: git@github.com:sbates130272/tmux-scripts.git
+    dest: ~/.tmux
+    accept_hostkey: yes
+    force: yes
