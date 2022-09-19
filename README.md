@@ -18,5 +18,6 @@ Assuming a remote server has been setup (and you may want to use
 or hostname and port in playbooks/hosts and run something like:
 ```
 ansible-playbook -i hosts <playbook-name>.yml
+```
 
 [1]: https://github.com/sbates130272/qemu-minimal/blob/master/scripts/gen-image
