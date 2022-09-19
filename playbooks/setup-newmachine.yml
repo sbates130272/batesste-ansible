@@ -1,4 +1,10 @@
 # Copyright (c) Stephen Bates, 2022
+#
+# This playbook takes a brand new machine and adds me as a user and
+# then setups up things the way I like. It also setups remove ssh and
+# installs my ssh keys and gnupgp keyring. Note we assume an initial
+# user on the machine called eid and this may need to be made a
+# variable.
 
 - name: Setup batesste account and install my favourite stuff on a new machine
   hosts: targets
@@ -7,3 +13,4 @@
   become: yes
   roles:
     - role: "add_batesste"
+    - role: "fave_packages"

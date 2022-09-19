@@ -4,8 +4,12 @@
 # key file so I can use it inside the new machine.
 
 - name: Create an account for batesste
-  ansible.builtin.user:
-    name: batesste
-    ssh_key_file:
-    groups: users,admin
-    append: true
+  ansible.builtin.package:
+    name:
+      - build-essential
+      - emacs-nox
+      - fio
+      - git
+      - sysstat
+      - tree
+    state: latest
