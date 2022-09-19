@@ -1,0 +1,60 @@
+# Copyright (c) Stephen Bates, 2022
+#
+# Set up git just the way I like it. This includes Gnupg signing,
+# editor setup, name and email (global for batesste). Note this
+# assumes some other roles have been run before this one.
+#
+# Note some of these tasks need:
+#
+# ansible-galaxy collection install community.general
+
+- name: Copy over gnupg folder to ensure PGP keys are on target(s)
+  ansible.builtin.copy:
+    src: ~/.gnupg/
+    dest: /home/batesste/.gnupg/
+    owner: batesste
+    group: batesste
+    mode: "0600"
+    force: yes
+
+- name: Setup emacs as git editor
+  community.general.git_config:
+    name: core.editor
+    value: emacs
+    scope: global
+
+- name: Setup name for git config
+  community.general.git_config:
+    name: user.name
+    value: Stephen Bates
+    scope: global
+
+- name: Setup email for git config
+  community.general.git_config:
+    name: user.email
+    value: sbates@raithlin.com
+    scope: global
+
+- name: Setup pgp signing for all commits
+  community.general.git_config:
+    name: commit.gpgsign
+    value: "true"
+    scope: global
+
+- name: Setup pgp signing for all commits
+  community.general.git_config:
+    name: user.signingkey
+    value: CB05CB5CFA5DFD9850BB814DE0C020C1975548AE
+    scope: global
+
+- name: Setup gpg-agent correctly in .bashrc
+  ansible.builtin.blockinfile:
+    path: /home/batesste/.bashrc
+    owner: batesste
+    group: batesste
+    state: present
+    create: true
+    block: |
+      # Setup gpg-agent environment variables.
+      GPG_TTY=$(tty)
+      export GPG_TTY

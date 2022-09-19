@@ -14,6 +14,7 @@
       - emacs-nox
       - fio
       - git
+      - gpg-agent
       - sysstat
       - tree
     state: latest

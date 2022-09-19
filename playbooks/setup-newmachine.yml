@@ -19,3 +19,6 @@
     - role: "tmux_scripts"
       remote_user: batesste
       become: no
+    - role: "git_setup"
+      remote_user: batesste
+      become: no
