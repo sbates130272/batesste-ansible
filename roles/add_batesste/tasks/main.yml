@@ -1,0 +1,11 @@
+# Copyright (c) Stephen Bates, 2022
+#
+# Create the user batesste and make them a sudoer. Also copy in my SSH
+# key file so I can use it inside the new machine.
+
+- name: Create an account for batesste
+  ansible.builtin.user:
+    name: batesste
+    ssh_key_file:
+    groups: users,admin
+    append: true

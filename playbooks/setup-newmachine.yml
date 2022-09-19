@@ -1,0 +1,9 @@
+# Copyright (c) Stephen Bates, 2022
+
+- name: Setup batesste account and install my favourite stuff on a new machine
+  hosts: targets
+  gather_facts: no
+  user: eid
+  become: yes
+  roles:
+    - role: "add_batesste"
