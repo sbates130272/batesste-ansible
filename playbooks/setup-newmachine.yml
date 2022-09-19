@@ -7,10 +7,15 @@
 # variable.
 
 - name: Setup batesste account and install my favourite stuff on a new machine
-  hosts: targets
+  hosts: awsmachines
   gather_facts: no
-  user: eid
-  become: yes
   roles:
     - role: "add_batesste"
+      remote_user: "{{ root_user }}"
+      become: yes
     - role: "fave_packages"
+      remote_user: batesste
+      become: yes
+    - role: "tmux_scripts"
+      remote_user: batesste
+      become: no
