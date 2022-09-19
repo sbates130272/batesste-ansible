@@ -27,4 +27,21 @@
     create: true
     block: |
       # Added by Ansible
-      batesste ALL=(ALL) NOPASSWD:ALL"
+      batesste ALL=(ALL) NOPASSWD:ALL
+
+- name: Copy SSH private key
+  ansible.builtin.copy:
+    force: yes
+    src: ~/.ssh/id_rsa
+    dest: /home/batesste/.ssh/id_rsa
+    owner: batesste
+    group: batesste
+    mode: '0600'
+
+- name: Copy SSH public key
+  ansible.builtin.copy:
+    force: yes
+    src: ~/.ssh/id_rsa.pub
+    dest: /home/batesste/.ssh/id_rsa.pub
+    owner: batesste
+    group: batesste
