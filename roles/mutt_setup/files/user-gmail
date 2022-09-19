@@ -1,0 +1,19 @@
+# imap settings
+set imap_user = "sbates130272@gmail.com"
+set imap_authenticators="xoauth2:oauthbearer"
+set imap_oauth_refresh_command="/home/batesste/.mutt/scripts/mutt_oauth2.py /home/batesste/.mutt/tokens/${imap_user}.token"
+# smtp settings
+set smtp_url = "smtps://sbates130272@smtp.gmail.com"
+set smtp_authenticators=${imap_authenticators}
+set smtp_oauth_refresh_command=${imap_oauth_refresh_command}
+# remote gmail folders
+set folder = "imaps://imap.gmail.com/"
+set spoolfile = "+INBOX"
+set postponed = "+[Gmail]/Drafts"
+set record = "+[Gmail]/Sent Mail"
+set trash = "+[Gmail]/Trash"
+# other settings
+set message_cachedir="~/.mutt/cache/gmail/bodies"
+set header_cache="~/.mutt/cache/gmail/headers"
+set from = "sbates130272@gmail.com"
+set realname = "Stephen Bates"

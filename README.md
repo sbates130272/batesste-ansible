@@ -19,5 +19,9 @@ or hostname and port in playbooks/hosts and run something like:
 ```
 ansible-playbook -i hosts <playbook-name>.yml
 ```
+## Roles Information
+
+Some of the more involved roles have their own README.md. Please refer
+to them for more information about a specific role.
 
 [1]: https://github.com/sbates130272/qemu-minimal/blob/master/scripts/gen-image

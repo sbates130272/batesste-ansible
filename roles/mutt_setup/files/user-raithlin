@@ -1,0 +1,19 @@
+# imap settings
+set imap_user = "sbates@raithlin.com"
+set imap_authenticators="xoauth2:oauthbearer"
+set imap_oauth_refresh_command="/home/batesste/.mutt/scripts/mutt_oauth2.py /home/batesste/.mutt/tokens/${imap_user}.token"
+# smtp settings
+set smtp_url="smtp://${imap_user}@smtp.office365.com:587/"
+set smtp_authenticators=${imap_authenticators}
+set smtp_oauth_refresh_command=${imap_oauth_refresh_command}
+# remote raithlin folders
+set folder = "imaps://outlook.office365.com/"
+set spoolfile = "+INBOX"
+set postponed = "+/Drafts"
+set record = "+/Sent"
+set trash = "+/Deleted Items"
+# other settings
+set message_cachedir="~/.mutt/cache/raithlin/bodies"
+set header_cache="~/.mutt/cache/raithlin/headers"
+set from = "sbates@raithlin.com"
+set realname = "Stephen Bates"

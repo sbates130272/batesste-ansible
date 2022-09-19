@@ -15,6 +15,7 @@
       - fio
       - git
       - gpg-agent
+      - mutt
       - sysstat
       - tree
     state: latest

@@ -1,0 +1,163 @@
+# Copyright (c) Stephen Bates, 2022
+#
+# Set up the command line tool mutt with my sbates@raithlin.com
+# email. This enables the receiving and sending of email. Sending is
+# especially useful for open-source patches for things like the Linux
+# kernel and fio.
+#
+# Note we assume mutt is already installed.
+#
+# See this Role's README.md for more information.
+#
+
+- name: Create the mutt headers folder for raithlin
+  ansible.builtin.file:
+    path: /home/batesste/.mutt/cache/raithlin/headers
+    state: directory
+    owner: batesste
+    group: batesste
+    mode: "0755"
+
+- name: Create the mutt headers folder for gmail
+  ansible.builtin.file:
+    path: /home/batesste/.mutt/cache/gmail/headers
+    state: directory
+    owner: batesste
+    group: batesste
+    mode: "0755"
+
+- name: Create the mutt bodies folder for raithlin
+  ansible.builtin.file:
+    path: /home/batesste/.mutt/cache/raithlin/bodies
+    state: directory
+    owner: batesste
+    group: batesste
+    mode: "0755"
+
+- name: Create the mutt tmp folder
+  ansible.builtin.file:
+    path: /home/batesste/.mutt/tmp
+    state: directory
+    owner: batesste
+    group: batesste
+    mode: "0755"
+
+- name: Create the mutt language folder
+  ansible.builtin.file:
+    path: /home/batesste/.mutt/lang
+    state: directory
+    owner: batesste
+    group: batesste
+    mode: "0755"
+
+- name: Create the mutt scripts folder
+  ansible.builtin.file:
+    path: /home/batesste/.mutt/scripts
+    state: directory
+    owner: batesste
+    group: batesste
+    mode: "0755"
+
+- name: Create the mutt tokens folder
+  ansible.builtin.file:
+    path: /home/batesste/.mutt/tokens
+    state: directory
+    owner: batesste
+    group: batesste
+    mode: "0755"
+
+- name: Create the mutt bodies folder for gmail
+  ansible.builtin.file:
+    path: /home/batesste/.mutt/cache/gmail/bodies
+    state: directory
+    owner: batesste
+    group: batesste
+    mode: "0755"
+
+- name: Create the mutt certificates file
+  ansible.builtin.file:
+    path: /home/batesste/.mutt/certificates
+    state: touch
+    owner: batesste
+    group: batesste
+    mode: "0655"
+
+- name: Copy mutt user file for raithlin
+  ansible.builtin.copy:
+    src: user-raithlin
+    dest: /home/batesste/.mutt/
+    owner: batesste
+    group: batesste
+
+- name: Copy the mutt user file for gmail
+  ansible.builtin.copy:
+    src: user-gmail
+    dest: /home/batesste/.mutt/
+    owner: batesste
+    group: batesste
+
+- name: Copy the mutt signature file
+  ansible.builtin.copy:
+    src: batesste-signature
+    dest: /home/batesste/.mutt/
+    owner: batesste
+    group: batesste
+
+- name: Copy the mutt language file
+  ansible.builtin.copy:
+    src: en_CA
+    dest: /home/batesste/.mutt/lang/en_CA
+    owner: batesste
+    group: batesste
+
+- name: Copy the mutt configuration file
+  ansible.builtin.copy:
+    src: muttrc
+    dest: /home/batesste/.mutt/muttrc
+    owner: batesste
+    group: batesste
+
+- name: Copy the mutt token file for Raithlin
+  ansible.builtin.copy:
+    src: sbates@raithlin.com.token
+    dest: /home/batesste/.mutt/tokens
+    owner: batesste
+    group: batesste
+    mode: "0600"
+
+- name: Copy the mutt token file for Gmail
+  ansible.builtin.copy:
+    src: sbates130272@gmail.com.token
+    dest: /home/batesste/.mutt/tokens
+    owner: batesste
+    group: batesste
+    mode: "0600"
+
+- name: Copy the mutt_oauth2.py file
+  ansible.builtin.copy:
+    src: mutt_oauth2.py
+    dest: /home/batesste/.mutt/scripts/
+    owner: batesste
+    group: batesste
+    mode: "0755"
+
+- name: Replace the Google Client Secret token with the actual value from vault
+  ansible.builtin.replace:
+    path: /home/batesste/.mutt/scripts/mutt_oauth2.py
+    regexp: "<GOOGLE_CLIENT_SECRET>"
+    replace: "{{ google_oauth2_client_secret }}"
+
+- name: Update .bashrc with some mutt specific environment variables.
+  ansible.builtin.blockinfile:
+    path: /home/batesste/.bashrc
+    owner: batesste
+    group: batesste
+    state: present
+    create: true
+    marker_begin: "BEGIN (mutt_setup)" 
+    marker_end: "END (mutt_setup)" 
+    block: |
+      EMAIL=sbates@raithlin.com
+      export EMAIL
+      MAIL=/home/batesste/.mutt/MAIL
+      export MAIL

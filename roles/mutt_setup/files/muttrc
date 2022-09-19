@@ -1,0 +1,36 @@
+# muttrc: Mutt configuration file.
+
+# setup hooks for both Raithlin and Gmail
+folder-hook 'raithlin' 'source ~/.mutt/user-raithlin'
+folder-hook 'gmail' 'source ~/.mutt/user-gmail'
+
+# switch to default account on startup
+source ~/.mutt/user-raithlin
+
+# macros to switch accounts
+macro index <f2> '<sync-mailbox><enter-command>source ~/.mutt/user-raithlin<enter><change-folder>!<enter>'
+macro index <f3> '<sync-mailbox><enter-command>source ~/.mutt/user-gmail<enter><change-folder>!<enter>'
+
+# Loading language properties
+source "~/.mutt/lang/en_CA"
+
+# imap settings
+set imap_check_subscribed="yes"
+set imap_list_subscribed="yes"
+set timeout=15
+set mail_check=90
+set imap_keepalive=180
+set imap_idle
+unset mark_old
+set ssl_use_sslv3=yes
+
+# smtp settings
+set ssl_force_tls = yes
+set ssl_starttls = yes
+
+# file storage settings
+set signature="~/.mutt/batesste-signature"
+set tmpdir="~/.mutt/tmp"
+
+# editor setting
+set editor="emacs"
