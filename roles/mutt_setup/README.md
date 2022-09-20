@@ -21,8 +21,16 @@ For some more good information on how to setup mutt for Gmail and
 Office365 see [this][moreinfo] and [this][evenmoreinfo]. But to be
 honest I found the instructions [here][oauth2] the best.
 
+## Compatability
+
+Note that OAuth2 support was only added in [mutt 2.0][mutt2.0] so
+while the script runs on Ubuntu 20.04 (which includes mutt 1.13.2) it
+will not allow you to access email. Instead use Ubuntu 22.04 (or
+later).
+
 [mutt]: http://www.mutt.org/
 [oauth2]: https://gitlab.com/muttmua/mutt/-/blob/master/contrib/mutt_oauth2.py.README
 [add_batesste]: ../roles/add_batesste
 [moreinfo]: https://kinsta.com/knowledgebase/office-365-smtp/
 [evenmoreinfo]: https://github.com/ork/mutt-office365
+[mutt2.0]: http://www.mutt.org/relnotes/2.0/
