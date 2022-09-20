@@ -59,3 +59,9 @@
     block: |
       GPG_TTY=$(tty)
       export GPG_TTY
+
+- name: Setup default merge behaviour
+  community.general.git_config:
+    name: pull.rebase
+    value: "false"
+    scope: global
