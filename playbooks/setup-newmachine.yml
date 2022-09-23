@@ -25,3 +25,6 @@
     - role: "mutt_setup"
       remote_user: batesste
       become: no
+    - role: "kernel-setup"
+      remote_user: batesste
+      become: no
