@@ -1,0 +1,34 @@
+# Copyright (c) Stephen Bates, 2022
+#
+# Set up the eideticom-scripts repo in ~/.bin/ folder and ensure that
+# folder is added to the user's path. See [1] for the repo for these
+# scripts and an explanation on what they do.
+#
+# [1]: https://github.com/Eideticom/eideticom-scripts
+
+- name: Create ~/.local/bin directory if it does not already exist
+  ansible.builtin.file:
+    path: /home/batesste/.local/bin
+    state: directory
+    owner: batesste
+    group: batesste
+    mode: "0755"
+
+- name: Checkout eideticom-scripts in the relevant folder. Update if needed.
+  ansible.builtin.git:
+    repo: git@github.com:Eideticom/eideticom-scripts.git
+    dest: ~/.local/bin/eideticom-scripts
+    accept_hostkey: yes
+    force: yes
+
+- name: Add a block to .bashrc that adds the ~/.bin folder to path.
+  ansible.builtin.blockinfile:
+    path: /home/batesste/.bashrc
+    owner: batesste
+    group: batesste
+    state: present
+    create: true
+    marker_begin: "BEGIN (eideticom-scripts)" 
+    marker_end: "END (eideticom-scripts)" 
+    block: |
+      export PATH="$HOME/.local/bin:$HOME/.local/bin/eideticom-scripts:$PATH"
