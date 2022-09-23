@@ -10,24 +10,31 @@
   hosts: awsmachines
   gather_facts: no
   roles:
-    - role: "add_batesste"
+    - role: "add-batesste"
       remote_user: "{{ root_user }}"
       become: yes
-    - role: "fave_packages"
+      tags: [add-batesste]
+    - role: "fave-packages"
       remote_user: batesste
       become: yes
-    - role: "tmux_scripts"
+      tags: [fave-packages]
+    - role: "tmux-scripts"
       remote_user: batesste
       become: no
+      tags: [tmux-scripts]
     - role: "eideticom-scripts"
       remote_user: batesste
       become: no
-    - role: "git_setup"
+      tags: [eideticom-scripts]
+    - role: "git-setup"
       remote_user: batesste
       become: no
-    - role: "mutt_setup"
+      tags: [git-setup]
+    - role: "mutt-setup"
       remote_user: batesste
       become: no
+      tags: [mutt-setup]
     - role: "kernel-setup"
       remote_user: batesste
       become: no
+      tags: [kernel-setup]
