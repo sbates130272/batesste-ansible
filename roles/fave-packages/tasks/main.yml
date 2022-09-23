@@ -3,9 +3,10 @@
 # Create the user batesste and make them a sudoer. Also copy in my SSH
 # key file so I can use it inside the new machine.
 
-- name: Update package cache (assumes apt)
+- name: Update package cache (assumes apt) and upgrade all packages
   ansible.builtin.apt:
     update_cache: yes
+    upgrade: 'yes'
 
 - name: Install my favourite packages
   ansible.builtin.package:
@@ -15,6 +16,8 @@
       - fio
       - git
       - gpg-agent
+      - libaio-dev
+      - liburing-dev
       - mutt
       - sysstat
       - tree
