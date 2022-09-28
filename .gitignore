@@ -3,3 +3,6 @@
 
 # Ansible hosts file
 playbooks/hosts
+
+# Ansible vault password file
+playbooks/vault
