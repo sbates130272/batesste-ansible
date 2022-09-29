@@ -38,3 +38,7 @@
       remote_user: batesste
       become: no
       tags: [kernel-setup]
+    - role: "fio-devel"
+      remote_user: batesste
+      become: no
+      tags: [fio-devel]
