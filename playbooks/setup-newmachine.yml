@@ -1,44 +1,43 @@
 # Copyright (c) Stephen Bates, 2022
 #
-# This playbook takes a brand new machine and adds me as a user and
-# then setups up things the way I like. It also setups remove ssh and
+# This playbook takes a brand new machine and adds a user and then
+# setups up things the way I like. It also setups remote ssh and
 # installs my ssh keys and gnupgp keyring. Note we assume an initial
-# user on the machine called eid and this may need to be made a
-# variable.
+# user on the machine given by the {{ root_user }} variable.
 
-- name: Setup batesste account and install my favourite stuff on a new machine
+- name: Setup user account and install cool stuff on a new machine
   hosts: awsmachines
   gather_facts: no
   roles:
-    - role: "add-batesste"
+    - role: "user-setup"
       remote_user: "{{ root_user }}"
       become: yes
-      tags: [add-batesste]
+      tags: [user-setup]
     - role: "fave-packages"
-      remote_user: batesste
+      remote_user: "{{ username }}"
       become: yes
       tags: [fave-packages]
     - role: "tmux-scripts"
-      remote_user: batesste
+      remote_user: "{{ username }}"
       become: no
       tags: [tmux-scripts]
     - role: "eideticom-scripts"
-      remote_user: batesste
+      remote_user: "{{ username }}"
       become: no
       tags: [eideticom-scripts]
     - role: "git-setup"
-      remote_user: batesste
+      remote_user: "{{ username }}"
       become: no
       tags: [git-setup]
     - role: "mutt-setup"
-      remote_user: batesste
+      remote_user: "{{ username }}"
       become: no
       tags: [mutt-setup]
     - role: "kernel-setup"
-      remote_user: batesste
+      remote_user: "{{ username }}"
       become: no
       tags: [kernel-setup]
     - role: "fio-devel"
-      remote_user: batesste
+      remote_user: "{{ username }}"
       become: no
       tags: [fio-devel]

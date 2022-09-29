@@ -1,0 +1,47 @@
+# Copyright (c) Stephen Bates, 2022
+#
+# Create the user and make them a sudoer. Also copy in the SSH
+# key file so one can use it inside the new machine. Also make sure
+# one is a password-less sudo so we can execute other roles as
+# myself.
+
+- name: Create an account for the specified user
+  ansible.builtin.user:
+    name: "{{ username }}"
+    groups: users,admin
+    append: true
+    shell: /bin/bash
+
+- name: Set authorized key for the user from local file
+  authorized_key:
+    user: "{{ username }}"
+    state: present
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+- name: Set user as passwordless sudoer
+  ansible.builtin.blockinfile:
+    path: /etc/sudoers.d/10-ansible-added-users
+    owner: root
+    group: root
+    state: present
+    create: true
+    block: |
+      # Added by Ansible
+      {{ username }} ALL=(ALL) NOPASSWD:ALL
+
+- name: Copy SSH private key
+  ansible.builtin.copy:
+    force: yes
+    src: ~/.ssh/id_rsa
+    dest: ~/.ssh/id_rsa
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0600'
+
+- name: Copy SSH public key
+  ansible.builtin.copy:
+    force: yes
+    src: ~/.ssh/id_rsa.pub
+    dest: ~/.ssh/id_rsa.pub
+    owner: "{{ username }}"
+    group: "{{ username }}"

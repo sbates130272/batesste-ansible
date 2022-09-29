@@ -5,38 +5,38 @@
 
 - name: Checkout kernel-tools repo
   ansible.builtin.git:
-    repo: git@github.com:sbates130272/kernel-tools.git
-    dest: /home/batesste/kernel
+    repo: https://github.com/sbates130272/kernel-tools.git
+    dest: ~/kernel
     accept_hostkey: yes
     force: yes
 
 - name: Create a kernel source folder
   ansible.builtin.file:
-    path: /home/batesste/kernel/src
+    path: ~/kernel/src
     state: directory
-    owner: batesste
-    group: batesste
+    owner: "{{ username }}"
+    group: "{{ username }}"
     mode: "0755"
 
 - name: Copy over the Linux kernel git bundle script
   ansible.builtin.get_url:
     url: '{{ clone_script }}'
     dest: /tmp/linux-bundle-clone
-    owner: batesste
-    group: batesste
+    owner: "{{ username }}"
+    group: "{{ username }}"
     mode: "0775"
 
 - name: Clone the Linux kernel Linus repo (if it has not already been cloned) via git bundle (slow!!)
   ansible.builtin.command:
-    chdir: /home/batesste/kernel
+    chdir: ~/kernel
     cmd: /tmp/linux-bundle-clone '{{ linus_remote }}' src '{{ branch_checkout }}'
-    creates: /home/batesste/kernel/src/MAINTAINERS
+    creates: ~/kernel/src/MAINTAINERS
   when: |
     clone
 
 - name: Ensure linus remote is added
   git_config:
-        repo: /home/batesste/kernel/src/
+        repo: ~/kernel/src/
         scope: 'local'
         name: 'remote.stable.url'
         value: '{{ stable_remote }}'
@@ -45,7 +45,7 @@
 
 - name: Ensure stable remote is added
   git_config:
-        repo: /home/batesste/kernel/src/
+        repo: ~/kernel/src/
         scope: 'local'
         name: 'remote.stable.url'
         value: '{{ stable_remote }}'

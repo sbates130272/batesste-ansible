@@ -8,10 +8,10 @@
 
 - name: Create ~/.local/bin directory if it does not already exist
   ansible.builtin.file:
-    path: /home/batesste/.local/bin
+    path: ~/.local/bin
     state: directory
-    owner: batesste
-    group: batesste
+    owner: "{{ username }}"
+    group: "{{ username }}"
     mode: "0755"
 
 - name: Checkout eideticom-scripts in the relevant folder. Update if needed.
@@ -23,9 +23,9 @@
 
 - name: Add a block to .bashrc that adds the ~/.bin folder to path.
   ansible.builtin.blockinfile:
-    path: /home/batesste/.bashrc
-    owner: batesste
-    group: batesste
+    path: ~/.bashrc
+    owner: "{{ username }}"
+    group: "{{ username }}"
     state: present
     create: true
     marker_begin: "BEGIN (eideticom-scripts)" 

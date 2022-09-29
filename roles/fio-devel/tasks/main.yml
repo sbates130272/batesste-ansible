@@ -49,11 +49,11 @@
 
 - name: Make fio
   ansible.builtin.shell:
-    chdir: /home/batesste/fio
+    chdir: ~/fio
     cmd: make -j ${nproc}
 
 - name: Install fio in desired folder
   ansible.builtin.shell:
-    chdir: /home/batesste/fio
+    chdir: /home/{{ username }}/fio
     cmd: make install
   become: yes
