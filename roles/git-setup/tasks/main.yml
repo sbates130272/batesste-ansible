@@ -1,7 +1,7 @@
 # Copyright (c) Stephen Bates, 2022
 #
 # Set up git just the way I like it. This includes Gnupg signing,
-# editor setup, name and email (global for batesste). Note this
+# editor setup, name and email (global for {{ username }}). Note this
 # assumes some other roles have been run before this one.
 #
 # Note some of these tasks need:
@@ -11,9 +11,9 @@
 - name: Copy over gnupg folder to ensure PGP keys are on target(s)
   ansible.builtin.copy:
     src: ~/.gnupg/
-    dest: /home/batesste/.gnupg/
-    owner: batesste
-    group: batesste
+    dest: ~/.gnupg/
+    owner: "{{ username }}"
+    group: "{{ username }}"
     mode: "0600"
     force: yes
 
@@ -49,9 +49,9 @@
 
 - name: Setup gpg-agent correctly in .bashrc
   ansible.builtin.blockinfile:
-    path: /home/batesste/.bashrc
-    owner: batesste
-    group: batesste
+    path: ~/.bashrc
+    owner: "{{ username }}"
+    group: "{{ username }}"
     state: present
     create: true
     marker_begin: "BEGIN (git_setup)"

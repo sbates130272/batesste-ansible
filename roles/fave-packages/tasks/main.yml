@@ -1,15 +1,11 @@
 # Copyright (c) Stephen Bates, 2022
 #
-# Create the user batesste and make them a sudoer. Also copy in my SSH
-# key file so I can use it inside the new machine.
-
-- name: Update package cache (assumes apt) and upgrade all packages
-  ansible.builtin.apt:
-    update_cache: yes
-    upgrade: 'yes'
+# 
+# Update cache and install favourite packages.
 
 - name: Install my favourite packages
   ansible.builtin.package:
+    update_cache: yes
     name:
       - build-essential
       - emacs-nox
