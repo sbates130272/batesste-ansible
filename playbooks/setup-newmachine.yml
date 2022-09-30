@@ -41,3 +41,8 @@
       remote_user: "{{ username }}"
       become: no
       tags: [fio-devel]
+    - role: "aws-grub"
+      remote_user: "{{ username }}"
+      become: yes
+      tags: [aws-grub]
+      when: inventory_hostname in groups['awsmachines']
