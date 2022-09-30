@@ -1,0 +1,18 @@
+# Copyright (c) Stephen Bates, 2022
+#
+# Set up grub on AWS instances.
+#
+# See this Role's README.md for more information.
+#
+
+- name: Copy grub settings for AWS console access
+  ansible.builtin.copy:
+    src: 50-cloudimg-settings.cfg
+    dest: /etc/default/grub.d/
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Update grub
+  ansible.builtin.shell:
+    cmd: update-grub
