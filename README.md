@@ -19,6 +19,24 @@ or hostname and port in playbooks/hosts and run something like:
 ```
 ansible-playbook -i hosts <playbook-name>.yml
 ```
+### AWS Example
+
+Assuming you have setup a basic Ubuntu 22.04 EC2 instance on AWS you
+can create a hosts file like this:
+```
+[awsmachines]
+52.11.127.216
+[awsmachines:vars]
+root_user=ubuntu
+username=batesste
+```
+and then run
+```
+ansible-playbook -i hosts setup-newmachine.yml --ask-vault-pass
+```
+You can then enter your ansible-vault password at the prompt and
+things should work from there...
+
 ## Roles Information
 
 Some of the more involved roles have their own README.md. Please refer
