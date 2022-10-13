@@ -5,6 +5,14 @@
 # one is a password-less sudo so we can execute other roles as
 # myself.
 
+- name: Ensure the user and admin groups exist
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - users
+    - admin
+
 - name: Create an account for the specified user
   ansible.builtin.user:
     name: "{{ username }}"
@@ -33,7 +41,7 @@
   ansible.builtin.copy:
     force: yes
     src: ~/.ssh/id_rsa
-    dest: ~/.ssh/id_rsa
+    dest: /home/{{ username }}/.ssh/id_rsa
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: '0600'
@@ -42,6 +50,6 @@
   ansible.builtin.copy:
     force: yes
     src: ~/.ssh/id_rsa.pub
-    dest: ~/.ssh/id_rsa.pub
+    dest: /home/{{ username }}/.ssh/id_rsa.pub
     owner: "{{ username }}"
     group: "{{ username }}"
