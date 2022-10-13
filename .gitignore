@@ -4,5 +4,6 @@
 # Ansible hosts file
 playbooks/hosts
 
-# Ansible vault password file
-playbooks/vault
+# Ansible password files
+playbooks/vault-password
+playbooks/sudo-password
