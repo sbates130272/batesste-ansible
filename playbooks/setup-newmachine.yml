@@ -6,7 +6,7 @@
 # user on the machine given by the {{ root_user }} variable.
 
 - name: Setup user account and install cool stuff on a new machine
-  hosts: awsmachines
+  hosts: "{{ targets }}"
   gather_facts: no
   roles:
     - role: "user-setup"
@@ -17,6 +17,10 @@
       remote_user: "{{ username }}"
       become: yes
       tags: [fave-packages]
+    - role: "git-setup"
+      remote_user: "{{ username }}"
+      become: no
+      tags: [git-setup]
     - role: "tmux-scripts"
       remote_user: "{{ username }}"
       become: no
@@ -25,10 +29,6 @@
       remote_user: "{{ username }}"
       become: no
       tags: [eideticom-scripts]
-    - role: "git-setup"
-      remote_user: "{{ username }}"
-      become: no
-      tags: [git-setup]
     - role: "mutt-setup"
       remote_user: "{{ username }}"
       become: no
