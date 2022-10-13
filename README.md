@@ -37,6 +37,25 @@ ansible-playbook -i hosts setup-newmachine.yml --ask-vault-pass
 You can then enter your ansible-vault password at the prompt and
 things should work from there...
 
+### run-ansible
+
+There is also a simple bash script that can call ansible-playbook for
+you. You do not have to use this but if you do want to use it you need
+to create three local files.
+
+1. A hosts file, call this what you like.
+1. sudo-password, a file with the sudo password for the remote user in
+it. Not all modes of execution need this.
+1. vault-password, a file with the ansible-vault password in it. Never
+check this in! Only some roles need this.
+
+You can then invoke a given playbook with the following
+```
+PLAYBOOK=<playbook-file> HOSTS=<host-file> TARGETS=<target-group> ./run-ansible [<extra-args>]
+```
+The optional ```extra-args``` will be appended to the call to
+ansible-playbook.
+
 ## Roles Information
 
 Some of the more involved roles have their own README.md. Please refer

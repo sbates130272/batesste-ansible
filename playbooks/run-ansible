@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# Copyright (C) Stephen Bates, 2022
+#
+# A single call to ansible-playbook that works for
+# batesste-ansible. See README.md for more information.
+
+PLAYBOOK=${PLAYBOOK:-setup-newmachine.yml}
+HOSTS=${HOSTS:-hosts}
+TARGETS=${TARGETS:-localvms}
+
+if [ ! -f ${HOSTS} ]; then
+    echo "${HOSTS} does not exist. Exiting!"
+    exit -1
+fi
+
+if [ ! -f vault-password ]; then
+    echo "vault-password does not exist. Exiting!"
+    exit -1
+fi
+
+if [ ! -f sudo-password ]; then
+    echo "sudo-password does not exist. Exiting!"
+    exit -1
+fi
+
+
+ansible-playbook ${PLAYBOOK} \
+  -i ${HOSTS} \
+  --vault-password-file vault-password \
+  --become-password-file sudo-password \
+  --extra-vars targets=${TARGETS} $*
