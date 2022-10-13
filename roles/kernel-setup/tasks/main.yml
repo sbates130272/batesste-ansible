@@ -10,14 +10,6 @@
     accept_hostkey: yes
     force: yes
 
-- name: Create a kernel source folder
-  ansible.builtin.file:
-    path: ~/kernel/src
-    state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0755"
-
 - name: Copy over the Linux kernel git bundle script
   ansible.builtin.get_url:
     url: '{{ clone_script }}'
@@ -25,23 +17,37 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0775"
+  when: clone
 
 - name: Clone the Linux kernel Linus repo (if it has not already been cloned) via git bundle (slow!!)
   ansible.builtin.command:
     chdir: ~/kernel
     cmd: /tmp/linux-bundle-clone '{{ linus_remote }}' src '{{ branch_checkout }}'
     creates: ~/kernel/src/MAINTAINERS
-  when: |
-    clone
+  when: clone
 
-- name: Ensure linus remote is added
+- name: Create a kernel source folder when not cloning
+  ansible.builtin.file:
+    path: ~/kernel/src
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  when: not clone
+
+- name: Perform a git init in source folder when not cloning
+  ansible.builtin.shell:
+    cmd: git init
+    chdir: ~/kernel/src
+  when: not clone
+
+- name: Ensure linus remote is added when not cloning
   git_config:
         repo: ~/kernel/src/
         scope: 'local'
-        name: 'remote.stable.url'
-        value: '{{ stable_remote }}'
-  when: |
-    not clone
+        name: 'remote.linus.url'
+        value: '{{ linus_remote }}'
+  when: not clone
 
 - name: Ensure stable remote is added
   git_config:
