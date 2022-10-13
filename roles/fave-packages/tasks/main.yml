@@ -7,6 +7,7 @@
   ansible.builtin.package:
     update_cache: yes
     name:
+      - bmon
       - build-essential
       - emacs-nox
       - fio
