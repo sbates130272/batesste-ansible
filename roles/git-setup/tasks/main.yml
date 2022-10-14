@@ -9,13 +9,12 @@
 # ansible-galaxy collection install community.general
 
 - name: Copy over gnupg folder to ensure PGP keys are on target(s)
-  ansible.builtin.copy:
+  ansible.posix.synchronize:
     src: ~/.gnupg/
     dest: ~/.gnupg/
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0600"
-    force: yes
+    rsync_opts:
+       - "--exclude=S.*"
+       - "--exclude=*~"
 
 - name: Setup emacs as git editor
   community.general.git_config:
