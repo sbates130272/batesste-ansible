@@ -1,3 +1,4 @@
+---
 # Copyright (c) Stephen Bates, 2022
 #
 # Setup the target system(s) for QEMU. Note we do this regardless of
@@ -10,7 +11,8 @@
 
 - name: Install packages needed for QEMU and libvirt
   ansible.builtin.package:
-    update_cache: "{{ qemu_setup_update_cache }}"
+    update_cache: true
+    state: present
     name:
       - bridge-utils
       - cloud-image-utils
@@ -20,34 +22,32 @@
       - qemu-kvm
       - virt-manager
       - virtinst
-  become: yes
+  become: true
 
 - name: Start relevant systemd services
   ansible.builtin.systemd:
     name: libvirtd
     state: restarted
-    daemon_reload: yes
-    enabled: yes
-  become: yes
+    daemon_reload: true
+    enabled: true
+  become: true
 
-- name: Add {{ username }} to groups
+- name: Add user to virt groups
   ansible.builtin.user:
-    name: '{{ username }}'
+    name: "{{ username }}"
     groups: kvm, libvirt
-    append: yes
-  become: yes
+    append: true
+  become: true
 
 - name: Ensure Projects folder exists.
   ansible.builtin.file:
     path: ~/Projects
     state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
     mode: "0755"
 
 - name: Clone the qemu-minimal Github repo
   ansible.builtin.git:
-    repo: https://github.com/sbates130272/qemu-minimal.git
+    repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/qemu-minimal.git', 'https://github.com/sbates130272/qemu-minimal.git') }}"
     dest: ~/Projects/qemu-minimal
-    force: no
-    version: '{{ qemu_setup_qemu_minimal_tag }}'
+    force: "{{ qemu_setup_force }}"
+    version: "{{ qemu_setup_qemu_minimal_tag }}"

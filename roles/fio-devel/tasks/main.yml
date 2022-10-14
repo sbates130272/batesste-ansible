@@ -1,3 +1,4 @@
+---
 # Copyright (c) Stephen Bates, 2022
 #
 # Clone the upstream fio repo from Jens and checkout the SHA given by
@@ -5,9 +6,8 @@
 # run specific tests are included and also update this version of fio
 # to the PATH.
 
-- name: Update cache and install fio related favourite packages
+- name: Install fio related packages
   ansible.builtin.package:
-    update_cache: yes
     name:
       - gettext
       - libaio-dev
@@ -19,7 +19,7 @@
       - linux-tools-common
       - nvme-cli
       - pkg-config
-  become: yes
+  become: true
 
 - name: Gather the kernel fact on the remote when on AWS
   ansible.builtin.setup:
@@ -27,33 +27,18 @@
       - kernel
   when: inventory_hostname in groups['awsmachines']
 
-- name: Install fio related favourite packages when on AWS
+- name: Install fio related packages when on AWS
   ansible.builtin.package:
     name:
       - linux-tools-{{ ansible_kernel }}
       - linux-tools-aws
-  become: yes
+  become: true
   when: inventory_hostname in groups['awsmachines']
 
 - name: Checkout upstream fio repo from Github
   ansible.builtin.git:
     repo: https://github.com/axboe/fio.git
     dest: ~/fio
-    force: yes
-    version: '{{ fio_tag }}'
-
-- name: Configure fio and record output of the configuration
-  ansible.builtin.shell:
-    chdir: ~/fio
-    cmd: ./configure --prefix='{{ fio_install_dir }}' | tee config.tee
-
-- name: Make fio
-  ansible.builtin.shell:
-    chdir: ~/fio
-    cmd: make -j ${nproc}
-
-- name: Install fio in desired folder
-  ansible.builtin.shell:
-    chdir: /home/{{ username }}/fio
-    cmd: make install
-  become: yes
+    force: true
+    version: "{{ fio_tag }}"
+  notify: Configure, build and install fio

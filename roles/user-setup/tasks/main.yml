@@ -1,3 +1,4 @@
+---
 # Copyright (c) Stephen Bates, 2022
 #
 # Create the user and make them a sudoer. Also copy in the SSH
@@ -21,7 +22,7 @@
     shell: /bin/bash
 
 - name: Set authorized key for the user from local file
-  authorized_key:
+  ansible.posix.authorized_key:
     user: "{{ username }}"
     state: present
     key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
@@ -33,37 +34,40 @@
     group: root
     state: present
     create: true
+    mode: "0644"
     block: |
       # Added by Ansible
       {{ username }} ALL=(ALL) NOPASSWD:ALL
 
 - name: Copy SSH private key
   ansible.builtin.copy:
-    force: yes
+    force: true
     src: ~/.ssh/id_rsa
     dest: /home/{{ username }}/.ssh/id_rsa
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: '0600'
+    mode: "0600"
 
 - name: Copy SSH public key
   ansible.builtin.copy:
-    force: yes
+    force: true
     src: ~/.ssh/id_rsa.pub
     dest: /home/{{ username }}/.ssh/id_rsa.pub
     owner: "{{ username }}"
     group: "{{ username }}"
+    mode: "0644"
 
 - name: Ensure users can access dmesg without sudo
   ansible.builtin.blockinfile:
     path: /etc/sysctl.d/10-kernel-hardening.conf
     state: present
     create: false
-    marker_begin: "BEGIN (user-setup)"
-    marker_end: "END (user-setup)"
+    marker_begin: BEGIN (user-setup)
+    marker_end: END (user-setup)
     block: |
       kernel.dmesg_restrict = 0
 
 - name: Restart procps service so dmesg rule takes effect
-  ansible.builtin.shell:
-    cmd: service procps restart
+  ansible.builtin.service:
+    service: procps
+    state: restarted

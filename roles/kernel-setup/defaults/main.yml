@@ -1,13 +1,13 @@
+---
 # Copyright (c) Stephen Bates, 2022
 
-# Do we update when we install packages
-update_cache: no
+kernel_setup_tools_sha: d707fb96c3d2284fd4923eaf0dec36ce08d0c004
 
 # Do we force a clean setup?
-force: false
+kernel_setup_force: false
 
 # Linus Remote
-linus_remote: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+kernel_setup_linus_remote: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
 
 # Stable Remote
-stable_remote: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+kernel_setup_stable_remote: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git

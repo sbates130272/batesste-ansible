@@ -21,7 +21,7 @@ For some more good information on how to setup mutt for Gmail and
 Office365 see [this][moreinfo] and [this][evenmoreinfo]. But to be
 honest I found the instructions [here][oauth2] the best.
 
-## Compatability
+## Compatibility
 
 Note that OAuth2 support was only added in [mutt 2.0][mutt2.0] so
 while the script runs on Ubuntu 20.04 (which includes mutt 1.13.2) it
