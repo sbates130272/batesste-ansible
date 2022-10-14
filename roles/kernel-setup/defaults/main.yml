@@ -10,7 +10,7 @@ clone_script: https://git.kernel.org/pub/scm/linux/kernel/git/mricon/korg-helper
 linus_remote: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
 
 # Stable Remote
-stable_remote: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/ 
+stable_remote: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
 
 # Branch to checkout
 branch_checkout: master

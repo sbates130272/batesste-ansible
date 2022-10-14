@@ -10,7 +10,22 @@
     accept_hostkey: yes
     force: yes
 
-- name: Copy over the Linux kernel git bundle script
+- name: Create a kernel source folder when not cloning
+  ansible.builtin.file:
+    path: ~/kernel/src
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  when: not clone
+
+- name: Ensure no kernel source folder when cloning
+  ansible.builtin.file:
+    path: ~/kernel/src
+    state: absent
+  when: clone
+
+- name: Copy over the Linux kernel git bundle script when cloning
   ansible.builtin.get_url:
     url: '{{ clone_script }}'
     dest: /tmp/linux-bundle-clone
@@ -25,15 +40,6 @@
     cmd: /tmp/linux-bundle-clone '{{ linus_remote }}' src '{{ branch_checkout }}'
     creates: ~/kernel/src/MAINTAINERS
   when: clone
-
-- name: Create a kernel source folder when not cloning
-  ansible.builtin.file:
-    path: ~/kernel/src
-    state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0755"
-  when: not clone
 
 - name: Perform a git init in source folder when not cloning
   ansible.builtin.shell:
