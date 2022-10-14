@@ -1,7 +1,10 @@
+---
 # Copyright (c) Stephen Bates, 2022
 
+kernel_setup_tools_sha: d707fb96c3d2284fd4923eaf0dec36ce08d0c004
+
 # Do we update when we install packages
-update_cache: no
+update_cache: false
 
 # Do we force a clean setup?
 force: false

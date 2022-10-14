@@ -1,11 +1,12 @@
+---
 # Copyright (c) Stephen Bates, 2022
 #
-# 
+#
 # Update cache and install favourite packages.
 
 - name: Install my favourite packages
   ansible.builtin.package:
-    update_cache: yes
+    update_cache: true
     name:
       - bmon
       - build-essential
@@ -18,4 +19,4 @@
       - mutt
       - sysstat
       - tree
-    state: latest
+    state: present

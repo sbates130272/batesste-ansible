@@ -1,3 +1,4 @@
+---
 # Copyright (c) Stephen Bates, 2022
 #
 # This playbook takes a brand new machine and adds a user and then
@@ -7,47 +8,47 @@
 
 - name: Setup user account and install cool stuff on a new machine
   hosts: "{{ targets }}"
-  gather_facts: no
+  gather_facts: false
   roles:
-    - role: "user-setup"
+    - role: user-setup
       remote_user: "{{ root_user }}"
-      become: yes
+      become: true
       tags: [user-setup]
-    - role: "fave-packages"
+    - role: fave-packages
       remote_user: "{{ username }}"
-      become: yes
+      become: true
       tags: [fave-packages]
-    - role: "git-setup"
+    - role: git-setup
       remote_user: "{{ username }}"
-      become: no
+      become: false
       tags: [git-setup]
-    - role: "tmux-scripts"
+    - role: tmux-scripts
       remote_user: "{{ username }}"
-      become: no
+      become: false
       tags: [tmux-scripts]
-    - role: "eideticom-scripts"
+    - role: eideticom-scripts
       remote_user: "{{ username }}"
-      become: no
+      become: false
       tags: [eideticom-scripts]
-    - role: "mutt-setup"
+    - role: mutt-setup
       remote_user: "{{ username }}"
-      become: no
+      become: false
       tags: [mutt-setup]
-    - role: "kernel-setup"
+    - role: kernel-setup
       remote_user: "{{ username }}"
-      become: no
+      become: false
       tags: [kernel-setup]
-    - role: "fio-devel"
+    - role: fio-devel
       remote_user: "{{ username }}"
-      become: no
+      become: false
       tags: [fio-devel]
-    - role: "aws-grub"
+    - role: aws-grub
       remote_user: "{{ username }}"
-      become: yes
+      become: true
       tags: [aws-grub]
       when: inventory_hostname in groups['awsmachines']
-    - role: "qemu-setup"
+    - role: qemu-setup
       remote_user: "{{ username }}"
-      become: no
+      become: false
       tags: [qemu-setup]
       when: inventory_hostname not in groups['localvms']

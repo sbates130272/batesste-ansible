@@ -1,3 +1,4 @@
+---
 # Copyright (c) Stephen Bates, 2022
 #
 # Update for Linux kernel development. Note we setup the linux kernel
@@ -13,14 +14,15 @@
       - libelf-dev
       - libncurses-dev
       - libssl-dev
-  become: yes
+  become: true
 
 - name: Checkout kernel-tools repo
   ansible.builtin.git:
-    repo: https://github.com/sbates130272/kernel-tools.git
+    repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/kernel-tools.git', 'https://github.com/sbates130272/kernel-tools.git') }}"
     dest: ~/kernel
-    accept_hostkey: yes
-    force: yes
+    accept_hostkey: true
+    force: true
+    version: "{{ kernel_setup_tools_sha }}"
 
 - name: Remove the src folder when forcing
   ansible.builtin.file:
@@ -32,31 +34,30 @@
   ansible.builtin.file:
     path: ~/kernel/src
     state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
     mode: "0755"
 
 - name: Perform a git init in source folder
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: git init
     chdir: ~/kernel/src
+    creates: ~/kernel/src/.git
 
 - name: Ensure remotes are added
-  git_config:
+  community.general.git_config:
     repo: ~/kernel/src/
-    scope: 'local'
-    name: 'remote.{{ item.name }}.url'
-    value: '{{ item.remote }}'
+    scope: local
+    name: remote.{{ item.name }}.url
+    value: "{{ item.remote }}"
   loop:
-    - { name: 'linus', remote: "{{ linus_remote }}" }
-    - { name: 'stable', remote: "{{ stable_remote }}" }
+    - { name: linus, remote: "{{ linus_remote }}" }
+    - { name: stable, remote: "{{ stable_remote }}" }
 
 - name: Ensure fetching gets all branches
-  git_config:
+  community.general.git_config:
     repo: ~/kernel/src/
-    scope: 'local'
-    name: 'remote.{{ item }}.fetch'
-    value: "+refs/heads/*:refs/remotes/{{ item }}/*"
+    scope: local
+    name: remote.{{ item }}.fetch
+    value: +refs/heads/*:refs/remotes/{{ item }}/*
   loop:
     - linus
     - stable

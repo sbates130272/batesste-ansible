@@ -1,7 +1,8 @@
+---
 # Copyright (c) Stephen Bates, 2022
 
 # Do we update when we install packages
-qemu_setup_update_cache: no
+qemu_setup_update_cache: false
 
 # Do we force a clean setup?
 qemu_setup_force: false

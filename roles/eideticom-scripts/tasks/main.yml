@@ -1,3 +1,4 @@
+---
 # Copyright (c) Stephen Bates, 2022
 #
 # Set up the eideticom-scripts repo in ~/.bin/ folder and ensure that
@@ -10,25 +11,22 @@
   ansible.builtin.file:
     path: ~/.local/bin
     state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
     mode: "0755"
 
 - name: Checkout eideticom-scripts in the relevant folder. Update if needed.
   ansible.builtin.git:
     repo: git@github.com:Eideticom/eideticom-scripts.git
     dest: ~/.local/bin/eideticom-scripts
-    accept_hostkey: yes
-    force: yes
+    accept_hostkey: true
+    force: true
+    version: "{{ eideticom_scripts_sha }}"
+  when: username =='batesste'
 
 - name: Add a block to .bashrc that adds the ~/.bin folder to path.
   ansible.builtin.blockinfile:
     path: ~/.bashrc
-    owner: "{{ username }}"
-    group: "{{ username }}"
     state: present
-    create: true
-    marker_begin: "BEGIN (eideticom-scripts)" 
-    marker_end: "END (eideticom-scripts)" 
+    marker_begin: BEGIN (eideticom-scripts)
+    marker_end: END (eideticom-scripts)
     block: |
       export PATH="$HOME/.local/bin:$HOME/.local/bin/eideticom-scripts:$PATH"

@@ -1,0 +1,40 @@
+name: batesste-ansible Github Workflow
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Render the checkout directory safe for the lint step
+        run: git config --global --add safe.directory /github/workspace
+#      - name: GitHub spellcheck action
+#        uses: rojopolis/spellcheck-github-actions@0.27.0
+#      - name: Run ansible-lint
+#        uses: ansible-community/ansible-lint-action@main
+#      - name: Run the test playbook against the local runner
+#        run: ansible-playbook ./playbooks/${PLAYBOOK} -i ./playbooks/${HOSTS} --extra-vars targets=${TARGETS}
+#        env:
+#          PLAYBOOK: simple.yml
+#          TARGETS: locals
+#          HOSTS: hosts-ci
+      - name: Run whoami
+        run: whoami
+      - name: Create an SSH keypair
+        run: mkdir -p .ssh && ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+      - name: Create a GNU PGP folder
+        run: mkdir -p .gnupg 
+      - name: Run the default playbook against the local runner
+        run: ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} --extra-vars targets=${TARGETS}
+        working-directory: ./playbooks
+        env:
+          PLAYBOOK: setup-newmachine.yml
+          TARGETS: locals
+          HOSTS: hosts-ci
+          ANSIBLE_VAULT_PASSWORD_FILE: ./vault-env
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+#      - name: Open upterm connection to runner
+#        uses: lhotari/action-upterm@v1
+#        with:
+#          limit-access-to-users: sbates130272
