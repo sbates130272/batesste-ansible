@@ -53,3 +53,17 @@
     dest: /home/{{ username }}/.ssh/id_rsa.pub
     owner: "{{ username }}"
     group: "{{ username }}"
+
+- name: Ensure users can access dmesg without sudo
+  ansible.builtin.blockinfile:
+    path: /etc/sysctl.d/10-kernel-hardening.conf
+    state: present
+    create: false
+    marker_begin: "BEGIN (user-setup)"
+    marker_end: "END (user-setup)"
+    block: |
+      kernel.dmesg_restrict = 0
+
+- name: Restart procps service so dmesg rule takes effect
+  ansible.builtin.shell:
+    cmd: service procps restart
