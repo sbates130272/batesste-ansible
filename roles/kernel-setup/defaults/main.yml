@@ -1,16 +1,13 @@
 # Copyright (c) Stephen Bates, 2022
 
-# Do we clone the Linux kernel (takes up space and time). If not we just init and setup remotes.
-clone: false
+# Do we update when we install packages
+update_cache: no
 
-# Location of kernel.org script used to accelerate initial clone
-clone_script: https://git.kernel.org/pub/scm/linux/kernel/git/mricon/korg-helpers.git/plain/linux-bundle-clone
+# Do we force a clean setup?
+force: false
 
 # Linus Remote
 linus_remote: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
 
 # Stable Remote
 stable_remote: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
-
-# Branch to checkout
-branch_checkout: master
