@@ -154,8 +154,8 @@
     group: "{{ username }}"
     state: present
     create: true
-    marker_begin: "BEGIN (mutt_setup)" 
-    marker_end: "END (mutt_setup)" 
+    marker_begin: "BEGIN (mutt-setup)"
+    marker_end: "END (mutt-setup)"
     block: |
       EMAIL=sbates@raithlin.com
       export EMAIL
