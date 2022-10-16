@@ -11,6 +11,7 @@
       - bison
       - flex
       - libelf-dev
+      - libncurses-dev
       - libssl-dev
   become: yes
 
