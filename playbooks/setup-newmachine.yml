@@ -46,3 +46,8 @@
       become: yes
       tags: [aws-grub]
       when: inventory_hostname in groups['awsmachines']
+    - role: "qemu-setup"
+      remote_user: "{{ username }}"
+      become: no
+      tags: [qemu-setup]
+      when: inventory_hostname not in groups['localvms']

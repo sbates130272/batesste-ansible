@@ -1,0 +1,52 @@
+# Copyright (c) Stephen Bates, 2022
+#
+# Setup the target system(s) for QEMU. Note we do this regardless of
+# if KVM (or some other virtualization acceleration is available of
+# not). We install most of the QEMU user and system code and also
+# install libvirt and virsh. We also checkout the qemu-minimal
+# project. Much of this role is based on [1].
+#
+# [1]: https://www.linuxtechi.com/how-to-install-kvm-on-ubuntu-22-04/
+
+- name: Install packages needed for QEMU and libvirt
+  ansible.builtin.package:
+    update_cache: "{{ qemu_setup_update_cache }}"
+    name:
+      - bridge-utils
+      - cpu-checker
+      - libvirt-clients
+      - libvirt-daemon-system
+      - qemu-kvm
+      - virt-manager
+      - virtinst
+  become: yes
+
+- name: Start relevant systemd services
+  ansible.builtin.systemd:
+    name: libvirtd
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+  become: yes
+
+- name: Add {{ username }} to groups
+  ansible.builtin.user:
+    name: '{{ username }}'
+    groups: kvm, libvirt
+    append: yes
+  become: yes
+
+- name: Ensure Projects folder exists.
+  ansible.builtin.file:
+    path: ~/Projects
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Clone the qemu-minimal Github repo
+  ansible.builtin.git:
+    repo: https://github.com/sbates130272/qemu-minimal.git
+    dest: ~/Projects/qemu-minimal
+    force: no
+    version: '{{ qemu_setup_qemu_minimal_tag }}'
