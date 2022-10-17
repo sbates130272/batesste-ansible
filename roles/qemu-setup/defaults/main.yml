@@ -1,0 +1,10 @@
+# Copyright (c) Stephen Bates, 2022
+
+# Do we update when we install packages
+qemu_setup_update_cache: no
+
+# Do we force a clean setup?
+qemu_setup_force: false
+
+# qemu-minimal git tag
+qemu_setup_qemu_minimal_tag: HEAD
