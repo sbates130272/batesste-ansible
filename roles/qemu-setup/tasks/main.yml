@@ -13,6 +13,7 @@
     update_cache: "{{ qemu_setup_update_cache }}"
     name:
       - bridge-utils
+      - cloud-image-utils
       - cpu-checker
       - libvirt-clients
       - libvirt-daemon-system
