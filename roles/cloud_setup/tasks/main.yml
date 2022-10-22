@@ -1,0 +1,32 @@
+---
+# Copyright (c) Stephen Bates, 2022
+#
+# This role setups up the AWS and GitHub CLIs. Other CLIs may be added
+# in time.
+
+- name: Install packages for AWS and GitHub CLIs
+  ansible.builtin.package:
+    update_cache: true
+    state: present
+    name:
+      - awscli
+      - gh
+  become: true
+
+- name: Ensure .aws folder exists
+  ansible.builtin.file:
+    dest: ~/.aws
+    state: directory
+    mode: "0755"
+
+- name: Copy in AWS config
+  ansible.builtin.copy:
+    src: aws-config
+    dest: ~/.aws/config
+    mode: "0644"
+
+- name: Template in AWS credentials
+  ansible.builtin.template:
+    src: aws-credentials.j2
+    dest: ~/.aws/credentials
+    mode: "0644"
