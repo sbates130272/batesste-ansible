@@ -1,6 +1,0 @@
-[locals]
-localhost root_user=runner username=runner ansible_connection=local
-
-[awsmachines]
-
-[localvms]
