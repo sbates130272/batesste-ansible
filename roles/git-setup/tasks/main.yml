@@ -1,3 +1,4 @@
+---
 # Copyright (c) Stephen Bates, 2022
 #
 # Set up git just the way I like it. This includes Gnupg signing,
@@ -13,8 +14,9 @@
     src: ~/.gnupg/
     dest: ~/.gnupg/
     rsync_opts:
-       - "--exclude=S.*"
-       - "--exclude=*~"
+      - --exclude=S.*
+      - --exclude=*~
+  when: inventory_hostname not in groups['locals']
 
 - name: Setup emacs as git editor
   community.general.git_config:
@@ -43,18 +45,15 @@
 - name: Setup pgp signing for all commits
   community.general.git_config:
     name: user.signingkey
-    value: CB05CB5CFA5DFD9850BB814DE0C020C1975548AE
+    value: "{{ git_setup_signingkey }}"
     scope: global
 
 - name: Setup gpg-agent correctly in .bashrc
   ansible.builtin.blockinfile:
     path: ~/.bashrc
-    owner: "{{ username }}"
-    group: "{{ username }}"
     state: present
-    create: true
-    marker_begin: "BEGIN (git_setup)"
-    marker_end: "END (git_setup)"
+    marker_begin: BEGIN (git_setup)
+    marker_end: END (git_setup)
     block: |
       GPG_TTY=$(tty)
       export GPG_TTY

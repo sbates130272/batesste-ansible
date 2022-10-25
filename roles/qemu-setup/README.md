@@ -7,8 +7,8 @@ emulation and hypervisor accelerated system and user emulation. It
 adds the target user to the necessary groups for permission to run
 libvirt.
 
-This role also checks out the HEAD of [eqmu-minimal][ref-qm] which is
-a lightweight tool for running VMs and certaing libvirt DOMs.
+This role also checks out the HEAD of [qemu-minimal][ref-qm] which is
+a lightweight tool for running VMs and creating libvirt DOMs.
 
 ## Creating a libvirt VM
 

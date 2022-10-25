@@ -29,4 +29,4 @@ ansible-playbook ${PLAYBOOK} \
   -i ${HOSTS} \
   --vault-password-file vault-password \
   --become-password-file sudo-password \
-  --extra-vars targets=${TARGETS} $*
+  --extra-vars targets=${TARGETS} "$@"

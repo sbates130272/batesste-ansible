@@ -1,0 +1,38 @@
+name: batesste-ansible Github Workflow
+on: [pull_request]
+
+jobs:
+  build-spellcheck-lint-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: GitHub spellcheck action
+        uses: rojopolis/spellcheck-github-actions@0.27.0
+      - name: Render the checkout directory safe for the lint step
+        run: git config --global --add safe.directory /github/workspace
+      - name: Run ansible-lint
+        uses: ansible-community/ansible-lint-action@main
+      - name: Create an SSH keypair
+        run: mkdir -p .ssh && ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+      - name: Create a GNU PGP folder
+        run: mkdir -p .gnupg
+      - name: Write hosts-ci file
+        uses: DamianReeves/write-file-action@v1.0
+        with:
+          path: ./playbooks/hosts-ci
+          write-mode: overwrite
+          contents: |
+            [locals]
+            localhost root_user=runner username=runner ansible_connection=local
+            [awsmachines]
+            [localvms]
+      - name: Run the default playbook against the local runner
+        run: ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} --extra-vars targets=${TARGETS}
+        working-directory: ./playbooks
+        env:
+          PLAYBOOK: setup-newmachine.yml
+          TARGETS: locals
+          HOSTS: hosts-ci
+          ANSIBLE_VAULT_PASSWORD_FILE: ./vault-env
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
