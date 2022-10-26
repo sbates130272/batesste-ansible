@@ -2,9 +2,6 @@
 # .ansible-lint
 # See https://ansible-lint.readthedocs.io/configuring/
 
-skip_list:
-  - role-name
-
 warn_list:
   - command-instead-of-module
 

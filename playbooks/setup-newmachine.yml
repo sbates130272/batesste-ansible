@@ -10,49 +10,49 @@
   hosts: "{{ targets }}"
   gather_facts: false
   roles:
-    - role: user-setup
+    - role: user_setup
       remote_user: "{{ root_user }}"
       become: true
-      tags: [user-setup]
-    - role: fave-packages
+      tags: [user_setup]
+    - role: fave_packages
       remote_user: "{{ username }}"
       become: true
-      tags: [fave-packages]
-    - role: git-setup
+      tags: [fave_packages]
+    - role: git_setup
       remote_user: "{{ username }}"
       become: false
-      tags: [git-setup]
-    - role: tmux-scripts
+      tags: [git_setup]
+    - role: tmux_scripts
       remote_user: "{{ username }}"
       become: false
-      tags: [tmux-scripts]
-    - role: eideticom-scripts
+      tags: [tmux_scripts]
+    - role: eideticom_scripts
       remote_user: "{{ username }}"
       become: false
-      tags: [eideticom-scripts]
+      tags: [eideticom_scripts]
     - role: cloud_setup
       remote_user: "{{ username }}"
       become: false
       tags: [cloud_setup]
-    - role: mutt-setup
+    - role: mutt_setup
       remote_user: "{{ username }}"
       become: false
-      tags: [mutt-setup]
-    - role: kernel-setup
+      tags: [mutt_setup]
+    - role: kernel_setup
       remote_user: "{{ username }}"
       become: false
-      tags: [kernel-setup]
-    - role: fio-devel
+      tags: [kernel_setup]
+    - role: fio_devel
       remote_user: "{{ username }}"
       become: false
-      tags: [fio-devel]
-    - role: aws-grub
+      tags: [fio_devel]
+    - role: aws_grub
       remote_user: "{{ username }}"
       become: true
-      tags: [aws-grub]
+      tags: [aws_grub]
       when: inventory_hostname in groups['awsmachines']
-    - role: qemu-setup
+    - role: qemu_setup
       remote_user: "{{ username }}"
       become: false
-      tags: [qemu-setup]
+      tags: [qemu_setup]
       when: inventory_hostname not in groups['localvms']
