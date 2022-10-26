@@ -35,10 +35,16 @@
   become: true
   when: inventory_hostname in groups['awsmachines']
 
+- name: Ensure Projects folder exists.
+  ansible.builtin.file:
+    path: ~/Projects
+    state: directory
+    mode: "0755"
+
 - name: Checkout upstream fio repo from Github
   ansible.builtin.git:
     repo: https://github.com/axboe/fio.git
-    dest: ~/fio
+    dest: ~/Projects/fio
     force: true
     version: "{{ fio_tag }}"
   notify: Configure, build and install fio
