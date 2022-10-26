@@ -2,7 +2,7 @@
 - name: Configure fio
   ansible.builtin.command:
     chdir: ~/Projects/fio
-    cmd: ./configure --prefix='{{ fio_install_dir }}'
+    cmd: ./configure --prefix='{{ fio_devel_fio_install_dir }}'
   listen: Configure, build and install fio
   notify: Make fio
 

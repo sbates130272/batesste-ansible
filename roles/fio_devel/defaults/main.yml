@@ -1,6 +1,9 @@
 ---
-# fio tag to checkout
-fio_tag: HEAD
+# fio tag/sha to checkout
+fio_devel_fio_sha: db7fc8d864dc4fb607a0379333a0db60431bd649
 
 # fio install folder
-fio_install_dir: /opt/fio
+fio_devel_fio_install_dir: /opt/fio
+
+# fio-stuff tag/sha to checkout
+fio_devel_fio_stuff_sha: a0e9fcd99dc2793badd04cd2b387aeafa3ec35ea
