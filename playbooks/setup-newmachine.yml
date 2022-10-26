@@ -30,6 +30,10 @@
       remote_user: "{{ username }}"
       become: false
       tags: [eideticom-scripts]
+    - role: cloud_setup
+      remote_user: "{{ username }}"
+      become: false
+      tags: [cloud_setup]
     - role: mutt-setup
       remote_user: "{{ username }}"
       become: false

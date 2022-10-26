@@ -1,0 +1,4 @@
+# (c) Stephen Bates 2022
+[default]
+region = us-west-2
+output = json
