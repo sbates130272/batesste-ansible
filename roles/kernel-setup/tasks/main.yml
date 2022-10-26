@@ -17,35 +17,41 @@
       - libssl-dev
   become: true
 
+- name: Ensure Projects folder exists.
+  ansible.builtin.file:
+    path: ~/Projects
+    state: directory
+    mode: "0755"
+
 - name: Checkout kernel-tools repo
   ansible.builtin.git:
     repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/kernel-tools.git', 'https://github.com/sbates130272/kernel-tools.git') }}"
-    dest: ~/kernel
+    dest: ~/Projects/kernel
     accept_hostkey: true
     force: true
     version: "{{ kernel_setup_tools_sha }}"
 
 - name: Remove the src folder when forcing
   ansible.builtin.file:
-    path: ~/kernel/src
+    path: ~/Projects/kernel/src
     state: absent
   when: kernel_setup_force|bool
 
 - name: Ensure a kernel source exists
   ansible.builtin.file:
-    path: ~/kernel/src
+    path: ~/Projects/kernel/src
     state: directory
     mode: "0755"
 
 - name: Perform a git init in source folder
   ansible.builtin.command:
     cmd: git init
-    chdir: ~/kernel/src
+    chdir: ~/Projects/kernel/src
     creates: ~/kernel/src/.git
 
 - name: Ensure remotes are added
   community.general.git_config:
-    repo: ~/kernel/src/
+    repo: ~/Projects/kernel/src/
     scope: local
     name: remote.{{ item.name }}.url
     value: "{{ item.remote }}"
@@ -55,7 +61,7 @@
 
 - name: Ensure fetching gets all branches
   community.general.git_config:
-    repo: ~/kernel/src/
+    repo: ~/Projects/kernel/src/
     scope: local
     name: remote.{{ item }}.fetch
     value: +refs/heads/*:refs/remotes/{{ item }}/*
