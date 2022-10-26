@@ -1,4 +1,4 @@
-# mutt-setup Ansible Role
+# mutt_setup Ansible Role
 
 ## Overview
 

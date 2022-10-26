@@ -1,4 +1,4 @@
-# aws-grub Ansible Role
+# aws_grub Ansible Role
 
 ## Overview
 
