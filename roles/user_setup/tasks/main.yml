@@ -71,3 +71,14 @@
   ansible.builtin.service:
     service: procps
     state: restarted
+
+- name: Massively improve startup on certain systems
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
+    search_string: ExecStart
+    line: ExecStart=/lib/systemd/systemd-networkd-wait-online --any
+
+- name: Restart service
+  ansible.builtin.service:
+    service: network-online.target
+    state: restarted
