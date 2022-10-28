@@ -16,6 +16,8 @@
       - gpg-agent
       - libaio-dev
       - liburing-dev
+      - python2
+      - python3-pip
       - mutt
       - sysstat
       - tree
