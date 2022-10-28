@@ -82,3 +82,12 @@
   ansible.builtin.service:
     service: network-online.target
     state: restarted
+
+- name: Ensure package install is non-interactive
+  ansible.builtin.blockinfile:
+    path: ~/.bashrc
+    state: present
+    marker_begin: BEGIN (user_setup)
+    marker_end: END (user_setup)
+    block: |
+      export DEBIAN_FRONTEND=noninteractive
