@@ -4,5 +4,5 @@
 # Do we force a clean setup?
 qemu_setup_force: true
 
-# qemu-minimal git tag
-qemu_setup_qemu_minimal_tag: 29d9a67ecc58ed92afa2348e940e7309a77645f7
+# qemu-minimal git sha/tag
+qemu_setup_qemu_minimal_sha: 29d9a67ecc58ed92afa2348e940e7309a77645f7
