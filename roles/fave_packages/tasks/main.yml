@@ -13,6 +13,7 @@
       - emacs-nox
       - fio
       - git
+      - gnuplot
       - gpg-agent
       - libaio-dev
       - liburing-dev
@@ -22,3 +23,9 @@
       - sysstat
       - tree
     state: present
+
+- name: Symbolic link from python2 to python
+  ansible.builtin.file:
+    src: /usr/bin/python2
+    path: /usr/bin/python
+    state: link
