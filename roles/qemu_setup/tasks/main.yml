@@ -50,4 +50,4 @@
     repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/qemu-minimal.git', 'https://github.com/sbates130272/qemu-minimal.git') }}"
     dest: ~/Projects/qemu-minimal
     force: "{{ qemu_setup_force }}"
-    version: "{{ qemu_setup_qemu_minimal_tag }}"
+    version: "{{ qemu_setup_qemu_minimal_sha }}"
