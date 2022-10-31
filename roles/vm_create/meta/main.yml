@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  author: Stephen Bates
+  description: A role to enable the creation of VMs on the target(s)
+  company: Eideticom
+
+  license: Apache-2.0
+  min_ansible_version: "2.1"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - virtualization
+    - libvirt
+    - batesste
+
+dependencies:
+  - role: qemu_setup

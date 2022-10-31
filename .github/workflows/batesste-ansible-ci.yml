@@ -24,6 +24,7 @@ jobs:
           write-mode: overwrite
           contents: |
             [locals]
+            [runners]
             localhost root_user=runner username=runner ansible_connection=local
             [awsmachines]
             [localvms]
@@ -32,7 +33,7 @@ jobs:
         working-directory: ./playbooks
         env:
           PLAYBOOK: setup-newmachine.yml
-          TARGETS: locals
+          TARGETS: runners
           HOSTS: hosts-ci
           ANSIBLE_VAULT_PASSWORD_FILE: ./vault-env
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}

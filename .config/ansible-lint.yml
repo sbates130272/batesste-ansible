@@ -4,6 +4,8 @@
 
 warn_list:
   - command-instead-of-module
+  - no-changed-when
+  - command-instead-of-shell
 
 extra_vars:
   targets: localhost

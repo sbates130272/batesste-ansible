@@ -17,6 +17,8 @@
       - bridge-utils
       - cloud-image-utils
       - cpu-checker
+      - guestfs-tools
+      - libnss-libvirt
       - libvirt-clients
       - libvirt-daemon-system
       - qemu-kvm
@@ -24,19 +26,44 @@
       - virtinst
   become: true
 
+- name: Add user to virt groups
+  ansible.builtin.user:
+    name: "{{ username }}"
+    groups: kvm, libvirt
+    append: true
+  become: true
+
+- name: Enable access to images folder in AppArmour
+  ansible.builtin.lineinfile:
+    path: /etc/apparmor.d/abstractions/libvirt-qemu
+    line: "  /var/lib/libvirt/images/* rwk,"
+  become: true
+
+- name: Check for libvirt_guest in nsswitch.conf
+  ansible.builtin.lineinfile:
+    path: /etc/nsswitch.conf
+    regex: ^hosts:.*libvirt_guest*
+    state: absent
+  check_mode: true
+  changed_when: false
+  register: libvirt_guest
+  become: false
+
+- name: Enable libvirt_guest dns via nss
+  ansible.builtin.lineinfile:
+    path: /etc/nsswitch.conf
+    regex: ^(hosts:.*)
+    line: \1 libvirt_guest
+    backrefs: true
+  become: true
+  when: not libvirt_guest.found
+
 - name: Start relevant systemd services
   ansible.builtin.systemd:
     name: libvirtd
     state: restarted
     daemon_reload: true
     enabled: true
-  become: true
-
-- name: Add user to virt groups
-  ansible.builtin.user:
-    name: "{{ username }}"
-    groups: kvm, libvirt
-    append: true
   become: true
 
 - name: Ensure Projects folder exists.
