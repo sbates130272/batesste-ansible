@@ -91,3 +91,7 @@
     marker_end: END (user_setup)
     block: |
       export DEBIAN_FRONTEND=noninteractive
+
+- name: Set the timezone of the system clock
+  community.general.timezone:
+    name: "{{ user_setup_timezone }}"
