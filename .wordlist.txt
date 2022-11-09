@@ -3,6 +3,7 @@ Compatability
 DOM
 DOMs
 Gmail
+IPv
 LTS
 NVMe
 OAuth
@@ -32,3 +33,4 @@ sudo
 ubuntu
 vCPUs
 virt
+vm

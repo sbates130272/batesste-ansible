@@ -50,9 +50,19 @@
       remote_user: "{{ username }}"
       become: true
       tags: [aws_grub]
-      when: inventory_hostname in groups['awsmachines']
+      when:
+        - inventory_hostname in groups['awsmachines']
     - role: qemu_setup
       remote_user: "{{ username }}"
       become: false
       tags: [qemu_setup]
-      when: inventory_hostname not in groups['localvms']
+      when:
+        - inventory_hostname not in groups['localvms'] and
+          inventory_hostname not in groups['runners']
+    - role: vm_create
+      remote_user: "{{ username }}"
+      become: false
+      tags: [vm_create]
+      when:
+        - inventory_hostname not in groups['localvms'] and
+          inventory_hostname not in groups['runners']

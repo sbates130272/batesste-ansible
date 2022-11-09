@@ -1,0 +1,4 @@
+---
+# Copyright (c) Stephen Bates, 2022
+vm_create_vm_name: batesste-dev
+vm_create_password: password

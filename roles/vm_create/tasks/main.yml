@@ -1,0 +1,33 @@
+---
+# Copyright (c) Stephen Bates, 2022
+#
+# Create a new VM using libvirt on the target(s). This code uses ideas
+# based on [1]. If the VM is already created we just ensure it is running.
+
+- name: Get VMs list
+  community.libvirt.virt:
+    command: list_vms
+  register: existing_vms
+  changed_when: false
+
+- name: Create VM if it does not exist
+  when: vm_create_vm_name not in existing_vms.list_vms
+  block:
+    - name: Use virt-install-ubuntu in qemu-minimal
+      ansible.builtin.shell:
+        chdir: ~/Projects/qemu-minimal/libvirt
+        cmd: ./virt-install-ubuntu
+      environment:
+        NAME: "{{ vm_create_vm_name }}"
+        LIBVIRT_DEFAULT_URI: qemu:///system
+        USERNAME: "{{ username }}"
+        PASSWORD: "{{ vm_create_password }}"
+
+- name: Ensure VM is started
+  community.libvirt.virt:
+    name: "{{ vm_create_vm_name }}"
+    state: running
+  register: vm_start_results
+  until: "vm_start_results is success"
+  retries: 15
+  delay: 2

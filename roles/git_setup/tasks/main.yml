@@ -16,7 +16,9 @@
     rsync_opts:
       - --exclude=S.*
       - --exclude=*~
-  when: inventory_hostname not in groups['locals']
+  when:
+    - inventory_hostname not in groups['locals'] and
+      inventory_hostname not in groups['runners']
 
 - name: Setup emacs as git editor
   community.general.git_config:
