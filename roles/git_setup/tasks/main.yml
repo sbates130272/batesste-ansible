@@ -65,3 +65,9 @@
     name: pull.rebase
     value: "false"
     scope: global
+
+- name: Setup default branch to "main"
+  community.general.git_config:
+    name: init.defaultBranch
+    value: "main"
+    scope: global
