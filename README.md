@@ -11,6 +11,37 @@ This repo assumes Ubuntu based distros (though I may add a check for
 this in due course) and is currently tested on Ubuntu 22.04 LTS (and
 may fail on other versions).
 
+## Setup
+
+### MacOS
+
+Use Homebrew you fools!
+```
+brew install ansible
+```
+
+### Ubuntu 22.04
+
+Note that the Ansible that comes as standard in Ubuntu 22.04 is pretty
+old (2.10.8) and you really need to pull from the ppa to get a
+moderately recent version.
+```
+sudo apt-add-repository ppa:ansible/ansible
+```
+```
+sudo apt update
+```
+```
+sudo apt install ansible
+```
+
+### Common
+
+Install the necessary collections and roles.
+```
+ansible-galaxy install -r requirements.yml
+```
+
 ## Example Usage
 
 Assuming a remote server has been setup (and you may want to use
@@ -60,5 +91,18 @@ ansible-playbook.
 
 Some of the more involved roles have their own README.md. Please refer
 to them for more information about a specific role.
+
+## Useful Ansible Commands
+
+As this repository has developed we have come across some very useful
+Ansible commands that we include here for reference.
+
+```
+ansible -m ansible.builtin.setup --tree /tmp/facts -i hosts localmachines
+```
+This parses a local inventory file called ```hosts``` and gathers
+facts on all the machines in the localmachines section. It then
+records those facts in a JSON structure in ```/tmp/facts/``` indexed
+by target machine name.
 
 [1]: https://github.com/sbates130272/qemu-minimal/blob/master/scripts/gen-image

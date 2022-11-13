@@ -3,8 +3,11 @@ Compatability
 DOM
 DOMs
 Gmail
+Homebrew
 IPv
+JSON
 LTS
+MacOS
 NVMe
 OAuth
 Pre
@@ -21,9 +24,11 @@ gmail
 gnupgp
 hostname
 libvirt
+localmachines
 md
 passthru
 passwordless
+ppa
 qemu
 raithlin
 repo
