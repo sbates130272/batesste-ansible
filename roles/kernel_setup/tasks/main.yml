@@ -16,7 +16,7 @@
       - libncurses-dev
       - libssl-dev
       - nasm
-      - pahole
+#      - pahole
   become: true
 
 - name: Ensure Projects folder exists.

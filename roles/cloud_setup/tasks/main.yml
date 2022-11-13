@@ -10,7 +10,7 @@
     state: present
     name:
       - awscli
-      - gh
+#      - gh
   become: true
 
 - name: Ensure .aws folder exists

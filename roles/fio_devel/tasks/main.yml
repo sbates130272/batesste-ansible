@@ -15,8 +15,8 @@
       - libnuma-dev
       - libpci-dev
       - libpmem-dev
-      - libpmem2-dev
-      - liburing-dev
+#      - libpmem2-dev
+#      - liburing-dev
       - linux-tools-common
       - nvme-cli
       - pkg-config

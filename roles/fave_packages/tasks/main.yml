@@ -8,6 +8,7 @@
   ansible.builtin.package:
     update_cache: true
     name:
+      - ansible
       - bmon
       - build-essential
       - emacs-nox
@@ -16,7 +17,7 @@
       - gnuplot
       - gpg-agent
       - libaio-dev
-      - liburing-dev
+#      - liburing-dev
       - python2
       - python3-pip
       - mutt

@@ -17,7 +17,7 @@
       - bridge-utils
       - cloud-image-utils
       - cpu-checker
-      - guestfs-tools
+#      - guestfs-tools
       - libnss-libvirt
       - libvirt-clients
       - libvirt-daemon-system
