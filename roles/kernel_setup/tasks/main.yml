@@ -30,7 +30,7 @@
     repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/kernel-tools.git', 'https://github.com/sbates130272/kernel-tools.git') }}"
     dest: ~/Projects/kernel
     accept_hostkey: true
-    force: true
+    force: "{{ kernel_setup_tools_force }}"
     version: "{{ kernel_setup_tools_sha }}"
 
 - name: Remove the src folder when forcing

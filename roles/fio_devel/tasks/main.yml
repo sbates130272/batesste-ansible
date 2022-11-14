@@ -46,7 +46,7 @@
   ansible.builtin.git:
     repo: https://github.com/axboe/fio.git
     dest: ~/Projects/fio
-    force: true
+    force: "{{ fio_devel_fio_force }}"
     version: "{{ fio_devel_fio_sha }}"
   notify: Configure, build and install fio
 
@@ -55,5 +55,5 @@
     repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/fio-stuff.git', 'https://github.com/sbates130272/fio-stuff.git') }}"
     dest: ~/Projects/fio-stuff
     accept_hostkey: true
-    force: true
+    force: "{{ fio_devel_fio_stuff_sha }}"
     version: "{{ fio_devel_fio_stuff_sha }}"

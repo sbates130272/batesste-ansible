@@ -10,5 +10,5 @@
     repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/tmux-scripts.git', 'https://github.com/sbates130272/tmux-scripts.git') }}"
     dest: ~/.tmux
     accept_hostkey: true
-    force: true
+    force: "{{ tmux_setup_force }}"
     version: "{{ tmux_setup_sha }}"

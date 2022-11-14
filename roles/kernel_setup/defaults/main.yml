@@ -4,6 +4,9 @@
 kernel_setup_tools_sha: d707fb96c3d2284fd4923eaf0dec36ce08d0c004
 
 # Do we force a clean setup?
+kernel_setup_tools_force: false
+
+# Do we force a clean setup?
 kernel_setup_force: false
 
 # Linus Remote

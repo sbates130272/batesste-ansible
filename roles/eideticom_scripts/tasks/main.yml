@@ -18,7 +18,7 @@
     repo: git@github.com:Eideticom/eideticom-scripts.git
     dest: ~/.local/bin/eideticom-scripts
     accept_hostkey: true
-    force: true
+    force: "{{ eideticom_scripts_force }}"
     version: "{{ eideticom_scripts_sha }}"
   when: username =='batesste'
 
