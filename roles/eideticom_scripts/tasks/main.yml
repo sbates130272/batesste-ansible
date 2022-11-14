@@ -21,6 +21,10 @@
     force: "{{ eideticom_scripts_force }}"
     version: "{{ eideticom_scripts_sha }}"
   when: username =='batesste'
+  register: repo_clone
+  failed_when:
+    - repo_clone.failed
+    - not 'Local modifications exist in the destination' in repo_clone.msg
 
 - name: Add a block to .bashrc that adds the ~/.bin folder to path.
   ansible.builtin.blockinfile:

@@ -9,6 +9,10 @@
   ansible.builtin.git:
     repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/tmux-scripts.git', 'https://github.com/sbates130272/tmux-scripts.git') }}"
     dest: ~/.tmux
-    accept_hostkey: true
-    force: "{{ tmux_setup_force }}"
-    version: "{{ tmux_setup_sha }}"
+    accept_newhostkey: true
+    force: "{{ tmux_scripts_force }}"
+    version: "{{ tmux_scripts_sha }}"
+  register: repo_clone
+  failed_when:
+    - repo_clone.failed
+    - not 'Local modifications exist in the destination' in repo_clone.msg

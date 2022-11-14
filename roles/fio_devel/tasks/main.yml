@@ -49,11 +49,19 @@
     force: "{{ fio_devel_fio_force }}"
     version: "{{ fio_devel_fio_sha }}"
   notify: Configure, build and install fio
+  register: repo_clone
+  failed_when:
+    - repo_clone.failed
+    - not 'Local modifications exist in the destination' in repo_clone.msg
 
 - name: Checkout fio-stuff repo
   ansible.builtin.git:
     repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/fio-stuff.git', 'https://github.com/sbates130272/fio-stuff.git') }}"
     dest: ~/Projects/fio-stuff
-    accept_hostkey: true
-    force: "{{ fio_devel_fio_stuff_sha }}"
+    accept_newhostkey: true
+    force: "{{ fio_devel_fio_stuff_force }}"
     version: "{{ fio_devel_fio_stuff_sha }}"
+  register: repo_clone
+  failed_when:
+    - repo_clone.failed
+    - not 'Local modifications exist in the destination' in repo_clone.msg
