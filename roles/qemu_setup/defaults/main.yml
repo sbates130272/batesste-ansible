@@ -5,4 +5,4 @@
 qemu_setup_force: false
 
 # qemu-minimal git sha/tag
-qemu_setup_qemu_minimal_sha: c76b818c3bed03111768c638ffebe43f33a85d06
+qemu_setup_qemu_minimal_sha: 15886c9b9b2c672819444215b8ae711d98527210

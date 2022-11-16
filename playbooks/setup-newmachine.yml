@@ -9,6 +9,15 @@
 - name: Setup user account and install cool stuff on a new machine
   hosts: "{{ targets }}"
   gather_facts: true
+  vars:
+    force: false
+    kernel_setup_force: "{{ force }}"
+    kernel_setup_tools_force: "{{ force }}"
+    eideticom_scripts_force: "{{ force }}"
+    qemu_setup_force: "{{ force }}"
+    tmux_scripts_force: "{{ force }}"
+    fio_devel_fio_force: "{{ force }}"
+    fio_devel_fio_stuff_force: "{{ force }}"
   roles:
     - role: user_setup
       remote_user: "{{ root_user }}"

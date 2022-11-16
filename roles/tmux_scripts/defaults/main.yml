@@ -1,2 +1,3 @@
 ---
-tmux_setup_sha: a4e649c5896fddad87d584b8e34c9b9549bcc659
+tmux_scripts_force: false
+tmux_scripts_sha: a4e649c5896fddad87d584b8e34c9b9549bcc659

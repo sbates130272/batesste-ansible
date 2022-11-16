@@ -21,6 +21,7 @@
       - python3-pip
       - mutt
       - sysstat
+      - tmux
       - tree
     state: present
 

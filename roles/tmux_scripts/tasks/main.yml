@@ -5,10 +5,25 @@
 # git-based remote so this can only run once my private ssh key is
 # installed.
 
+- name: Ensure tmux resurrect is installed
+  ansible.builtin.lineinfile:
+    create: true
+    state: present
+    line: set -g @plugin 'tmux-plugins/tmux-resurrect'
+    path: ~/.tmux.conf
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  become: true
+
 - name: Checkout tmux-scripts
   ansible.builtin.git:
     repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/tmux-scripts.git', 'https://github.com/sbates130272/tmux-scripts.git') }}"
     dest: ~/.tmux
-    accept_hostkey: true
-    force: true
-    version: "{{ tmux_setup_sha }}"
+    accept_newhostkey: true
+    force: "{{ tmux_scripts_force }}"
+    version: "{{ tmux_scripts_sha }}"
+  register: repo_clone
+  failed_when:
+    - repo_clone.failed
+    - not 'Local modifications exist in the destination' in repo_clone.msg

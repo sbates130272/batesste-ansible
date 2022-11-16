@@ -29,15 +29,19 @@
   ansible.builtin.git:
     repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/kernel-tools.git', 'https://github.com/sbates130272/kernel-tools.git') }}"
     dest: ~/Projects/kernel
-    accept_hostkey: true
-    force: true
+    accept_newhostkey: true
+    force: "{{ kernel_setup_tools_force }}"
     version: "{{ kernel_setup_tools_sha }}"
+  register: repo_clone
+  failed_when:
+    - repo_clone.failed
+    - not 'Local modifications exist in the destination' in repo_clone.msg
 
 - name: Remove the src folder when forcing
   ansible.builtin.file:
     path: ~/Projects/kernel/src
     state: absent
-  when: kernel_setup_force|bool
+  when: kernel_setup_force
 
 - name: Ensure a kernel source exists
   ansible.builtin.file:

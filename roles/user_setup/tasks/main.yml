@@ -74,7 +74,7 @@
 
 - name: Massively improve startup on certain systems
   ansible.builtin.lineinfile:
-    path: /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
+    path: /lib/systemd/system/systemd-networkd-wait-online.service
     search_string: ExecStart
     line: ExecStart=/lib/systemd/systemd-networkd-wait-online --any
 
