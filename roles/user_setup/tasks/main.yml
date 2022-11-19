@@ -95,3 +95,25 @@
 - name: Set the timezone of the system clock
   community.general.timezone:
     name: "{{ user_setup_timezone }}"
+
+- name: Ensure SSH config file exists for user and create a Host *
+  ansible.builtin.lineinfile:
+    path: /home/{{ username }}/.ssh/config
+    line: Hosts *
+    state: present
+    create: true
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Set important values in user's ssh config file
+  ansible.builtin.lineinfile:
+    path: /home/{{ username }}/.ssh/config
+    line: "{{ item }}"
+    insertafter: Hosts *
+    state: present
+    create: false
+  loop:
+    - ServerAliveInterval 60
+    - ServerAliveCountMax 30
+    - StrictHostKeyChecking accept-new
