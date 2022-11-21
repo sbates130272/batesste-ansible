@@ -83,3 +83,22 @@
   failed_when:
     - repo_clone.failed
     - not 'Local modifications exist in the destination' in repo_clone.msg
+
+- name: Install network bridge if needed
+  ansible.builtin.include_role:
+    name:
+      mrlesmithjr.netplan
+  vars:
+    netplan_enabled: true
+    netplan_remove_existing: false
+    netplan_config_file: /etc/netplan/13-batesste-ansible-libvirt-netplan.yaml
+    netplan_configuration:
+      network:
+        version: 2
+        bridges:
+          "{{ qemu_setup_bridge_name }}":
+          dhcp4: false
+          addresses: '[ "{{ qemu_setup_bridge_address }}" ]'
+          interfaces: '[ "{{ qemu_setup_bridge_iface }}" ]'
+    become: true
+  when: qemu_setup_bridge

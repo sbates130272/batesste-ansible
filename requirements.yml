@@ -6,3 +6,4 @@ collections:
 
 roles:
   - name: geerlingguy.docker
+  - name: mrlesmithjr.netplan
