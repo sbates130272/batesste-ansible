@@ -17,6 +17,8 @@
       - gpg-agent
       - libaio-dev
       - liburing-dev
+      - prometheus-node-exporter
+      - prometheus-node-exporter-collectors
       - python2
       - python3-pip
       - mutt
