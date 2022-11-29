@@ -6,6 +6,8 @@ warn_list:
   - command-instead-of-module
   - no-changed-when
   - command-instead-of-shell
+  - role-name
+  - meta-no-info
 
 extra_vars:
   targets: localhost

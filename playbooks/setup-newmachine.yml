@@ -43,6 +43,10 @@
       remote_user: "{{ username }}"
       become: false
       tags: [cloud_setup]
+    - role: consul_setup
+      remote_user: "{{ username }}"
+      become: false
+      tags: [consul_setup]
     - role: mutt_setup
       remote_user: "{{ username }}"
       become: false

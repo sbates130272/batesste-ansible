@@ -22,6 +22,7 @@ batesste
 distros
 gmail
 gnupgp
+homelab
 hostname
 libvirt
 localmachines
