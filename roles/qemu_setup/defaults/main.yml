@@ -5,4 +5,10 @@
 qemu_setup_force: false
 
 # qemu-minimal git sha/tag
-qemu_setup_qemu_minimal_sha: 15886c9b9b2c672819444215b8ae711d98527210
+qemu_setup_qemu_minimal_sha: 6c912a05d64611df53a832a3b88add7a8c46615b
+
+# Default bridge network settings
+qemu_setup_bridge: true
+qemu_setup_bridge_name: batesste-br0
+qemu_setup_bridge_iface: enp1s0
+qemu_setup_bridge_address: 10.0.0.55/24
