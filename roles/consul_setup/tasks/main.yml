@@ -1,0 +1,71 @@
+---
+# Copyright (c) Stephen Bates, 2022
+#
+# Setup the target system(s) for Hashicorp consul. Also sets up
+# registration of the Prometheus node-exporter service.
+
+- name: Install packages needed for consul
+  ansible.builtin.package:
+    update_cache: true
+    state: present
+    name:
+      - consul
+      - prometheus-node-exporter
+  become: true
+
+- name: Copy the server config file into the target folder
+  ansible.builtin.copy:
+    src: server.consul.hcl
+    dest: /etc/consul.d/server.consul.hcl
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  become: true
+  when: consul_setup_server
+
+- name: Template the client config file into the target folder
+  ansible.builtin.template:
+    src: client.consul.hcl.j2
+    dest: /etc/consul.d/client.consul.hcl
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  become: true
+
+- name: Copy the cert files into the target folder
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /etc/consul.d/certs/
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  loop:
+    - consul-agent-ca.pem
+    - dc1-server-consul-0-key.pem
+    - dc1-server-consul-0.pem
+  become: true
+
+- name: Copy the node-exporter service file
+  ansible.builtin.copy:
+    src: node-exporter.service.hcl
+    dest: /etc/consul.d/node-exporter.service.hcl
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  become: true
+
+- name: Create the consul data directory
+  ansible.builtin.file:
+    path: /var/lib/consul
+    state: directory
+    mode: '0755'
+    owner: "consul"
+    group: "consul"
+  become: true
+
+- name: Enable consul service and start it
+  ansible.builtin.systemd:
+    name: consul
+    enabled: true
+    state: started
+  become: true

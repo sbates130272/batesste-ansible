@@ -1,0 +1,12 @@
+galaxy_info:
+  author: Stephen Bates
+  description: Stephen Bates
+  company: Raithlin Semiconductors
+
+  license: BSD-3-Clause
+  min_ansible_version: "2.1"
+
+  galaxy_tags:
+    - consul
+    - networking
+    - hashicorp
