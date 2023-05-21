@@ -57,7 +57,7 @@
     group: "{{ username }}"
     mode: "0644"
 
-- name: Ensure users can access dmesg without sudo
+- name: Ensure users can access dmesg without sudo # noqa: args[module]
   ansible.builtin.blockinfile:
     path: /etc/sysctl.d/10-kernel-hardening.conf
     state: present
@@ -67,7 +67,7 @@
     block: |
       kernel.dmesg_restrict = 0
 
-- name: Restart procps service so dmesg rule takes effect
+- name: Restart procps service so dmesg rule takes effect # noqa: args[module]
   ansible.builtin.service:
     service: procps
     state: restarted
@@ -78,7 +78,7 @@
     search_string: ExecStart
     line: ExecStart=/lib/systemd/systemd-networkd-wait-online --any
 
-- name: Restart service
+- name: Restart service # noqa: args[module]
   ansible.builtin.service:
     service: network-online.target
     state: restarted
@@ -96,10 +96,10 @@
   community.general.timezone:
     name: "{{ user_setup_timezone }}"
 
-- name: Ensure SSH config file exists for user and create a Host *
+- name: Ensure SSH config file exists for user and create a Host * when absent
   ansible.builtin.lineinfile:
     path: /home/{{ username }}/.ssh/config
-    line: Hosts *
+    line: Host *
     state: present
     create: true
     owner: "{{ username }}"
@@ -110,7 +110,7 @@
   ansible.builtin.lineinfile:
     path: /home/{{ username }}/.ssh/config
     line: "{{ item }}"
-    insertafter: Hosts *
+    insertafter: Host *
     state: present
     create: false
   loop:

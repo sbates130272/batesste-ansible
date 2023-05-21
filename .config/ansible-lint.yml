@@ -8,6 +8,7 @@ warn_list:
   - command-instead-of-shell
   - role-name
   - meta-no-info
+  - var-naming[no-role-prefix]
 
 extra_vars:
   targets: localhost
