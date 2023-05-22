@@ -25,6 +25,7 @@
       - sysstat
       - tmux
       - tree
+      - xfsprogs
     state: present
 
 - name: Symbolic link from python2 to python

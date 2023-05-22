@@ -1,7 +1,7 @@
 ---
 # defaults file for consul_setup
 consul_setup_server: false
-consul_setup_server_node: lisburn.cn.shawcable.net
+consul_setup_server_node: derry
 consul_setup_encrypt: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           65326136303361323063303935316464616634303662623265383739666365643439363438376265
