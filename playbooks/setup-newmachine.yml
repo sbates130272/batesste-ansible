@@ -13,7 +13,6 @@
     force: false
     kernel_setup_force: "{{ force }}"
     kernel_setup_tools_force: "{{ force }}"
-    eideticom_scripts_force: "{{ force }}"
     qemu_setup_force: "{{ force }}"
     tmux_scripts_force: "{{ force }}"
     fio_devel_fio_force: "{{ force }}"
@@ -35,10 +34,6 @@
       remote_user: "{{ username }}"
       become: false
       tags: [tmux_scripts]
-    - role: eideticom_scripts
-      remote_user: "{{ username }}"
-      become: false
-      tags: [eideticom_scripts]
     - role: cloud_setup
       remote_user: "{{ username }}"
       become: false
