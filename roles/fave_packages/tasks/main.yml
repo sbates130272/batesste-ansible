@@ -19,6 +19,7 @@
       - liburing-dev
       - prometheus-node-exporter
       - prometheus-node-exporter-collectors
+      - python-is-python3
       - python2
       - python3-pip
       - mutt
@@ -27,9 +28,3 @@
       - tree
       - xfsprogs
     state: present
-
-- name: Symbolic link from python2 to python
-  ansible.builtin.file:
-    src: /usr/bin/python2
-    path: /usr/bin/python
-    state: link
