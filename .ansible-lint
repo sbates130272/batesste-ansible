@@ -2,6 +2,9 @@
 # .ansible-lint
 # See https://ansible-lint.readthedocs.io/configuring/
 
+exclude_paths:
+  - .github
+
 warn_list:
   - command-instead-of-module
   - no-changed-when

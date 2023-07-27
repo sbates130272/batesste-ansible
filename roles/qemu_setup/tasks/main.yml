@@ -100,5 +100,5 @@
           dhcp4: false
           addresses: '[ "{{ qemu_setup_bridge_address }}" ]'
           interfaces: '[ "{{ qemu_setup_bridge_iface }}" ]'
-    become: true
+    ansible_become: true
   when: qemu_setup_bridge
