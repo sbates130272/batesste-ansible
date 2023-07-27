@@ -7,9 +7,8 @@ to setup bare-metal and VM servers the way that I like them. This
 includes setting up ssh and gnupgp keys, installing packages and
 copying in preferred configuration settings.
 
-This repo assumes Ubuntu based distros (though I may add a check for
-this in due course) and is currently tested on Ubuntu 22.04 LTS (and
-may fail on other versions).
+This repo assumes Ubuntu 22.04 LTS and we fail gracefully if we detect
+any hosts that do not meet this criteria.
 
 ## Setup
 
@@ -23,17 +22,16 @@ brew install ansible
 ### Ubuntu 22.04
 
 Note that the Ansible that comes as standard in Ubuntu 22.04 is pretty
-old (2.10.8) and you really need to pull from the ppa to get a
-moderately recent version.
+old (2.10.8). You can either us a [ppa][ref-ansible-ppa] to install a
+more recent version or install via pip.
 ```
-sudo apt-add-repository ppa:ansible/ansible
+python3 -m pip install ansible
 ```
+or in the top-level folder for this repo
 ```
-sudo apt update
+python3 -m pip install -r requirements.txt
 ```
-```
-sudo apt install ansible
-```
+We do not support older versions of Ubuntu at this time.
 
 ### Common
 
@@ -106,3 +104,4 @@ records those facts in a JSON structure in ```/tmp/facts/``` indexed
 by target machine name.
 
 [1]: https://github.com/sbates130272/qemu-minimal/blob/master/scripts/gen-image
+[ref-ansible-ppa]: https://launchpad.net/~ansible/+archive/ubuntu/ansible

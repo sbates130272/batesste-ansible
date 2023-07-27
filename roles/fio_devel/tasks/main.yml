@@ -7,6 +7,16 @@
 # to the PATH. Also install the fio-stuff repo which has some useful
 # tools in it.
 
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
 - name: Install fio related packages
   ansible.builtin.package:
     name:

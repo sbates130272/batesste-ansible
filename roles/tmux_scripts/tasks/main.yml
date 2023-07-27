@@ -5,6 +5,16 @@
 # git-based remote so this can only run once my private ssh key is
 # installed.
 
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
 - name: Ensure tmux resurrect is installed
   ansible.builtin.lineinfile:
     create: true

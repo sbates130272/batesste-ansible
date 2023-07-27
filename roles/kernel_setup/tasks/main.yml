@@ -5,6 +5,16 @@
 # remotes but do not fetch or clone as this takes a long time. The user
 # can do this later
 
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
 - name: Install kernel build pre-requisites and update if requested
   ansible.builtin.package:
     update_cache: true

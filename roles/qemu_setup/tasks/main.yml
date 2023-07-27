@@ -9,6 +9,16 @@
 #
 # [1]: https://www.linuxtechi.com/how-to-install-kvm-on-ubuntu-22-04/
 
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
 - name: Install packages needed for QEMU and libvirt
   ansible.builtin.package:
     update_cache: true

@@ -1,0 +1,48 @@
+---
+# Copyright (c) Stephen Bates, 2023
+#
+# Test the host(s) to ensure they are running a supported patform
+# based on data contained in the meta section of this role. Code based
+# on an example found at [1].
+#
+# [1]: https://stackoverflow.com/questions/60114346/what-is-the-best-way-to-manage-unsupported-distros-in-an-ansible-role
+
+- name: Include the calling roles' meta data
+  ansible.builtin.debug:
+    msg: "The path appears to be {{ calling_role_path }}/meta/main.yml"
+
+- name: Include the calling roles' meta data
+  ansible.builtin.include_vars:
+    file: "{{ calling_role_path }}/meta/main.yml"
+
+- name: Set a fact that conatins the supported distributions
+  ansible.builtin.set_fact:
+    supported_distributions: "{{ galaxy_info.platforms | json_query('[].name') }}"
+
+- name: Test for supported distribution on this host and end_host if not found
+  when: ansible_distribution not in supported_distributions
+  block:
+
+    - name: Print a debug message when the distribution is not supported
+      ansible.builtin.debug:
+        msg: "{{ ansible_distribution }} not supported."
+
+    - name: End the role on this host because the distribution is not supported
+      ansible.builtin.meta: end_host
+
+- name: Set a fact that contains the supported releases
+  ansible.builtin.set_fact:
+    supported_releases: "{{ (galaxy_info.platforms |
+                            selectattr('name', 'match', ansible_distribution) |
+                            list | first).versions }}"
+
+- name: Test for supported {{ ansible_distribution }} release and end_host if not found
+  when: ansible_distribution_release not in supported_releases
+  block:
+
+    - name: Print a debug message when the release is not supported
+      ansible.builtin.debug:
+        msg: "{{ ansible_distribution_release }} not supported."
+
+    - name: End the role on this host because the release is not supported
+      ansible.builtin.meta: end_host
