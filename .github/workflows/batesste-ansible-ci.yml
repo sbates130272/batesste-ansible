@@ -14,7 +14,7 @@ jobs:
       - name: Run ansible-galaxy to install collections and roles
         run: ansible-galaxy install -r requirements.yml
       - name: Run ansible-lint
-        uses: ansible-community/ansible-lint-action@v6.8.2
+        uses: ansible-community/ansible-lint-action@v6.17.0
       - name: Create an SSH keypair
         run: mkdir -p .ssh && ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
       - name: Create a GNU PGP folder
