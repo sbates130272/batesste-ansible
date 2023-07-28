@@ -1,9 +1,14 @@
 ---
 collections:
   - name: ansible.posix
+    version: 1.5.4
   - name: community.general
+    version: 7.2.0
   - name: community.libvirt
+    version: 1.2.0
 
 roles:
   - name: geerlingguy.docker
+    version: 6.1.0
   - name: mrlesmithjr.netplan
+    version: v0.3.0
