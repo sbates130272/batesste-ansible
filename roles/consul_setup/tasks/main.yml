@@ -4,6 +4,16 @@
 # Setup the target system(s) for Hashicorp consul. Also sets up
 # registration of the Prometheus node-exporter service.
 
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
 - name: Install packages needed for consul
   ansible.builtin.package:
     update_cache: true

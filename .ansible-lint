@@ -7,10 +7,11 @@ exclude_paths:
 
 warn_list:
   - command-instead-of-module
-  - no-changed-when
   - command-instead-of-shell
-  - role-name
   - meta-no-info
+  - name[template]
+  - no-changed-when
+  - role-name
   - var-naming[no-role-prefix]
 
 extra_vars:

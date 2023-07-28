@@ -6,6 +6,16 @@
 # one is a password-less sudo so we can execute other roles as
 # myself.
 
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
 - name: Ensure the user and admin groups exist
   ansible.builtin.group:
     name: "{{ item }}"

@@ -4,6 +4,16 @@
 # Create a new VM using libvirt on the target(s). This code uses ideas
 # based on [1]. If the VM is already created we just ensure it is running.
 
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
 - name: Get VMs list
   community.libvirt.virt:
     command: list_vms

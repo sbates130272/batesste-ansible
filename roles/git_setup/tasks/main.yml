@@ -9,6 +9,16 @@
 #
 # ansible-galaxy collection install community.general
 
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
 - name: Copy over gnupg folder to ensure PGP keys are on target(s)
   ansible.posix.synchronize:
     src: ~/.gnupg/

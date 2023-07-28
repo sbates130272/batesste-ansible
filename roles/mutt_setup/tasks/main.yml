@@ -11,6 +11,16 @@
 # See this Role's README.md for more information.
 #
 
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
 - name: Create the mutt headers folder for raithlin
   ansible.builtin.file:
     path: ~/.mutt/cache/raithlin/headers
