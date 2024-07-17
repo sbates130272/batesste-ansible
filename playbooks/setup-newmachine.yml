@@ -38,10 +38,16 @@
       remote_user: "{{ username }}"
       become: false
       tags: [cloud_setup]
+      when:
+        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution_release'] == "jammy"
     - role: consul_setup
       remote_user: "{{ username }}"
       become: false
       tags: [consul_setup]
+      when:
+        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution_release'] == "jammy"
     - role: mutt_setup
       remote_user: "{{ username }}"
       become: false
