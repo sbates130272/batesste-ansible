@@ -1,4 +1,4 @@
-name: batesste-ansible Github Workflow
+name: batesste-ansible
 on: [pull_request]
 
 jobs:

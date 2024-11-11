@@ -13,6 +13,7 @@ warn_list:
   - no-changed-when
   - role-name
   - var-naming[no-role-prefix]
+  - jinja[invalid]
 
 extra_vars:
   targets: localhost
