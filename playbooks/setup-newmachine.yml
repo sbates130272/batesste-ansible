@@ -60,12 +60,6 @@
       remote_user: "{{ username }}"
       become: false
       tags: [fio_devel]
-    - role: geerlingguy.docker
-      docker_edition: 'ce'
-      docker_users:
-        - "{{ username }}"
-      become: true
-      tags: [docker_setup]
     - role: aws_grub
       remote_user: "{{ username }}"
       become: true
