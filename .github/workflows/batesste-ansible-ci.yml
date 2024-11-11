@@ -9,27 +9,30 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3.5.3
+        uses: actions/checkout@v4.2.2
       - name: Setup python and pip
-        uses: actions/setup-python@v4.7.0
+        uses: actions/setup-python@v5.3.0
         with:
-          python-version: '3.11'
+          python-version: '3.12.3'
       - name: Install pip packages
         run: python3 -m pip install -r requirements.txt
       - name: GitHub spellcheck action
-        uses: rojopolis/spellcheck-github-actions@0.27.0
+        uses: rojopolis/spellcheck-github-actions@0.45.0
       - name: Render the checkout directory safe for the lint step
         run: git config --global --add safe.directory /github/workspace
       - name: Run ansible-galaxy to install collections and roles
         run: ansible-galaxy install -r requirements.yml
       - name: Run ansible-lint
-        uses: ansible-community/ansible-lint-action@v6.17.0
+        uses: ansible/ansible-lint@v24.9.2
+        with:
+          args: "-c .ansible-lint"
+          setup_python: "false"
       - name: Create an SSH keypair
         run: mkdir -p .ssh && ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
       - name: Create a GNU PGP folder
         run: mkdir -p .gnupg
       - name: Write hosts-ci file
-        uses: DamianReeves/write-file-action@v1.0
+        uses: DamianReeves/write-file-action@v1.3
         with:
           path: ./playbooks/hosts-ci
           write-mode: overwrite
