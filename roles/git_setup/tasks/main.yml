@@ -26,6 +26,7 @@
     rsync_opts:
       - --exclude=S.*
       - --exclude=*~
+      - --exclude=*.conf
   when:
     - inventory_hostname not in groups['locals'] and
       inventory_hostname not in groups['runners']
