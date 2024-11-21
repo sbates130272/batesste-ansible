@@ -23,6 +23,7 @@
       - emacs-nox
       - fio
       - git
+      - git-email
       - gnuplot
       - gpg-agent
       - libaio-dev
