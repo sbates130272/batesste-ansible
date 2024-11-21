@@ -49,6 +49,7 @@
     name:
       - elpa-cmake-mode
       - elpa-rust-mode
+      - git-email
       - virtiofsd
   become: true
   when:
