@@ -32,6 +32,8 @@
       - libvirt-clients
       - libvirt-daemon-system
       - qemu-kvm
+      - qemu-system-misc
+      - u-boot-emu
       - virt-manager
       - virtinst
   become: true
