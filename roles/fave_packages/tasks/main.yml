@@ -20,6 +20,7 @@
     name:
       - bmon
       - build-essential
+      - docker.io
       - emacs-nox
       - fio
       - git
