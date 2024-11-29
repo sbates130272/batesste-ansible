@@ -10,6 +10,7 @@ set smtp_oauth_refresh_command=${imap_oauth_refresh_command}
 set folder = "imaps://outlook.office365.com/"
 set spoolfile = "+INBOX"
 set postponed = "+/Drafts"
+set copy = no
 set record = "+/Sent Items"
 set trash = "+/Deleted Items"
 # other settings
