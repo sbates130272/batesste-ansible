@@ -68,7 +68,7 @@ cat > ${TEMP_DIR}/ansible.cfg << EOL
 # Avoid host key checking - to to run without interaction.
 host_key_checking = False
 # Add the project roles path so we can find our roles
-roles_path = $(PWD)/../
+roles_path = ${PWD}/../
 EOL
 
 ANSIBLE_CONFIG=${TEMP_DIR}/ansible.cfg
