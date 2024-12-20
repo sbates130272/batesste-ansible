@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+MAC_MODE=${MAC_MODE:-no}
+CLEAN_UP=${CLEAN_UP:-yes}
+
+UUID=$(uuidgen)
+CONTAINER_NAME="test-playbook-${UUID}"
+DOCKER_DIR="$(dirname "$(readlink -f "$0")")"
+
+echo $UUID
+echo $CONTAINER_NAME
+echo $DOCKER_DIR
+echo $PWD
+
+function cleanup() {
+
+    CONTAINER_ID=$(docker inspect --format="{{.Id}}" ${CONTAINER_NAME} ||:)
+    if [ $CLEAN_UP == "yes" ]; then
+	if [[ -n ${CONTAINER_ID} ]]; then
+            echo "Cleaning up container ${CONTAINER_NAME}"
+            docker rm --force ${CONTAINER_ID}
+	fi
+	if [[ -d ${TEMP_DIR} ]]; then
+            echo "Cleaning up temporary directory ${TEMP_DIR}"
+            rm -rf ${TEMP_DIR}
+	fi
+    else
+	echo "Left ${CONTAINER_NAME} running, files in ${TEMP_DIR}."
+    fi
+}
+
+trap cleanup EXIT
+
+TEMP_DIR=$(mktemp --directory /tmp/${CONTAINER_NAME}.XXXXXXXX)
+
+ssh-keygen -b 2048 -t rsa -C ${USER}@email.com -f ${TEMP_DIR}/id_rsa -N ""
+chmod 600 "${TEMP_DIR}/id_rsa"
+chmod 644 "${TEMP_DIR}/id_rsa.pub"
+
+docker build --tag test-playbook \
+       --build-arg USER \
+       --file ${DOCKER_DIR}/Dockerfile \
+       ${TEMP_DIR}
+docker run -d -P --name ${CONTAINER_NAME} test-playbook
+
+if [ $MAC_MODE == "no" ]; then
+    CONTAINER_ADDR=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_NAME})
+    CONTAINER_PORT=22
+elif [ $MAC_MODE == "yes" ]; then
+    CONTAINER_ADDR=localhost
+    CONTAINER_PORT=$(docker inspect --format='{{ (index .NetworkSettings.Ports "22/tcp" 0).HostPort }}' ${CONTAINER_NAME})
+else
+    echo "ERROR: MAC_MODE must be yes or no (${MAC_MODE})."
+    exit 1
+fi
+
+cat > ${TEMP_DIR}/hosts << EOL
+[target_group]
+${CONTAINER_ADDR}:${CONTAINER_PORT}
+[target_group:vars]
+ansible_ssh_private_key_file=${TEMP_DIR}/id_rsa
+EOL
+
+cat > ${TEMP_DIR}/ansible.cfg << EOL
+[defaults]
+# Avoid host key checking - to to run without interaction.
+host_key_checking = False
+# Add the project roles path so we can find our roles
+roles_path = $(PWD)/../
+EOL
+
+ANSIBLE_CONFIG=${TEMP_DIR}/ansible.cfg
+export ANSIBLE_CONFIG
+ansible-playbook -i ${TEMP_DIR}/hosts $1
