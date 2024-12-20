@@ -1,0 +1,17 @@
+- name: Check that rocminfo works
+  ansible.builtin.shell:
+    cmd: rocminfo
+
+- name: Copy test HIP program to target
+  ansible.builtin.copy:
+    src: ./files/hip-hello-world.cpp
+    dest: /tmp/
+    owner: "{{ rocm_setup_user }}"
+    group: "{{ rocm_setup_user }}"
+    mode: '0644'
+  become: true
+
+
+- name: Check that we can compile a very simple program
+  ansible.builtin.shell:
+    cmd: hipcc -o /tmp/hip-hello-world /tmp/hip-hello-world.cpp

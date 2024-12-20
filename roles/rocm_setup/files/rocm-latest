@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# A simple bash script that uses curl to obtain the latest release of
+# ROCm and amdgpu packages via our packaging repo. Use QUIET=true to
+# only display the version tag. Use ONLY_ONE=[ROCM|AMDGPU] to only
+# output the version tag for either ROCm or amdgpu.
+
+RADEON_REPO=${RADEON_REPO:-https://repo.radeon.com}
+QUIET=${QUIET:-false}
+ONLY_ONE=${ONLY_ONE:-false}
+
+ROCM_REMOTE=${RADEON_REPO}/rocm/apt/
+AMDGPU_REMOTE=${RADEON_REPO}/amdgpu/
+
+parse_repo () {
+    VERSION=$(curl -s ${1} | \
+      sed -nE 's/^<a href="([0-9.]+*)\/">*.*/\1/p' | \
+      sort -g | tail -n 1)
+    echo $VERSION
+}
+
+if [ ${ONLY_ONE} != "AMDGPU" ]; then
+
+    ROCM_VERSION=$(parse_repo $ROCM_REMOTE)
+    if [ ${QUIET} == "true" ]; then
+        echo ${ROCM_VERSION}
+    else
+        echo "ROCm latest: ${ROCM_VERSION}."
+    fi
+fi
+
+if [ ${ONLY_ONE} != "ROCM" ]; then
+    AMDGPU_VERSION=$(parse_repo $AMDGPU_REMOTE)
+    if [ ${QUIET} == "true" ]; then
+        echo ${AMDGPU_VERSION}
+    else
+        echo "AMDGPU latest: ${AMDGPU_VERSION}."
+    fi
+fi

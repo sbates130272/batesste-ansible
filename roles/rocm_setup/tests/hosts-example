@@ -1,0 +1,8 @@
+rocm_servers:
+  hosts:
+    snoc-think-vm:
+        rocm_setup_user: stebates
+        rocm_setup_reboot: 30
+        ansible_host: snoc-think
+        ansible_port: 2222
+        ansible_user: stebates

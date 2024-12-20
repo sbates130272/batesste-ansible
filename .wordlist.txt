@@ -12,7 +12,9 @@ MacOS
 NVMe
 OAuth
 Pre
+Radeon
 README
+ROCm
 SSDs
 VM
 VMs
@@ -34,6 +36,7 @@ ppa
 qemu
 raithlin
 repo
+rocm
 rsa
 sbates
 sudo

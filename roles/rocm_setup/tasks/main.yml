@@ -1,0 +1,89 @@
+---
+# Copyright (c) Stephen Bates, 2022
+#
+# AMD ROCm software install and setup.
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
+- name: Run the rocm_setup prerequisite steps
+  ansible.builtin.import_tasks:
+    file: rocm_pre.yml
+
+- name: Add the AMD ROCm apt siging key and repo
+  ansible.builtin.deb822_repository:
+    name: rocm
+    types: deb
+    uris:
+      - https://repo.radeon.com/rocm/apt/{{ rocm_setup_version }}
+      - https://repo.radeon.com/graphics/{{ rocm_setup_version }}/ubuntu
+      - https://repo.radeon.com/amdgpu/{{ rocm_setup_amdgpu_version }}/ubuntu
+    suites: '{{ ansible_distribution_release }}'
+    components: main
+    architectures: amd64
+    signed_by: https://repo.radeon.com/rocm/rocm.gpg.key
+  become: true
+
+- name: Create a rocm-pin-600 file to pin the repos want to install
+  ansible.builtin.copy:
+    content: |
+      Package: *
+      Pin: release o=repo.radeon.com
+      Pin-Priority: 600
+    dest: /etc/apt/preferences.d/rocm-pin-600
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Install the rocm meta-package
+  ansible.builtin.package:
+    update_cache: true
+    name:
+      - libstdc++-14-dev
+      - rocm
+  become: true
+
+- name: Update the library linker with rocm library paths
+  ansible.builtin.copy:
+    content: |
+      /opt/rocm/lib
+      /opt/rocm/lib64
+    dest: /etc/ld.so.conf.d/rocm.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Run ldconfig to ensure library updates take effect
+  ansible.builtin.shell:
+    cmd: ldconfig
+  become: true
+
+- name: Update the PCIe ID tables (for new GPU support)
+  ansible.builtin.shell:
+    cmd: update-pciids
+  become: true
+
+- name: Install the amdgpu-dkms package
+  ansible.builtin.package:
+    update_cache: true
+    name:
+      - amdgpu-dkms
+  become: true
+
+- name: Perform a reboot to allow changes to take affect
+  ansible.builtin.reboot:
+    reboot_timeout: "{{ rocm_setup_reboot }}"
+  become: true
+
+- name: Run the rocm checks to ensure install worked
+  ansible.builtin.import_tasks:
+    file: rocm_check.yml

@@ -1,0 +1,88 @@
+- name: Copy the rocm-latest script to the host
+  ansible.builtin.copy:
+    src: rocm-latest
+    dest: /usr/local/bin/rocm-latest
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+
+- name: Run the rocm-latest script and register results
+  ansible.builtin.shell:
+    cmd: rocm-latest
+  environment:
+    QUIET: "true"
+    ONLY_ONE: ROCM
+  register: rocm_version
+
+- name: Run the rocm-latest script and register results
+  ansible.builtin.shell:
+    cmd: rocm-latest
+  environment:
+    QUIET: "true"
+    ONLY_ONE: AMDGPU
+  register: amdgpu_version
+
+- name: Print the rocm package version
+  ansible.builtin.debug:
+    msg: "rocm version: {{ rocm_version.stdout }}"
+
+- name: Print the amdgpu package version
+  ansible.builtin.debug:
+    msg: "amdgpu version: {{ amdgpu_version.stdout }}"
+
+- name: Fail if rocm_version does not match rocm_setup_version
+  ansible.builtin.fail:
+    msg: "You are not requesting the latest rocm version!"
+  when: rocm_version.stdout != rocm_setup_version
+
+- name: Fail if amdgpu_version does not match rocm_setup_amdgpu_version
+  ansible.builtin.fail:
+    msg: "You are not requesting the latest amdgpu version!"
+  when: amdgpu_version.stdout != rocm_setup_amdgpu_version
+
+- name: Perform an update, upgrade and autoremove
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: full
+    autoremove: true
+  become: true
+
+- name: Perform a reboot to allow kernel updates
+  ansible.builtin.reboot:
+    reboot_timeout: "{{ rocm_setup_reboot }}"
+  become: true
+
+- name: Update ansible_kernel as it may have changed
+  ansible.builtin.setup:
+    filter:
+      - ansible_kernel
+
+- name: Install the prerequisite packages needed for ROCm install
+  ansible.builtin.package:
+    update_cache: true
+    name:
+      - linux-headers-{{ ansible_kernel }}
+      - linux-modules-extra-{{ ansible_kernel }}
+      - python3-setuptools
+      - python3-wheel
+  become: true
+
+- name: Ensure the video and render groups exist
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - video
+    - render
+  become: true
+
+- name: Ensure the requested user is a member of above groups
+  ansible.builtin.user:
+    name: "{{ rocm_setup_user }}"
+    groups: "{{ item }}"
+    append: true
+  loop:
+    - video
+    - render
+  become: true
