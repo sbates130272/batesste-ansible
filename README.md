@@ -98,6 +98,23 @@ ansible-playbook.
 Some of the more involved roles have their own README.md. Please refer
 to them for more information about a specific role.
 
+## Playbook and Role Testing
+
+This project contains a [docker](./docker) directory that contains a
+Dockerfile and a bash script that allows simple testing of these
+playbooks and roles. This is based on [this tutorial][ref-docker-tut]
+with some of my own modifications.
+
+You can run a test for any of the roles in this repo by calling the
+following from the top-level directory of a given role.
+```
+MAC_MODE=no CLEAN_UP=yes ../../docker/test-playbook tests/test.yml
+```
+This runs the test playbook in the ```tests/test.yml``` file using a
+docker container based on Ubuntu Noble. You can change to
+```MAC_MODE=yes``` when running on Mac OS X and ```CLEAN_UP=no``` if
+you want to leave the container running for debug purposes.
+
 ## Useful Ansible Commands
 
 As this repository has developed we have come across some very useful
@@ -113,3 +130,4 @@ by target machine name.
 
 [1]: https://github.com/sbates130272/qemu-minimal/blob/master/scripts/gen-image
 [ref-ansible-ppa]: https://launchpad.net/~ansible/+archive/ubuntu/ansible
+[ref-docker-tut]: https://dev.to/pencillr/test-ansible-playbooks-using-docker-ci0
