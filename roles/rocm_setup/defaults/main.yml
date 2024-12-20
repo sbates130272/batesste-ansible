@@ -1,0 +1,11 @@
+---
+# defaults file for rocm-setup
+
+# The version of ROCm to install. See
+# https://rocm.docs.amd.com/en/latest/ for the actual latest
+# version and for older versions. 
+rocm_setup_version: 6.3
+
+# The UNIX user group name for AMD GPU access. We use this and udev
+# rules to provide user access to the GPU(s) in the system.
+rocm_setup_amdgpu_group: amdgpu

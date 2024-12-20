@@ -1,0 +1,2 @@
+KERNEL=="kfd", GROUP="{{ rocm_setup_amdgpu_group }}", MODE="0660"
+SUBSYSTEM=="drm", KERNEL=="renderD*", GROUP="{{ rocm_setup_amdgpu_group }}", MODE="0660"

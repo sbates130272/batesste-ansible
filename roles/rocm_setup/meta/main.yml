@@ -1,0 +1,20 @@
+---
+# meta file for rocm-setup
+
+galaxy_info:
+  author: Stephen Bates
+  company: Raithlin Semiconductors
+  role_name: rocm_setup
+  namespace: sbates130272
+  description: A role to install the AMD ROCm software framework
+  license: BSD-3-Clause
+  min_ansible_version: "8.2.0"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+  galaxy_tags:
+    - system
+    - amd
+    - rocm
+    - gpu
