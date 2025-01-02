@@ -127,3 +127,12 @@
     - ServerAliveInterval 60
     - ServerAliveCountMax 30
     - StrictHostKeyChecking accept-new
+
+- name: Copy emacs config file from our files folder
+  ansible.builtin.copy:
+    force: true
+    src: .emacs
+    dest: /home/{{ username }}/.emacs
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
