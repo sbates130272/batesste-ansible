@@ -1,5 +1,10 @@
 name: batesste-ansible
-on: [pull_request]
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build-spellcheck-lint-test:
@@ -23,7 +28,7 @@ jobs:
       - name: Run ansible-galaxy to install collections and roles
         run: ansible-galaxy install -r requirements.yml
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@v24.9.2
+        uses: ansible/ansible-lint@v25.8.2
         with:
           args: "-c .ansible-lint"
           setup_python: "false"
