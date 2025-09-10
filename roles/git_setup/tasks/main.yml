@@ -28,8 +28,8 @@
       - --exclude=*~
       - --exclude=*.conf
   when:
-    - inventory_hostname not in groups['locals'] and
-      inventory_hostname not in groups['runners']
+    - inventory_hostname not in groups['locals'] | default([]) and
+      inventory_hostname not in groups['runners'] | default([])
 
 - name: Setup emacs as git editor
   community.general.git_config:

@@ -36,7 +36,7 @@
   ansible.builtin.setup:
     gather_subset:
       - kernel
-  when: inventory_hostname in groups['awsmachines']
+  when: inventory_hostname in groups['awsmachines'] | default([])
 
 - name: Install fio related packages when on AWS
   ansible.builtin.package:
@@ -44,7 +44,7 @@
       - linux-tools-{{ ansible_kernel }}
       - linux-tools-aws
   become: true
-  when: inventory_hostname in groups['awsmachines']
+  when: inventory_hostname in groups['awsmachines'] | default([])
 
 - name: Ensure Projects folder exists.
   ansible.builtin.file:
