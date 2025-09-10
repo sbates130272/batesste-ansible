@@ -1,0 +1,20 @@
+---
+# Copyright (c) Stephen Bates, 2025
+#
+
+- name: Setup user account and install cool stuff on a new AMD machine
+  hosts: "{{ targets }}"
+  gather_facts: true
+  roles:
+    - role: user_setup
+      remote_user: "{{ username }}"
+      become: true
+      tags: [user_setup]
+    - role: fave_packages
+      remote_user: "{{ username }}"
+      become: true
+      tags: [fave_packages]
+    - role: git_setup
+      remote_user: "{{ username }}"
+      become: false
+      tags: [git_setup]
