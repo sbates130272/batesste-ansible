@@ -115,6 +115,9 @@ docker container based on Ubuntu Noble. You can change to
 ```MAC_MODE=yes``` when running on Mac OS X and ```CLEAN_UP=no``` if
 you want to leave the container running for debug purposes.
 
+Note that any arguments after the playbook will be passed in, as is,
+to the call to ansible-playbook inside the script.
+
 ## Useful Ansible Commands
 
 As this repository has developed we have come across some very useful
