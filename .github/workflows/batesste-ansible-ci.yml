@@ -7,6 +7,7 @@ on:
       - main
 
 jobs:
+
   build-spellcheck-lint-test:
     strategy:
       matrix:
@@ -55,4 +56,35 @@ jobs:
           TARGETS: runners
           HOSTS: hosts-ci
           ANSIBLE_VAULT_PASSWORD_FILE: ./vault-env
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+
+  rocm_setup-role-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+      - name: Install pip packages
+        run: python3 -m pip install -r requirements.txt
+      - name: Run ansible-galaxy to install collections and roles
+        run: ansible-galaxy install -r requirements.yml
+      - name: Create an SSH keypair
+        run: mkdir -p .ssh && ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+      - name: Create a GNU PGP folder
+        run: mkdir -p .gnupg
+      - name: Write hosts-ci file
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: ./roles/rocm_setup/hosts-ci
+          write-mode: overwrite
+          contents: |
+            [runners]
+            localhost root_user=runner username=runner ansible_connection=local
+      - name: Run the test playbook against the local runner
+        run: ansible-playbook -v -i hosts-ci ./tests/test.yml --limit runners
+        working-directory: ./roles/rocm_setup
+        env:
+          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
