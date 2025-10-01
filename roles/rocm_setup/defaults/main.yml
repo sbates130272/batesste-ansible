@@ -1,0 +1,16 @@
+---
+# defaults file for rocm-setup
+
+# The version of ROCm to install. See
+# https://rocm.docs.amd.com/en/latest/ for the actual latest
+# version and for older versions.
+rocm_setup_version: 7.0.1
+rocm_setup_amdgpu_version: 30.10.1
+
+# The user to set ROCm up for. This includes adding to the revelant
+# user groups etc.
+rocm_setup_user: rocm_user
+
+# The reboot time to wait for. Note we can set this a lot less for a
+# VM than for a bare-metal
+rocm_setup_reboot: 300
