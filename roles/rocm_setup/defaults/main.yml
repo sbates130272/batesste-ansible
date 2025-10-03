@@ -13,4 +13,4 @@ rocm_setup_user: rocm_user
 
 # The reboot time to wait for. Note we can set this a lot less for a
 # VM than for a bare-metal
-rocm_setup_reboot: 300
+rocm_setup_reboot_timeout: 300
