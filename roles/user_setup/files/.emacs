@@ -12,3 +12,7 @@
 (setq-default show-trailing-whitespace t)
 ;; default to auto-fill-mode on in all major modes
 (setq-default auto-fill-function 'do-auto-fill)
+;; add a rust mode
+(require 'rust-mode)
+;; treat .hip files as .cpp
+(add-to-list 'auto-mode-alist '("\\.hip\\'" . c++-mode))

@@ -128,6 +128,23 @@
     - ServerAliveCountMax 30
     - StrictHostKeyChecking accept-new
 
+- name: Ensure .emacs.d folder exists
+  ansible.builtin.file:
+    path: /home/{{ username }}/.emacs.d
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Copy emacs config file from our files folder
+  ansible.builtin.copy:
+    force: true
+    src: init.el
+    dest: /home/{{ username }}/.emacs.d/init.el
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
 - name: Copy emacs config file from our files folder
   ansible.builtin.copy:
     force: true
