@@ -52,7 +52,7 @@
   ansible.builtin.reboot:
     reboot_timeout: "{{ rocm_setup_reboot_timeout }}"
   become: true
-  when: inventory_hostname not in groups['runners'] | default([])
+  when: ansible_connection != 'local'
 
 - name: Update ansible_kernel as it may have changed
   ansible.builtin.setup:

@@ -83,7 +83,7 @@
   ansible.builtin.reboot:
     reboot_timeout: "{{ rocm_setup_reboot }}"
   become: true
-  when: inventory_hostname not in groups['runners'] | default([])
+  when: ansible_connection != 'local'
 
 - name: Run the rocm checks to ensure install worked
   ansible.builtin.import_tasks:
