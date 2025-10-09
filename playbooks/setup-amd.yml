@@ -18,3 +18,7 @@
       remote_user: "{{ username }}"
       become: false
       tags: [git_setup]
+    - role: rocm_setup
+      remote_user: "{{ username }}"
+      become: false
+      tags: [rocm_setup]
