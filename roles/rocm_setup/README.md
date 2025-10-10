@@ -17,6 +17,12 @@ the variables associated with this file. Note there is also a
 [rocm-latest](./files/rocm-latest) script that can be used to detect
 the latest version of the `rocm` and `amdgpu` packages.
 
+Note that `rocm_setup_version` and `rocm_setup_amdgpu_version` can be
+set to `latest`. In this case the [rocm-latest](./files/rocm-latest)
+script will be used to set the versions to install. If you do want to
+install an older version then set the version variables and also set
+`rocm_setup_force_version` to `true`.
+
 # Dependencies
 
 # Example Playbook

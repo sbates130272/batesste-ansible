@@ -13,7 +13,7 @@
   environment:
     QUIET: "true"
     ONLY_ONE: ROCM
-  register: rocm_version
+  register: rocm_latest_version
 
 - name: Run the rocm-latest script and register results
   ansible.builtin.shell:
@@ -21,25 +21,35 @@
   environment:
     QUIET: "true"
     ONLY_ONE: AMDGPU
-  register: amdgpu_version
+  register: amdgpu_latest_version
 
 - name: Print the rocm package version
   ansible.builtin.debug:
-    msg: "rocm version: {{ rocm_version.stdout }}"
+    msg: "rocm latest_version: {{ rocm_latest_version.stdout }}"
 
 - name: Print the amdgpu package version
   ansible.builtin.debug:
-    msg: "amdgpu version: {{ amdgpu_version.stdout }}"
+    msg: "amdgpu latest version: {{ amdgpu_latest_version.stdout }}"
 
-- name: Fail if rocm_version does not match rocm_setup_version
+- name: Populate rocm_setup_rocm_version variable
+  ansible.builtin.set_fact:
+    rocm_setup_rocm_version: "{{ rocm_latest_version.stdout }}"
+  when: rocm_setup_rocm_version == 'latest'
+
+- name: Populate rocm_setup_amdgpu_version variable
+  ansible.builtin.set_fact:
+    rocm_setup_amdgpu_version: "{{ amdgpu_latest_version.stdout }}"
+  when: rocm_setup_amdgpu_version == 'latest'
+
+- name: Fail if rocm_latest_version does not match rocm_setup_version (unless forced)
   ansible.builtin.fail:
     msg: "You are not requesting the latest rocm version!"
-  when: rocm_version.stdout != rocm_setup_version
+  when: rocm_latest_version.stdout != rocm_setup_rocm_version and not rocm_setup_version_force
 
-- name: Fail if amdgpu_version does not match rocm_setup_amdgpu_version
+- name: Fail if amdgpu_latest_version does not match rocm_setup_amdgpu_version (unless forced)
   ansible.builtin.fail:
     msg: "You are not requesting the latest amdgpu version!"
-  when: amdgpu_version.stdout != rocm_setup_amdgpu_version
+  when: amdgpu_latest_version.stdout != rocm_setup_amdgpu_version and not rocm_setup_version_force
 
 - name: Perform an update, upgrade and autoremove
   ansible.builtin.apt:
