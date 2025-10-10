@@ -22,8 +22,8 @@
     name: rocm
     types: deb
     uris:
-      - https://repo.radeon.com/rocm/apt/{{ rocm_setup_version }}
-      - https://repo.radeon.com/graphics/{{ rocm_setup_version }}/ubuntu
+      - https://repo.radeon.com/rocm/apt/{{ rocm_setup_rocm_version }}
+      - https://repo.radeon.com/graphics/{{ rocm_setup_rocm_version }}/ubuntu
       - https://repo.radeon.com/amdgpu/{{ rocm_setup_amdgpu_version }}/ubuntu
     suites: '{{ ansible_distribution_release }}'
     components: main
@@ -81,7 +81,7 @@
 
 - name: Perform a reboot to allow changes to take affect
   ansible.builtin.reboot:
-    reboot_timeout: "{{ rocm_setup_reboot }}"
+    reboot_timeout: "{{ rocm_setup_reboot_timeout }}"
   become: true
   when: ansible_connection != 'local'
 

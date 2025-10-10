@@ -1,11 +1,11 @@
 ---
 # defaults file for rocm-setup
 
-# The version of ROCm to install. See
-# https://rocm.docs.amd.com/en/latest/ for the actual latest
-# version and for older versions.
-rocm_setup_version: 7.0.1
-rocm_setup_amdgpu_version: 30.10.1
+# The version of ROCm to install. Set to latest to use rocm-latest
+# script to detect lastest.
+rocm_setup_rocm_version: latest
+rocm_setup_amdgpu_version: latest
+rocm_setup_force_version: false
 
 # The user to set ROCm up for. This includes adding to the revelant
 # user groups etc.
