@@ -20,6 +20,7 @@
     name:
       - bmon
       - build-essential
+      - cmake
       - emacs-nox
       - fio
       - git
