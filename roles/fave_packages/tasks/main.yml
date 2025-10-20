@@ -20,6 +20,8 @@
     name:
       - bmon
       - build-essential
+      - cmake
+      - driverctl
       - emacs-nox
       - fio
       - git
