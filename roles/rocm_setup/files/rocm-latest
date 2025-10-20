@@ -4,13 +4,38 @@
 # ROCm and amdgpu packages via our packaging repo. Use QUIET=true to
 # only display the version tag. Use ONLY_ONE=[ROCM|AMDGPU] to only
 # output the version tag for either ROCm or amdgpu.
+#
+# Note that setting WSL_INSTALL=true ensures that only the latest
+# version that works with WSL2 is installed. This also will return
+# "none" for the amdgpu component as it is not used in WSL-based
+# systems. Note that we parse the RADEON_REPO tree to obtain this
+# latest version based on what version has the wsl version of the
+# runtime. Note the WSL_INSTALL version of this script can take longer
+# as it has to parse the website more.
 
 RADEON_REPO=${RADEON_REPO:-https://repo.radeon.com}
 QUIET=${QUIET:-false}
 ONLY_ONE=${ONLY_ONE:-false}
+WSL_INSTALL=${WSL_INSTALL:-false}
 
 ROCM_REMOTE=${RADEON_REPO}/rocm/apt/
 AMDGPU_REMOTE=${RADEON_REPO}/amdgpu/
+WSL_REMOTE=${RADEON_REPO}/amdgpu/
+
+wsl_version () {
+    VERSIONS=$(curl -s ${1} | \
+      sed -nE 's/^<a href="([0-9.]+*)\/">*.*/\1/p' | \
+      sort -rg)
+    VERSION_ARRAY=( ${VERSIONS} )
+    WSL_SUPPORT="none"
+    for VERSION in ${VERSION_ARRAY[@]}; do
+        if curl -s ${1}${VERSION}/ubuntu/pool/main/h/ | grep -qi wsl; then
+            WSL_SUPPORT=${VERSION}
+            break
+        fi
+    done
+    echo ${WSL_SUPPORT}
+}
 
 parse_repo () {
     VERSION=$(curl -s ${1} | \
@@ -21,19 +46,35 @@ parse_repo () {
 
 if [ ${ONLY_ONE} != "AMDGPU" ]; then
 
-    ROCM_VERSION=$(parse_repo $ROCM_REMOTE)
+    if [ ${WSL_INSTALL} == "true" ]; then
+        ROCM_VERSION=$(wsl_version $WSL_REMOTE)
+    else
+        ROCM_VERSION=$(parse_repo $ROCM_REMOTE)
+    fi
     if [ ${QUIET} == "true" ]; then
         echo ${ROCM_VERSION}
     else
-        echo "ROCm latest: ${ROCM_VERSION}."
+        if [ ${WSL_INSTALL} == "true" ]; then
+            echo "ROCm latest (wsl): ${ROCM_VERSION}."
+        else
+            echo "ROCm latest: ${ROCM_VERSION}."
+        fi
     fi
 fi
 
 if [ ${ONLY_ONE} != "ROCM" ]; then
-    AMDGPU_VERSION=$(parse_repo $AMDGPU_REMOTE)
+    if [ ${WSL_INSTALL} == "true" ]; then
+        AMDGPU_VERSION="none"
+    else
+        AMDGPU_VERSION=$(parse_repo $AMDGPU_REMOTE)
+    fi
     if [ ${QUIET} == "true" ]; then
         echo ${AMDGPU_VERSION}
     else
-        echo "AMDGPU latest: ${AMDGPU_VERSION}."
+        if [ ${WSL_INSTALL} == "true" ]; then
+            echo "AMDGPU latest (wsl): ${AMDGPU_VERSION}."
+        else
+            echo "AMDGPU latest: ${AMDGPU_VERSION}."
+        fi
     fi
 fi

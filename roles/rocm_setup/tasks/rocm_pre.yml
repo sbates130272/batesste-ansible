@@ -1,3 +1,17 @@
+- name: Check if wslinfo works if rocm_setup_wsl_install is set
+  ansible.builtin.shell:
+    cmd: |
+      wslinfo --version
+  register: wslinfo
+  ignore_errors: true
+  when: rocm_setup_wsl_install
+
+- name: Check if wslinfo works if rocm_setup_wsl_install is set
+  ansible.builtin.fail:
+    msg: |
+      "wslinfo not working. WSL install requested. Aborting!"
+  when: wslinfo.rc | default(0) != 0 and rocm_setup_wsl_install
+
 - name: Copy the rocm-latest script to the host
   ansible.builtin.copy:
     src: rocm-latest
@@ -15,6 +29,16 @@
     ONLY_ONE: ROCM
   register: rocm_latest_version
 
+- name: Run the rocm-latest script and register results (wsl)
+  ansible.builtin.shell:
+    cmd: rocm-latest
+  environment:
+    QUIET: "true"
+    ONLY_ONE: ROCM
+    WSL_INSTALL: "true"
+  register: rocm_latest_wsl_version
+  when: rocm_setup_wsl_install
+
 - name: Run the rocm-latest script and register results
   ansible.builtin.shell:
     cmd: rocm-latest
@@ -27,6 +51,11 @@
   ansible.builtin.debug:
     msg: "rocm latest_version: {{ rocm_latest_version.stdout }}"
 
+- name: Print the rocm package version (wsl)
+  ansible.builtin.debug:
+    msg: "rocm latest_wsl_version: {{ rocm_latest_wsl_version.stdout }}"
+  when: rocm_setup_wsl_install
+
 - name: Print the amdgpu package version
   ansible.builtin.debug:
     msg: "amdgpu latest version: {{ amdgpu_latest_version.stdout }}"
@@ -34,22 +63,45 @@
 - name: Populate rocm_setup_rocm_version variable
   ansible.builtin.set_fact:
     rocm_setup_rocm_version: "{{ rocm_latest_version.stdout }}"
-  when: rocm_setup_rocm_version == 'latest'
+  when: rocm_setup_rocm_version == 'latest' and not rocm_setup_wsl_install
+
+- name: Populate rocm_setup_rocm_version variable (wsl)
+  ansible.builtin.set_fact:
+    rocm_setup_rocm_version: "{{ rocm_latest_wsl_version.stdout }}"
+  when: rocm_setup_rocm_version == 'latest' and rocm_setup_wsl_install
 
 - name: Populate rocm_setup_amdgpu_version variable
   ansible.builtin.set_fact:
     rocm_setup_amdgpu_version: "{{ amdgpu_latest_version.stdout }}"
-  when: rocm_setup_amdgpu_version == 'latest'
+  when: rocm_setup_amdgpu_version == 'latest' and not rocm_setup_wsl_install
+
+- name: Populate rocm_setup_amdgpu_version variable (wsl)
+  ansible.builtin.set_fact:
+    rocm_setup_amdgpu_version: "{{ amdgpu_latest_wsl_version.stdout }}"
+  when: rocm_setup_amdgpu_version == 'latest' and rocm_setup_wsl_install
 
 - name: Fail if rocm_latest_version does not match rocm_setup_version (unless forced)
   ansible.builtin.fail:
     msg: "You are not requesting the latest rocm version!"
-  when: rocm_latest_version.stdout != rocm_setup_rocm_version and not rocm_setup_version_force
+  when: rocm_latest_version.stdout != rocm_setup_rocm_version and not rocm_setup_wsl_install and not rocm_setup_version_force
+
+- name: Fail if rocm_latest_wsl_version does not match rocm_setup_version (unless forced) (wsl)
+  ansible.builtin.fail:
+    msg: "You are not requesting the latest rocm version!"
+  when: rocm_latest_wsl_version.stdout | default('none') != rocm_setup_rocm_version and rocm_setup_wsl_install and not rocm_setup_version_force
 
 - name: Fail if amdgpu_latest_version does not match rocm_setup_amdgpu_version (unless forced)
   ansible.builtin.fail:
     msg: "You are not requesting the latest amdgpu version!"
   when: amdgpu_latest_version.stdout != rocm_setup_amdgpu_version and not rocm_setup_version_force
+
+- name: Print out the ROCm version being installed
+  ansible.builtin.debug:
+    msg: "rocm_setup_rocm_version: {{ rocm_setup_rocm_version }}"
+
+- name: Print out the AMDGPU version being installed
+  ansible.builtin.debug:
+    msg: "rocm_setup_amdgpu_version: {{ rocm_setup_amdgpu_version }}"
 
 - name: Perform an update, upgrade and autoremove
   ansible.builtin.apt:
@@ -73,11 +125,18 @@
   ansible.builtin.package:
     update_cache: true
     name:
-      - linux-headers-{{ ansible_kernel }}
-      - linux-modules-extra-{{ ansible_kernel }}
       - python3-setuptools
       - python3-wheel
   become: true
+
+- name: Install the kernel header and extra modules
+  ansible.builtin.package:
+    update_cache: true
+    name:
+      - linux-headers-{{ ansible_kernel }}
+      - linux-modules-extra-{{ ansible_kernel }}
+  become: true
+  when: not rocm_setup_wsl_install
 
 - name: Ensure the video and render groups exist
   ansible.builtin.group:

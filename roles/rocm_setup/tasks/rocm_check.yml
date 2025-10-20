@@ -1,6 +1,7 @@
 - name: Check that rocminfo works
   ansible.builtin.shell:
     cmd: rocminfo
+  when: not rocm_setup_wsl_install and inventory_hostname not in groups['runners'] | default([])
 
 - name: Copy test HIP program to target
   ansible.builtin.copy:

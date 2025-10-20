@@ -23,13 +23,39 @@
     types: deb
     uris:
       - https://repo.radeon.com/rocm/apt/{{ rocm_setup_rocm_version }}
-      - https://repo.radeon.com/graphics/{{ rocm_setup_rocm_version }}/ubuntu
       - https://repo.radeon.com/amdgpu/{{ rocm_setup_amdgpu_version }}/ubuntu
     suites: '{{ ansible_distribution_release }}'
     components: main
     architectures: amd64
     signed_by: https://repo.radeon.com/rocm/rocm.gpg.key
   become: true
+
+- name: Add the AMD ROCm apt siging key and repo
+  ansible.builtin.deb822_repository:
+    name: rocm
+    types: deb
+    uris:
+      - https://repo.radeon.com/graphics/{{ rocm_setup_rocm_version }}/ubuntu
+    suites: '{{ ansible_distribution_release }}'
+    components: main
+    architectures: amd64
+    signed_by: https://repo.radeon.com/rocm/rocm.gpg.key
+  become: true
+  when: not rocm_setup_wsl_install
+
+- name: Add the AMD ROCm apt siging key and repo
+  ansible.builtin.deb822_repository:
+    name: rocm
+    types: deb
+    uris:
+      - https://repo.radeon.com/rocm/apt/{{ rocm_setup_rocm_version }}
+      - https://repo.radeon.com/amdgpu/{{ rocm_setup_amdgpu_version }}/ubuntu
+    suites: '{{ ansible_distribution_release }}'
+    components: main
+    architectures: amd64
+    signed_by: https://repo.radeon.com/rocm/rocm.gpg.key
+  become: true
+  when: not rocm_setup_wsl_install
 
 - name: Create a rocm-pin-600 file to pin the repos want to install
   ansible.builtin.copy:
@@ -50,6 +76,18 @@
       - libstdc++-14-dev
       - rocm
   become: true
+  when: not rocm_setup_wsl_install
+
+- name: Install the WSL rocm packages
+  ansible.builtin.package:
+    update_cache: true
+    name:
+      - hsa-runtime-rocr4wsl-amdgpu
+      - libstdc++-14-dev
+      - rocm-core
+      - rocm-dev
+  become: true
+  when: rocm_setup_wsl_install
 
 - name: Update the library linker with rocm library paths
   ansible.builtin.copy:
@@ -77,15 +115,15 @@
     update_cache: true
     name:
       - amdgpu-dkms
+  when: not rocm_setup_wsl_install
   become: true
 
 - name: Perform a reboot to allow changes to take affect
   ansible.builtin.reboot:
     reboot_timeout: "{{ rocm_setup_reboot_timeout }}"
   become: true
-  when: ansible_connection != 'local'
+  when: ansible_connection != 'local' and not rocm_setup_wsl_install
 
 - name: Run the rocm checks to ensure install worked
   ansible.builtin.import_tasks:
     file: rocm_check.yml
-  when: inventory_hostname not in groups['runners'] | default([])

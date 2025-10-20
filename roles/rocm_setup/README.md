@@ -6,7 +6,10 @@ environment compatible with AMD [Radeon][ref-radeon] and
 
 ## Overview
 
-This role installs ROCm using [these instructions][ref-install] as a guide.
+This role installs ROCm using [these instructions][ref-install] as a
+guide. Note that it is targeted at pure Linux but can also be used to
+install on [WSL-based systems][ref-wsl]. Pure Windows installs are not
+currently supported.
 
 ## Requirements
 
@@ -33,7 +36,7 @@ Run the following from the folder this README resides in.
 ```
 ANSIBLE_ROLES_PATH=../ ansible-playbook -i <host_file> ./tests/test.yml
 ```
-There is an [example hosts file](./tests/hosts-example) that users can
+There is an [example hosts file](./hosts-rocm-setup) that users can
 use as a template for their testing.
 
 # Author and License Information
@@ -45,3 +48,4 @@ author, licensing and other details.
 [ref-radeon]: https://www.amd.com/en/products/graphics/desktops/radeon.html
 [ref-instinct]: https://www.amd.com/en/products/accelerators/instinct.html
 [ref-install]: https://rocm.docs.amd.com/projects/install-on-linux/en/latest/index.html
+[ref-wsl]: https://learn.microsoft.com/en-us/windows/wsl/install
