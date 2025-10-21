@@ -8,17 +8,14 @@
   roles:
     - role: user_setup
       remote_user: "{{ username }}"
-      become: true
       tags: [user_setup]
     - role: fave_packages
       remote_user: "{{ username }}"
-      become: true
       tags: [fave_packages]
     - role: git_setup
       remote_user: "{{ username }}"
-      become: false
       tags: [git_setup]
     - role: rocm_setup
       remote_user: "{{ username }}"
-      become: false
+      rocm_setup_user: "{{ username }}"
       tags: [rocm_setup]

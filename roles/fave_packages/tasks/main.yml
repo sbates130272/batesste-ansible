@@ -41,12 +41,14 @@
       - tree
       - xfsprogs
     state: present
+  become: true
 
 - name: Install my favourite packages on noble
   ansible.builtin.package:
     update_cache: true
     name:
       - virtiofsd
+  become: true
   when:
     - ansible_facts['distribution'] == "Ubuntu"
     - ansible_facts['distribution_release'] == "noble"
