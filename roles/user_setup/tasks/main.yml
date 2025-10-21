@@ -30,6 +30,7 @@
     groups: users,admin
     append: true
     shell: /bin/bash
+  become: true
 
 - name: Set authorized key for the user from local file
   ansible.posix.authorized_key:
@@ -48,6 +49,7 @@
     block: |
       # Added by Ansible
       {{ username }} ALL=(ALL) NOPASSWD:ALL
+  become: true
 
 - name: Copy SSH private key
   ansible.builtin.copy:
@@ -76,22 +78,26 @@
     marker_end: END (user-setup)
     block: |
       kernel.dmesg_restrict = 0
+  become: true
 
 - name: Restart procps service so dmesg rule takes effect # noqa: args[module]
   ansible.builtin.service:
     service: procps
     state: restarted
+  become: true
 
 - name: Massively improve startup on certain systems
   ansible.builtin.lineinfile:
     path: /lib/systemd/system/systemd-networkd-wait-online.service
     search_string: ExecStart
     line: ExecStart=/lib/systemd/systemd-networkd-wait-online --any
+  become: true
 
 - name: Restart service # noqa: args[module]
   ansible.builtin.service:
     service: network-online.target
     state: restarted
+  become: true
 
 - name: Ensure package install is non-interactive
   ansible.builtin.blockinfile:
@@ -101,10 +107,12 @@
     marker_end: END (user_setup)
     block: |
       export DEBIAN_FRONTEND=noninteractive
+  become: true
 
 - name: Set the timezone of the system clock
   community.general.timezone:
     name: "{{ user_setup_timezone }}"
+  become: true
 
 - name: Ensure SSH config file exists for user and create a Host * when absent
   ansible.builtin.lineinfile:
@@ -134,7 +142,7 @@
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: "0644"
+    mode: "0755"
 
 - name: Copy emacs config file from our files folder
   ansible.builtin.copy:
