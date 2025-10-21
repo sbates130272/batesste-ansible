@@ -80,11 +80,13 @@ There is also a simple bash script that can call ansible-playbook for
 you. You do not have to use this but if you do want to use it you need
 to create three local files.
 
-1. A hosts file, call this what you like.
+1. A hosts file, call this what you like. Note there is a
+  [hosts-example.yml](./playbooks/hosts-example.yml) file to give you
+  an idea of what works.
 1. sudo-password, a file with the sudo password for the remote user in
-it. Not all modes of execution need this.
+   it. Not all modes of execution need this.
 1. vault-password, a file with the ansible-vault password in it. Never
-check this in! Only some roles need this.
+   check this in! Only some roles need this.
 
 You can then invoke a given playbook with the following
 ```
