@@ -1,0 +1,24 @@
+all:
+  children:
+    local:
+      hosts:
+        localhost:
+          ansible_connection: local
+    localvms:
+      hosts:
+        local-vm
+    amd:
+      hosts:
+        rocfile10:
+        ibgda-ctrl:
+        snoc-think-vm:
+          user_setup_vm_fstab: true
+        ibgda-brcm:
+      vars:
+        username: stebates
+        user_setup_create: false
+    pliops:
+      hosts:
+        pliops-storage:
+        pliops-gpu:
+          ansible_user: amd

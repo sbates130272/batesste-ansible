@@ -45,3 +45,4 @@ ubuntu
 vCPUs
 virt
 vm
+yml

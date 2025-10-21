@@ -6,7 +6,7 @@
 # batesste-ansible. See README.md for more information.
 
 PLAYBOOK=${PLAYBOOK:-setup-newmachine.yml}
-HOSTS=${HOSTS:-hosts}
+HOSTS=${HOSTS:-hosts-example.yml}
 TARGETS=${TARGETS:-localvms}
 
 if [ ! -f ${HOSTS} ]; then

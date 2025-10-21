@@ -4,6 +4,7 @@
 
 exclude_paths:
   - .github
+  - playbooks/hosts-example.yml
 
 warn_list:
   - command-instead-of-module
