@@ -60,6 +60,13 @@ jobs:
 
   rocm_setup-role-test:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        wsl_install: [ false, true ]
+        include:
+          - rocm_version: latest
+            wsl_install: false
+          - rocm_version: 6.4.4
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1
@@ -79,8 +86,18 @@ jobs:
           path: ./roles/rocm_setup/hosts-ci
           write-mode: overwrite
           contents: |
-            [runners]
-            localhost root_user=runner username=runner ansible_connection=local
+            hosts:
+              runners:
+                localhost:
+                  rocm_setup_wsl_install: ${{ matrix.wsl_install }}
+                  rocm_setup_rocm_version: ${{ matrix.rocm_version }}
+                  rocm_setup_amdgpu_version: ${ matrix.rocm_version }}
+                  rocm_setup_version_force: ${{ matrix.wsl_install }}
+              vars:
+                ansible_connection: local
+                ansible_user: runner
+                root_user: runner
+                username: runner
       - name: Run the test playbook against the local runner
         run: ansible-playbook -v -i hosts-ci ./tests/test.yml --limit runners
         working-directory: ./roles/rocm_setup

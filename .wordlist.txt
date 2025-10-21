@@ -18,6 +18,7 @@ ROCm
 SSDs
 VM
 VMs
+WSL
 ansible
 aws
 cd
