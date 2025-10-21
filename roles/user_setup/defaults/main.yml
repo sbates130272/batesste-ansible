@@ -2,3 +2,6 @@
 # the default user is batesste
 username: batesste
 user_setup_timezone: America/Edmonton
+
+# Do we want to fstab in a VM
+user_setup_vm_fstab: false

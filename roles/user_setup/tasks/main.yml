@@ -161,3 +161,28 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0644"
+
+- name: Create Projects folder if it does not exist
+  ansible.builtin.file:
+    path: /home/{{ username }}/Projects
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  when: user_setup_vm_fstab
+
+- name: Add an entry in fstab for VM virtio-fs
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "hostfs /home/{{ username }}/Projects 9p trans=virtio,version=9p2000.L,nofail 0 1"
+    state: present
+  become: true
+  when: user_setup_vm_fstab
+
+- name: Perform a systemctl daemon-reload and restart of mount
+  ansible.builtin.service:
+    service: home-{{ username }}-Projects.mount
+    state: restarted
+    daemon_reload: true
+  become: true
+  when: user_setup_vm_fstab
