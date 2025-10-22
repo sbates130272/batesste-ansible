@@ -47,6 +47,8 @@
   ansible.builtin.package:
     update_cache: true
     name:
+      - elpa-cmake-mode
+      - elpa-rust-mode
       - virtiofsd
   become: true
   when:
