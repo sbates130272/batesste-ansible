@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# rdma-detect
+#
+# A simple script to detect which RDMA NICs are avaiable on a system
+# and the status of those devices.
+
+RDMA_DEV=$(rdma -d dev)
+RDMA_LINK=$(rdma -d link)
+
+IFS=":" read -r var1 var2 var3 <<< "$my_string"

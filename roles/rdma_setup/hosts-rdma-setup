@@ -1,0 +1,9 @@
+rdma_servers:
+  hosts:
+    snoc-think-vm:
+        ansible_host: snoc-think
+        ansible_port: 2222
+    stebates-amd-laptop:
+        ansible_connection: local
+  vars:
+    ansible_user: stebates
