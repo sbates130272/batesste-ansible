@@ -1,0 +1,6 @@
+---
+- name: The test playbook for the rdma_setup role
+  hosts: all
+  roles:
+    - role: rdma_setup
+      become: false

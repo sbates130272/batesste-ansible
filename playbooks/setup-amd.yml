@@ -15,6 +15,10 @@
     - role: git_setup
       remote_user: "{{ username }}"
       tags: [git_setup]
+    - role: rdma_setup
+      remote_user: "{{ username }}"
+      rocm_setup_user: "{{ username }}"
+      tags: [rdma_setup]
     - role: rocm_setup
       remote_user: "{{ username }}"
       rocm_setup_user: "{{ username }}"
