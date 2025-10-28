@@ -23,6 +23,7 @@
       - cmake
       - driverctl
       - emacs-nox
+      - expect
       - fio
       - git
       - gnuplot
