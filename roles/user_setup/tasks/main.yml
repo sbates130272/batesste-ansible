@@ -24,11 +24,12 @@
     - users
     - admin
 
-- name: Create an account for the specified user
+- name: Create (or update) an account for the specified user
   ansible.builtin.user:
     name: "{{ username }}"
     groups: users,admin
     append: true
+    state: present
     shell: /bin/bash
   become: true
 
