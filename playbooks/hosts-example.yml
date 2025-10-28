@@ -6,7 +6,9 @@ all:
           ansible_connection: local
     localvms:
       hosts:
-        local-vm
+        local-vm:
+          username: stebates
+          user_setup_vm_fstab: true
     amd:
       hosts:
         rocfile10:
