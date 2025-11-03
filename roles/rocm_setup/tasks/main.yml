@@ -17,7 +17,7 @@
   ansible.builtin.import_tasks:
     file: rocm_pre.yml
 
-- name: Add the AMD ROCm apt siging key and repo
+- name: Add the AMD ROCm apt siging key and repo (replace mode)
   ansible.builtin.deb822_repository:
     name: rocm
     types: deb
@@ -29,8 +29,23 @@
     architectures: amd64
     signed_by: https://repo.radeon.com/rocm/rocm.gpg.key
   become: true
+  when: not rocm_setup_add_new
 
-- name: Add the AMD ROCm apt siging key and repo
+- name: Add the AMD ROCm apt siging key and repo (add new mode)
+  ansible.builtin.deb822_repository:
+    name: "rocm-{{ rocm_setup_rocm_version }}"
+    types: deb
+    uris:
+      - https://repo.radeon.com/rocm/apt/{{ rocm_setup_rocm_version }}
+      - https://repo.radeon.com/amdgpu/{{ rocm_setup_amdgpu_version }}/ubuntu
+    suites: '{{ ansible_distribution_release }}'
+    components: main
+    architectures: amd64
+    signed_by: https://repo.radeon.com/rocm/rocm.gpg.key
+  become: true
+  when: rocm_setup_add_new
+
+- name: Add the AMD graphics repo (replace mode)
   ansible.builtin.deb822_repository:
     name: rocm
     types: deb
@@ -41,9 +56,22 @@
     architectures: amd64
     signed_by: https://repo.radeon.com/rocm/rocm.gpg.key
   become: true
-  when: not rocm_setup_wsl_install
+  when: not rocm_setup_wsl_install and not rocm_setup_add_new
 
-- name: Add the AMD ROCm apt siging key and repo
+- name: Add the AMD graphics repo (add new mode)
+  ansible.builtin.deb822_repository:
+    name: "rocm-graphics-{{ rocm_setup_rocm_version }}"
+    types: deb
+    uris:
+      - https://repo.radeon.com/graphics/{{ rocm_setup_rocm_version }}/ubuntu
+    suites: '{{ ansible_distribution_release }}'
+    components: main
+    architectures: amd64
+    signed_by: https://repo.radeon.com/rocm/rocm.gpg.key
+  become: true
+  when: not rocm_setup_wsl_install and rocm_setup_add_new
+
+- name: Add the AMD ROCm apt siging key and repo for WSL (replace mode)
   ansible.builtin.deb822_repository:
     name: rocm
     types: deb
@@ -55,7 +83,21 @@
     architectures: amd64
     signed_by: https://repo.radeon.com/rocm/rocm.gpg.key
   become: true
-  when: not rocm_setup_wsl_install
+  when: not rocm_setup_wsl_install and not rocm_setup_add_new
+
+- name: Add the AMD ROCm apt siging key and repo for WSL (add new mode)
+  ansible.builtin.deb822_repository:
+    name: "rocm-wsl-{{ rocm_setup_rocm_version }}"
+    types: deb
+    uris:
+      - https://repo.radeon.com/rocm/apt/{{ rocm_setup_rocm_version }}
+      - https://repo.radeon.com/amdgpu/{{ rocm_setup_amdgpu_version }}/ubuntu
+    suites: '{{ ansible_distribution_release }}'
+    components: main
+    architectures: amd64
+    signed_by: https://repo.radeon.com/rocm/rocm.gpg.key
+  become: true
+  when: not rocm_setup_wsl_install and rocm_setup_add_new
 
 - name: Create a rocm-pin-600 file to pin the repos want to install
   ansible.builtin.copy:
@@ -69,16 +111,25 @@
     mode: '0644'
   become: true
 
-- name: Install the rocm meta-package
+- name: Install the rocm meta-package (replace mode)
   ansible.builtin.package:
     update_cache: true
     name:
       - libstdc++-14-dev
       - rocm
   become: true
-  when: not rocm_setup_wsl_install
+  when: not rocm_setup_wsl_install and not rocm_setup_add_new
 
-- name: Install the WSL rocm packages
+- name: Install the versioned rocm packages (add new mode)
+  ansible.builtin.package:
+    update_cache: true
+    name:
+      - libstdc++-14-dev
+      - "rocm{{ rocm_setup_rocm_version }}"
+  become: true
+  when: not rocm_setup_wsl_install and rocm_setup_add_new
+
+- name: Install the WSL rocm packages (replace mode)
   ansible.builtin.package:
     update_cache: true
     name:
@@ -87,7 +138,18 @@
       - rocm-core
       - rocm-dev
   become: true
-  when: rocm_setup_wsl_install
+  when: rocm_setup_wsl_install and not rocm_setup_add_new
+
+- name: Install the versioned WSL rocm packages (add new mode)
+  ansible.builtin.package:
+    update_cache: true
+    name:
+      - hsa-runtime-rocr4wsl-amdgpu
+      - libstdc++-14-dev
+      - "rocm-core{{ rocm_setup_rocm_version }}"
+      - "rocm-dev{{ rocm_setup_rocm_version }}"
+  become: true
+  when: rocm_setup_wsl_install and rocm_setup_add_new
 
 - name: Update the library linker with rocm library paths
   ansible.builtin.copy:
@@ -104,11 +166,13 @@
   ansible.builtin.shell:
     cmd: ldconfig
   become: true
+  changed_when: false
 
 - name: Update the PCIe ID tables (for new GPU support)
   ansible.builtin.shell:
     cmd: update-pciids
   become: true
+  changed_when: false
 
 - name: Install the amdgpu-dkms package
   ansible.builtin.package:

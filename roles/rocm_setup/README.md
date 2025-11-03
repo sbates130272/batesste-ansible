@@ -15,20 +15,84 @@ currently supported.
 
 # Role Variables
 
-See the [defaults file](./defaults/main.yml) for more information on
-the variables associated with this file. Note there is also a
-[rocm-latest](./files/rocm-latest) script that can be used to detect
-the latest version of the `rocm` and `amdgpu` packages.
+Available variables are listed below, along with default values (see [defaults/main.yml](./defaults/main.yml)):
 
-Note that `rocm_setup_version` and `rocm_setup_amdgpu_version` can be
-set to `latest`. In this case the [rocm-latest](./files/rocm-latest)
-script will be used to set the versions to install. If you do want to
-install an older version then set the version variables and also set
-`rocm_setup_force_version` to `true`.
+```yaml
+# ROCm version to install (use 'latest' for automatic detection)
+rocm_setup_rocm_version: latest
+rocm_setup_amdgpu_version: latest
+rocm_setup_force_version: false
+
+# Add new ROCm version alongside existing installations
+# When true: uses version-specific package names (e.g., rocm6.3.0)
+#            and adds new repository without replacing old one
+# When false: replaces existing ROCm installation with new version
+rocm_setup_add_new: false
+
+# User to configure for ROCm access (adds to render group)
+rocm_setup_user: rocm_user
+
+# Reboot timeout in seconds
+rocm_setup_reboot_timeout: 300
+
+# Windows Subsystem for Linux installation
+rocm_setup_wsl_install: false
+```
+
+## Version Management
+
+The `rocm_setup_rocm_version` and `rocm_setup_amdgpu_version` variables can be set to:
+- `latest` - Uses the [rocm-latest](./files/rocm-latest) script to automatically detect the latest version
+- Specific version (e.g., `6.3.0`) - Installs that exact version. Set `rocm_setup_force_version: true` to install an older version.
+
+## Adding vs Replacing ROCm Versions
+
+By default (`rocm_setup_add_new: false`), installing a new ROCm version replaces the existing installation. This is the standard behavior for most systems.
+
+When `rocm_setup_add_new: true`, the role:
+- Adds a new repository with a version-specific name (e.g., `rocm-6.3.0`)
+- Installs version-specific packages (e.g., `rocm6.3.0` instead of `rocm`)
+- Preserves existing ROCm installations
+- Allows multiple ROCm versions to coexist on the same system
+
+This is useful for:
+- Testing compatibility across different ROCm versions
+- Maintaining older applications while developing with newer versions
+- Gradual migration from one ROCm version to another
 
 # Dependencies
 
+This role depends on the `check_platform` role for platform compatibility verification.
+
 # Example Playbook
+
+## Standard Installation (Replace existing ROCm)
+
+```yaml
+---
+- name: Install ROCm on AMD systems
+  hosts: amd_hosts
+  roles:
+    - role: rocm_setup
+      vars:
+        rocm_setup_rocm_version: "6.3.0"
+        rocm_setup_user: myuser
+```
+
+## Add New ROCm Version Alongside Existing
+
+```yaml
+---
+- name: Add ROCm 6.3.0 alongside existing installation
+  hosts: amd_hosts
+  roles:
+    - role: rocm_setup
+      vars:
+        rocm_setup_rocm_version: "6.3.0"
+        rocm_setup_amdgpu_version: "6.3"
+        rocm_setup_add_new: true
+        rocm_setup_user: myuser
+```
 
 # Testing
 
