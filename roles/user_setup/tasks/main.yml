@@ -180,10 +180,27 @@
   become: true
   when: user_setup_vm_fstab
 
-- name: Perform a systemctl daemon-reload and restart of mount
+- name: Perform a systemctl daemon-reload and start of mount
   ansible.builtin.service:
     service: home-{{ username }}-Projects.mount
-    state: restarted
+    state: started
     daemon_reload: true
   become: true
   when: user_setup_vm_fstab
+
+- name: Install driverctl for MOTD driver overrides display
+  ansible.builtin.package:
+    name: driverctl
+    state: present
+  become: true
+  when: user_setup_motd
+
+- name: Copy driver overrides MOTD script
+  ansible.builtin.copy:
+    src: 99-driver-overrides
+    dest: /etc/update-motd.d/99-driver-overrides
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+  when: user_setup_motd
