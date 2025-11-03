@@ -2,6 +2,6 @@ monitoring_servers:
   hosts:
     localhost:
       ansible_connection: local
+      vault_grafana_setup_password: changeme
   vars:
-    ansible_user: grafana
-
+    ansible_user: stebates

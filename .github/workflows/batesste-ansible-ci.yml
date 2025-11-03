@@ -204,17 +204,14 @@ jobs:
           path: ./roles/grafana_setup/hosts-ci
           write-mode: overwrite
           contents: |
-            hosts:
-              runners:
+            all:
+              hosts:
                 localhost:
+                  ansible_connection: local
+                  ansible_user: runner
                   vault_grafana_setup_password: test_ci_password_123
-              vars:
-                ansible_connection: local
-                ansible_user: runner
-                root_user: runner
-                username: runner
       - name: Run the test playbook against the local runner
-        run: ansible-playbook -v -i hosts-ci ./tests/test.yml --limit runners
+        run: ansible-playbook -v -i hosts-ci ./tests/test.yml
         working-directory: ./roles/grafana_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles

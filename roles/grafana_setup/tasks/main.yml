@@ -5,13 +5,14 @@
 
 - name: Set a fact containing the current roles' path
   ansible.builtin.set_fact:
-    calling_role_path_fact: "{{ role_path }}"
+    calling_role_path_fact: "{{ role_path | default('') }}"
 
 - name: Test the host platform to see if it can support this role
   ansible.builtin.include_role:
     name: check_platform
   vars:
     calling_role_path: "{{ calling_role_path_fact }}"
+  when: calling_role_path_fact | length > 0
 
 - name: Install required dependencies
   ansible.builtin.package:
@@ -25,16 +26,19 @@
   become: true
 
 - name: Add Grafana GPG key
-  ansible.builtin.get_url:
-    url: https://apt.grafana.com/gpg.key
-    dest: /usr/share/keyrings/grafana-archive-keyring.asc
-    mode: '0644'
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      curl -fsSL https://apt.grafana.com/gpg.key | \
+      gpg --dearmor -o /usr/share/keyrings/grafana-archive-keyring.gpg
+    executable: /bin/bash
+    creates: /usr/share/keyrings/grafana-archive-keyring.gpg
   become: true
 
 - name: Add Grafana repository
   ansible.builtin.apt_repository:
     repo: >-
-      deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.asc]
+      deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.gpg]
       https://apt.grafana.com stable main
     state: present
     filename: grafana

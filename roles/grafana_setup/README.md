@@ -99,8 +99,16 @@ To add Prometheus as a data source in Grafana:
 Run the following from the folder this README resides in:
 
 ```bash
-ANSIBLE_ROLES_PATH=../ ansible-playbook -i <host_file> ./tests/test.yml --ask-vault-pass
+ANSIBLE_ROLES_PATH=../ ansible-playbook -i hosts-grafana-setup ./tests/test.yml
 ```
+
+Or to test with your own user:
+
+```bash
+ANSIBLE_ROLES_PATH=../ ansible-playbook -i hosts-grafana-setup ./tests/test.yml -e ansible_user=$(whoami)
+```
+
+**Note**: Update `vault_grafana_setup_password` in `hosts-grafana-setup` before running.
 
 ## Author and License Information
 
