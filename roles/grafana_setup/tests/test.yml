@@ -1,0 +1,8 @@
+---
+- name: The test playbook for the grafana_setup role
+  hosts: all
+  vars:
+    vault_grafana_setup_password: test_password_123
+  roles:
+    - role: grafana_setup
+      become: true

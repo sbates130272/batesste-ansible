@@ -1,0 +1,6 @@
+---
+# Supported platforms for grafana_setup role
+supported_distributions:
+  - Ubuntu
+supported_releases:
+  - noble

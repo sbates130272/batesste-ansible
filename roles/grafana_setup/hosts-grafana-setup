@@ -1,0 +1,7 @@
+monitoring_servers:
+  hosts:
+    localhost:
+      ansible_connection: local
+  vars:
+    ansible_user: grafana
+

@@ -184,3 +184,61 @@ jobs:
           ls -la /etc/apt/sources.list.d/ | grep rocm || true
           echo "=== Checking installed rocm packages ==="
           apt list --installed | grep rocm || true
+
+  grafana_setup-role-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+      - name: Install pip packages
+        run: python3 -m pip install -r requirements.txt
+      - name: Run ansible-galaxy to install collections and roles
+        run: ansible-galaxy install -r requirements.yml
+      - name: Create an SSH keypair
+        run: mkdir -p .ssh && ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+      - name: Create a GNU PGP folder
+        run: mkdir -p .gnupg
+      - name: Write hosts-ci file
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: ./roles/grafana_setup/hosts-ci
+          write-mode: overwrite
+          contents: |
+            hosts:
+              runners:
+                localhost:
+                  vault_grafana_setup_password: test_ci_password_123
+              vars:
+                ansible_connection: local
+                ansible_user: runner
+                root_user: runner
+                username: runner
+      - name: Run the test playbook against the local runner
+        run: ansible-playbook -v -i hosts-ci ./tests/test.yml --limit runners
+        working-directory: ./roles/grafana_setup
+        env:
+          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+      - name: Verify Grafana installation
+        run: |
+          echo "=== Checking Grafana service ==="
+          systemctl status grafana-server || true
+          echo "=== Checking Grafana version ==="
+          grafana-server -v || true
+          echo "=== Checking Grafana is listening ==="
+          ss -tlnp | grep 3000 || true
+      - name: Verify Prometheus installation
+        run: |
+          echo "=== Checking Prometheus service ==="
+          systemctl status prometheus || true
+          echo "=== Checking Prometheus is listening ==="
+          ss -tlnp | grep 9090 || true
+      - name: Verify Node Exporter installation
+        run: |
+          echo "=== Checking Node Exporter service ==="
+          systemctl status prometheus-node-exporter || true
+          echo "=== Checking Node Exporter is listening ==="
+          ss -tlnp | grep 9100 || true
+          echo "=== Testing Node Exporter metrics ==="
+          curl -s http://localhost:9100/metrics | head -20 || true

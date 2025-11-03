@@ -1,0 +1,43 @@
+# Prometheus configuration
+# Deployed by Ansible - grafana_setup role
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'grafana-setup-monitor'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Load rules once and periodically evaluate them
+rule_files: []
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:{{ grafana_setup_prometheus_port }}']
+        labels:
+          instance: 'prometheus'
+          group: 'monitoring'
+
+  # Node Exporter - Local system metrics
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['localhost:{{ grafana_setup_node_exporter_port }}']
+        labels:
+          instance: '{{ ansible_hostname }}'
+          group: 'nodes'
+
+  # Grafana metrics
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['localhost:{{ grafana_setup_port }}']
+        labels:
+          instance: 'grafana'
+          group: 'monitoring'

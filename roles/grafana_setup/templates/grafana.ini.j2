@@ -1,0 +1,82 @@
+##################### Grafana Configuration #####################
+# Deployed by Ansible - grafana_setup role
+
+[paths]
+data = /var/lib/grafana
+logs = /var/log/grafana
+plugins = /var/lib/grafana/plugins
+provisioning = /etc/grafana/provisioning
+
+[server]
+protocol = http
+http_port = {{ grafana_setup_port }}
+domain = {{ grafana_setup_domain }}
+root_url = http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/
+
+[database]
+type = sqlite3
+path = grafana.db
+
+[security]
+# Disable admin user and admin password
+admin_user = {{ grafana_setup_user }}
+admin_password = {{ grafana_setup_password }}
+# Disable the default admin password
+disable_initial_admin_creation = false
+# Allow embedding
+allow_embedding = true
+
+[users]
+# Allow users to sign up
+allow_sign_up = false
+# Allow users to create organizations
+allow_org_create = false
+# Auto assign new users to organization
+auto_assign_org = true
+auto_assign_org_role = Editor
+
+[auth.anonymous]
+enabled = false
+
+[auth.basic]
+enabled = true
+
+[auth]
+# Disable login form
+disable_login_form = false
+disable_signout_menu = false
+
+[log]
+mode = console file
+level = info
+
+[log.console]
+level = info
+format = console
+
+[log.file]
+level = info
+format = text
+log_rotate = true
+max_lines = 1000000
+max_size_shift = 28
+daily_rotate = true
+max_days = 7
+
+[metrics]
+enabled = true
+interval_seconds = 10
+
+[grafana_net]
+url = https://grafana.net
+
+[snapshots]
+external_enabled = false
+
+[analytics]
+reporting_enabled = false
+check_for_updates = false
+check_for_plugin_updates = false
+
+[alerting]
+enabled = true
