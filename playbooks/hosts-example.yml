@@ -9,12 +9,16 @@ all:
         local-vm:
           username: stebates
           user_setup_vm_fstab: true
+          user_setup_motd: true
     amd:
       hosts:
         rocfile10:
         ibgda-ctrl:
+        snoc-think:
+          user_setup_motd: true
         snoc-think-vm:
           user_setup_vm_fstab: true
+          user_setup_motd: true
         ibgda-brcm:
       vars:
         username: stebates

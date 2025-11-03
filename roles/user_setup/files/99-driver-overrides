@@ -1,0 +1,76 @@
+#!/bin/sh
+#
+# 99-driver-overrides
+#
+# Display driver overrides configured via driverctl
+# Part of the Message of the Day (MOTD) system
+
+# Check if driverctl is available
+if ! command -v driverctl >/dev/null 2>&1; then
+    exit 0
+fi
+
+# Get list of overrides with verbose output
+# Format: PCI_ADDRESS DRIVER (DEVICE_NAME)
+OVERRIDES=$(driverctl -v list-overrides 2>/dev/null)
+
+if [ -z "$OVERRIDES" ]; then
+    # No overrides configured
+    exit 0
+fi
+
+# Function to get device description from PCI address using lspci
+get_device_description() {
+    PCI_ADDR="$1"
+    
+    # Try to get description from lspci
+    if command -v lspci >/dev/null 2>&1; then
+        DESCRIPTION=$(lspci -s "$PCI_ADDR" 2>/dev/null | cut -d: -f3- | sed 's/^[[:space:]]*//')
+        if [ -n "$DESCRIPTION" ]; then
+            echo "$DESCRIPTION"
+            return
+        fi
+    fi
+    
+    echo "Unknown Device"
+}
+
+# Print header
+echo ""
+echo "=========================================="
+echo "Driver Overrides (driverctl)"
+echo "=========================================="
+echo ""
+
+# Process each override line
+echo "$OVERRIDES" | while IFS= read -r LINE; do
+    if [ -z "$LINE" ]; then
+        continue
+    fi
+    
+    # Parse the line - format is: PCI_ADDRESS DRIVER (DEVICE_NAME)
+    # Extract PCI address (first field)
+    PCI_ADDR=$(echo "$LINE" | awk '{print $1}')
+    
+    # Extract driver (second field)
+    DRIVER=$(echo "$LINE" | awk '{print $2}')
+    
+    # Extract device name from parentheses (everything after second field)
+    # Remove the parentheses and trim spaces
+    DEVICE_NAME=$(echo "$LINE" | sed 's/^[^ ]* [^ ]* (//' | sed 's/)$//' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+    
+    if [ -n "$PCI_ADDR" ] && [ -n "$DRIVER" ]; then
+        # If device name is empty from driverctl, try lspci
+        if [ -z "$DEVICE_NAME" ]; then
+            DEVICE_NAME=$(get_device_description "$PCI_ADDR")
+        fi
+        
+        echo "Device:  $PCI_ADDR"
+        echo "  Name:    $DEVICE_NAME"
+        echo "  Driver:  $DRIVER"
+        echo ""
+    fi
+done
+
+echo "=========================================="
+echo ""
