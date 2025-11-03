@@ -28,6 +28,8 @@ SSDs
 VM
 VMs
 WSL
+amd
+amdgpu
 ansible
 aws
 batesste
@@ -70,4 +72,5 @@ vfio
 virt
 vm
 yaml
+wsl
 yml

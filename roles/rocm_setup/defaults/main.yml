@@ -7,6 +7,11 @@ rocm_setup_rocm_version: latest
 rocm_setup_amdgpu_version: latest
 rocm_setup_force_version: false
 
+# Add a new ROCm version alongside existing installations
+# When true, uses version-specific package names and adds a new repo
+# When false, replaces existing ROCm installation
+rocm_setup_add_new: false
+
 # The user to set ROCm up for. This includes adding to the revelant
 # user groups etc.
 rocm_setup_user: rocm_user
