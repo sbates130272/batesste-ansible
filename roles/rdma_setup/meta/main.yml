@@ -1,0 +1,18 @@
+---
+# meta file for rdma-setup
+
+galaxy_info:
+  author: Stephen Bates
+  company: Raithlin Semiconductors
+  role_name: rdma_setup
+  namespace: sbates130272
+  description: A role to install RDMA software
+  license: BSD-3-Clause
+  min_ansible_version: "8.2.0"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+  galaxy_tags:
+    - system
+    - rdma
