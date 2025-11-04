@@ -43,13 +43,15 @@
 
 - name: Build AMD Device Metrics Exporter binary
   ansible.builtin.shell:
-    cmd: make build
+    cmd: make amdexporter
     chdir: "{{ exporter_build_dir.path }}"
   changed_when: false
+  environment:
+    CGO_ENABLED: "0"
 
 - name: Install AMD Device Metrics Exporter binary
   ansible.builtin.copy:
-    src: "{{ exporter_build_dir.path }}/bin/device-metrics-exporter"
+    src: "{{ exporter_build_dir.path }}/bin/amd-metrics-exporter"
     dest: "{{ rocm_setup_metrics_exporter_path }}"
     mode: '0755'
     owner: root
