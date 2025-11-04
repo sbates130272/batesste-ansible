@@ -13,6 +13,8 @@ This Ansible role installs and configures Grafana, Prometheus, and Node Exporter
 - Automatically synchronizes admin password on every run
 - Optional creation of additional users with custom roles
 - Automatically configures Prometheus as a datasource in Grafana
+- Network discovery for Node Exporters and AMD SMI exporters
+- Automatic dashboard provisioning (Node Exporter and AMD GPU)
 - Disables default admin password requirement
 - Configures Prometheus to scrape local Node Exporter
 - Enables and starts all services via systemd
@@ -53,6 +55,22 @@ grafana_setup_prometheus_data_dir: /var/lib/prometheus
 
 # Node exporter configuration
 grafana_setup_node_exporter_port: 9100
+
+# AMD SMI exporter configuration (https://github.com/amd/amd_smi_exporter)
+grafana_setup_amd_gpu_exporter_port: 2021
+
+# Network discovery configuration
+grafana_setup_discover_node_exporters: false
+grafana_setup_discover_amd_gpu_exporters: false
+grafana_setup_discovery_network: "{{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.netmask }}"
+grafana_setup_discovery_timeout: 2  # HTTP request timeout for verification
+grafana_setup_discovery_scan_timeout: 60  # Maximum nmap scan time
+
+# Dashboard provisioning
+grafana_setup_provision_node_exporter_dashboard: true
+grafana_setup_node_exporter_dashboard_id: 1860
+grafana_setup_provision_amd_gpu_dashboard: true
+grafana_setup_amd_gpu_dashboard_id: 12239
 
 # Enable/disable components
 grafana_setup_install_prometheus: true
@@ -229,6 +247,67 @@ The role automatically:
 
 After the role runs, the Prometheus datasource is immediately available for creating dashboards.
 No manual configuration needed!
+
+## Network Discovery
+
+The role can automatically discover exporters on your local network:
+
+### Node Exporter Discovery
+
+Enable automatic discovery of Node Exporters:
+
+```yaml
+grafana_setup_discover_node_exporters: true
+grafana_setup_discovery_network: "192.168.1.0/24"  # Your network CIDR
+```
+
+The role will:
+- Scan the specified network for hosts with port 9100 open
+- Verify each host is responding with valid node exporter metrics
+- Add discovered exporters to Prometheus scrape configuration
+- Label them with `discovered: 'true'` for easy filtering
+
+### AMD SMI Exporter Discovery
+
+Enable automatic discovery of AMD SMI exporters ([official AMD exporter](https://github.com/amd/amd_smi_exporter)):
+
+```yaml
+grafana_setup_discover_amd_gpu_exporters: true
+grafana_setup_amd_gpu_exporter_port: 2021
+```
+
+The role will:
+- Scan the network for hosts with port 2021 open (AMD SMI Exporter default)
+- Verify each host is responding with AMD EPYC CPU & GPU metrics
+- Add discovered AMD SMI exporters to Prometheus scrape configuration
+- Create a separate `amd_gpu` job in Prometheus
+
+**Note:** The AMD SMI Exporter supports AMD EPYC CPUs and MI200/MI300 GPUs
+
+### Requirements for Discovery
+
+- `nmap` package (automatically installed when discovery is enabled)
+- Network access to the target hosts
+- Exporters must be accessible without authentication
+
+## Dashboard Provisioning
+
+The role automatically provisions dashboards from Grafana.com:
+
+### Node Exporter Dashboard
+
+- **Dashboard ID**: 1860 (Node Exporter Full)
+- **URL**: http://localhost:3000/d/node-exporter-full
+- Shows: CPU, memory, disk, network metrics for all discovered nodes
+
+### AMD GPU Dashboard
+
+- **Dashboard ID**: 12239 (AMD GPU Metrics)
+- **URL**: http://localhost:3000/d/amd-gpu-metrics
+- Shows: GPU utilization, temperature, memory, power consumption
+
+Both dashboards are automatically configured to use the Prometheus datasource
+and are ready to use immediately after role execution.
 
 ## Security Notes
 

@@ -12,3 +12,7 @@ monitoring_servers:
     grafana_setup_user_login: stebates
     grafana_setup_user_name: Stephen Bates
     grafana_setup_user_role: Admin
+    # Optional: Enable network discovery
+    grafana_setup_discover_node_exporters: true
+    grafana_setup_discover_amd_gpu_exporters: true
+    grafana_setup_discovery_network: "10.0.0.0/8"

@@ -33,6 +33,16 @@ scrape_configs:
         labels:
           instance: '{{ ansible_hostname }}'
           group: 'nodes'
+{% if grafana_verified_exporter_targets is defined and grafana_verified_exporter_targets | length > 0 %}
+      # Discovered node exporters on the network
+{% for target in grafana_verified_exporter_targets %}
+      - targets: ['{{ target }}:{{ grafana_setup_node_exporter_port }}']
+        labels:
+          instance: '{{ target }}'
+          group: 'nodes'
+          discovered: 'true'
+{% endfor %}
+{% endif %}
 
   # Grafana metrics
   - job_name: 'grafana'
@@ -41,3 +51,16 @@ scrape_configs:
         labels:
           instance: 'grafana'
           group: 'monitoring'
+
+{% if grafana_verified_amd_gpu_targets is defined and grafana_verified_amd_gpu_targets | length > 0 %}
+  # AMD SMI Exporters (https://github.com/amd/amd_smi_exporter)
+  - job_name: 'amd_gpu'
+    static_configs:
+{% for target in grafana_verified_amd_gpu_targets %}
+      - targets: ['{{ target }}:{{ grafana_setup_amd_gpu_exporter_port }}']
+        labels:
+          instance: '{{ target }}'
+          group: 'gpus'
+          discovered: 'true'
+{% endfor %}
+{% endif %}
