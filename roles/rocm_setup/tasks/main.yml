@@ -174,13 +174,22 @@
   become: true
   changed_when: false
 
-- name: Install the amdgpu-dkms package
+- name: Install or upgrade amdgpu-dkms to latest available  # noqa package-latest
   ansible.builtin.package:
     update_cache: true
     name:
       - amdgpu-dkms
+    state: latest
   when: not rocm_setup_wsl_install
   become: true
+  register: amdgpu_dkms_install
+  # Using latest is intentional: When installing multiple ROCm versions,
+  # only one amdgpu-dkms can be installed and it must be the latest
+
+- name: Display amdgpu-dkms version installed
+  ansible.builtin.debug:
+    msg: "amdgpu-dkms has been installed/upgraded"
+  when: not rocm_setup_wsl_install and amdgpu_dkms_install.changed
 
 - name: Perform a reboot to allow changes to take affect
   ansible.builtin.reboot:
@@ -191,3 +200,4 @@
 - name: Run the rocm checks to ensure install worked
   ansible.builtin.import_tasks:
     file: rocm_check.yml
+  when: rocm_setup_run_checks

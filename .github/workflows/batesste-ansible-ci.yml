@@ -93,6 +93,7 @@ jobs:
                   rocm_setup_rocm_version: ${{ matrix.rocm_version }}
                   rocm_setup_amdgpu_version: ${ matrix.rocm_version }}
                   rocm_setup_version_force: ${{ matrix.wsl_install }}
+                  rocm_setup_run_checks: false
               vars:
                 ansible_connection: local
                 ansible_user: runner
@@ -127,20 +128,18 @@ jobs:
           path: ./roles/rocm_setup/hosts-ci-latest
           write-mode: overwrite
           contents: |
-            hosts:
-              runners:
+            all:
+              hosts:
                 localhost:
+                  ansible_connection: local
+                  ansible_user: runner
                   rocm_setup_wsl_install: false
                   rocm_setup_rocm_version: latest
                   rocm_setup_amdgpu_version: latest
                   rocm_setup_add_new: false
-              vars:
-                ansible_connection: local
-                ansible_user: runner
-                root_user: runner
-                username: runner
+                  rocm_setup_run_checks: false
       - name: Install latest ROCm version
-        run: ansible-playbook -v -i hosts-ci-latest ./tests/test.yml --limit runners
+        run: ansible-playbook -v -i hosts-ci-latest ./tests/test.yml
         working-directory: ./roles/rocm_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
@@ -150,33 +149,55 @@ jobs:
         run: |
           rocminfo || true
           dpkg -l | grep rocm || true
-      - name: Write hosts-ci file for adding previous version
+      - name: Write hosts-ci file for adding ROCm 6.3.0
         uses: DamianReeves/write-file-action@v1.3
         with:
-          path: ./roles/rocm_setup/hosts-ci-addnew
+          path: ./roles/rocm_setup/hosts-ci-6.3
           write-mode: overwrite
           contents: |
-            hosts:
-              runners:
+            all:
+              hosts:
                 localhost:
+                  ansible_connection: local
+                  ansible_user: runner
                   rocm_setup_wsl_install: false
                   rocm_setup_rocm_version: 6.3.0
                   rocm_setup_amdgpu_version: 6.3
                   rocm_setup_add_new: true
                   rocm_setup_force_version: true
-              vars:
-                ansible_connection: local
-                ansible_user: runner
-                root_user: runner
-                username: runner
+                  rocm_setup_run_checks: false
       - name: Add ROCm 6.3.0 alongside latest
-        run: ansible-playbook -v -i hosts-ci-addnew ./tests/test.yml --limit runners
+        run: ansible-playbook -v -i hosts-ci-6.3 ./tests/test.yml
         working-directory: ./roles/rocm_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
           ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
-      - name: Verify both ROCm versions are installed
+      - name: Write hosts-ci file for adding ROCm 6.2.0
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: ./roles/rocm_setup/hosts-ci-6.2
+          write-mode: overwrite
+          contents: |
+            all:
+              hosts:
+                localhost:
+                  ansible_connection: local
+                  ansible_user: runner
+                  rocm_setup_wsl_install: false
+                  rocm_setup_rocm_version: 6.2.0
+                  rocm_setup_amdgpu_version: 6.2
+                  rocm_setup_add_new: true
+                  rocm_setup_force_version: true
+                  rocm_setup_run_checks: false
+      - name: Add ROCm 6.2.0 alongside others
+        run: ansible-playbook -v -i hosts-ci-6.2 ./tests/test.yml
+        working-directory: ./roles/rocm_setup
+        env:
+          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+      - name: Verify all three ROCm versions are installed
         run: |
           echo "=== Checking for multiple ROCm versions ==="
           dpkg -l | grep rocm || true
@@ -184,6 +205,10 @@ jobs:
           ls -la /etc/apt/sources.list.d/ | grep rocm || true
           echo "=== Checking installed rocm packages ==="
           apt list --installed | grep rocm || true
+          echo "=== Checking amdgpu-dkms version ==="
+          dpkg -l | grep amdgpu-dkms || true
+          echo "=== Verifying rocm package counts ==="
+          dpkg -l | grep -c "^ii.*rocm" || true
 
   grafana_setup-role-test:
     runs-on: ubuntu-24.04
