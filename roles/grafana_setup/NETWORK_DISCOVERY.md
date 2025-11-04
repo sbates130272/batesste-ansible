@@ -30,28 +30,28 @@ grafana_setup_discovery_scan_timeout: 60  # Max scan time in seconds
 - Maximum retry count of 1 to reduce scan time
 - Overall scan limited to 60 seconds (default, configurable)
 
-### 2. AMD SMI Exporter Discovery
+### 2. AMD Device Metrics Exporter Discovery
 
-Automatically finds AMD SMI exporters on your network ([official AMD exporter](https://github.com/amd/amd_smi_exporter)):
+Automatically finds AMD Device Metrics exporters on your network ([official ROCm exporter](https://github.com/ROCm/device-metrics-exporter)):
 
 ```yaml
 grafana_setup_discover_amd_gpu_exporters: true
-grafana_setup_amd_gpu_exporter_port: 2021  # AMD SMI Exporter default port
+grafana_setup_amd_gpu_exporter_port: 2021  # AMD Device Metrics Exporter default port
 grafana_setup_discovery_scan_timeout: 60  # Max scan time in seconds
 ```
 
 **How it works:**
-1. Uses optimized `nmap` to scan for the AMD SMI Exporter port (default: 2021)
+1. Uses optimized `nmap` to scan for the AMD Device Metrics Exporter port (default: 2021)
 2. Scan is limited to maximum of 60 seconds (same timeout as node exporters)
-3. Verifies each host is responding with AMD EPYC CPU & GPU metrics
+3. Verifies each host is responding with AMD GPU metrics
 4. Creates a dedicated `amd_gpu` job in Prometheus
 5. Labels targets with `group: 'gpus'` and `discovered: 'true'`
 
-**What is AMD SMI Exporter?**
-- Official AMD exporter for EPYC CPUs and Datacenter GPUs (MI200, MI300)
-- Exports CPU metrics (core energy, socket power, boost limits, PROC_HOT status)
+**What is AMD Device Metrics Exporter?**
+- Official AMD ROCm exporter for Datacenter GPUs (MI100, MI200, MI300 series)
 - Exports GPU metrics (power, temperature, clock speeds, utilization, memory)
-- Written in Go with AMD SMI library bindings
+- Integrates seamlessly with Prometheus and Grafana
+- Part of the official ROCm software stack
 
 **Performance:**
 - Same optimizations as Node Exporter discovery
@@ -69,10 +69,11 @@ Automatically downloads and provisions dashboards:
 - Metrics: CPU, memory, disk, network for all nodes
 
 **AMD GPU Dashboard:**
-- Dashboard ID: 12239
-- Name: AMD GPU Metrics
+- Dashboard ID: 23434
+- Name: AMD Instinct Single Node Dashboard
 - URL: http://localhost:3000/d/amd-gpu-metrics
 - Metrics: GPU utilization, temperature, memory, power
+- Designed for AMD Device Metrics Exporter
 
 ## Configuration Example
 
@@ -93,7 +94,7 @@ Automatically downloads and provisions dashboards:
         
         # Custom ports (if needed)
         grafana_setup_node_exporter_port: 9100
-        grafana_setup_amd_gpu_exporter_port: 2021  # AMD SMI Exporter default
+        grafana_setup_amd_gpu_exporter_port: 2021  # AMD Device Metrics Exporter default
         
         # Dashboard provisioning (enabled by default)
         grafana_setup_provision_node_exporter_dashboard: true
@@ -152,7 +153,7 @@ scrape_configs:
           group: 'nodes'
           discovered: 'true'
   
-  # AMD SMI Exporters
+  # AMD Device Metrics Exporters
   - job_name: 'amd_gpu'
     static_configs:
       - targets: ['192.168.1.20:2021']

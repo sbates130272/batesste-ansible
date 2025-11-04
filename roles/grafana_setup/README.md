@@ -13,7 +13,7 @@ This Ansible role installs and configures Grafana, Prometheus, and Node Exporter
 - Automatically synchronizes admin password on every run
 - Optional creation of additional users with custom roles
 - Automatically configures Prometheus as a datasource in Grafana
-- Network discovery for Node Exporters and AMD SMI exporters
+- Network discovery for Node Exporters and AMD Device Metrics exporters
 - Automatic dashboard provisioning (Node Exporter and AMD GPU)
 - Disables default admin password requirement
 - Configures Prometheus to scrape local Node Exporter
@@ -56,7 +56,8 @@ grafana_setup_prometheus_data_dir: /var/lib/prometheus
 # Node exporter configuration
 grafana_setup_node_exporter_port: 9100
 
-# AMD SMI exporter configuration (https://github.com/amd/amd_smi_exporter)
+# AMD Device Metrics Exporter configuration
+# https://github.com/ROCm/device-metrics-exporter
 grafana_setup_amd_gpu_exporter_port: 2021
 
 # Network discovery configuration
@@ -70,7 +71,7 @@ grafana_setup_discovery_scan_timeout: 60  # Maximum nmap scan time
 grafana_setup_provision_node_exporter_dashboard: true
 grafana_setup_node_exporter_dashboard_id: 1860
 grafana_setup_provision_amd_gpu_dashboard: true
-grafana_setup_amd_gpu_dashboard_id: 12239
+grafana_setup_amd_gpu_dashboard_id: 23434  # AMD Instinct Single Node Dashboard
 
 # Enable/disable components
 grafana_setup_install_prometheus: true
@@ -267,9 +268,9 @@ The role will:
 - Add discovered exporters to Prometheus scrape configuration
 - Label them with `discovered: 'true'` for easy filtering
 
-### AMD SMI Exporter Discovery
+### AMD Device Metrics Exporter Discovery
 
-Enable automatic discovery of AMD SMI exporters ([official AMD exporter](https://github.com/amd/amd_smi_exporter)):
+Enable automatic discovery of AMD Device Metrics exporters ([official ROCm exporter](https://github.com/ROCm/device-metrics-exporter)):
 
 ```yaml
 grafana_setup_discover_amd_gpu_exporters: true
@@ -277,12 +278,12 @@ grafana_setup_amd_gpu_exporter_port: 2021
 ```
 
 The role will:
-- Scan the network for hosts with port 2021 open (AMD SMI Exporter default)
-- Verify each host is responding with AMD EPYC CPU & GPU metrics
-- Add discovered AMD SMI exporters to Prometheus scrape configuration
+- Scan the network for hosts with port 2021 open (AMD Device Metrics Exporter default)
+- Verify each host is responding with AMD GPU metrics
+- Add discovered AMD Device Metrics exporters to Prometheus scrape configuration
 - Create a separate `amd_gpu` job in Prometheus
 
-**Note:** The AMD SMI Exporter supports AMD EPYC CPUs and MI200/MI300 GPUs
+**Note:** The AMD Device Metrics Exporter supports AMD MI100/MI200/MI300 series GPUs
 
 ### Requirements for Discovery
 
@@ -302,9 +303,10 @@ The role automatically provisions dashboards from Grafana.com:
 
 ### AMD GPU Dashboard
 
-- **Dashboard ID**: 12239 (AMD GPU Metrics)
+- **Dashboard ID**: 23434 (AMD Instinct Single Node Dashboard)
 - **URL**: http://localhost:3000/d/amd-gpu-metrics
 - Shows: GPU utilization, temperature, memory, power consumption
+- Designed for AMD Device Metrics Exporter metrics
 
 Both dashboards are automatically configured to use the Prometheus datasource
 and are ready to use immediately after role execution.
