@@ -27,6 +27,7 @@ NVMe
 OAuth
 PCI
 PROC
+PRs
 Pre
 Prometheus
 RDMA
@@ -49,6 +50,8 @@ aws
 batesste
 bindings
 cd
+cicd
+config
 configs
 datasource
 dest
@@ -85,6 +88,8 @@ orgs
 passthru
 passwordless
 pci
+playbook
+playbooks
 ppa
 prometheus
 qemu
@@ -110,6 +115,8 @@ vCPUs
 vfio
 virt
 vm
+workflow
+workflows
 wsl
 yaml
 yml
