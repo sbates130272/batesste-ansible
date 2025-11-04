@@ -48,6 +48,7 @@ distros
 driverctl
 emacs
 exporter
+exporters
 filesystem
 fstab
 github
@@ -66,6 +67,7 @@ md
 mlx
 motd
 myuser
+nmap
 orgs
 passthru
 passwordless

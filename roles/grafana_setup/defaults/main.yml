@@ -36,6 +36,24 @@ grafana_setup_prometheus_data_dir: /var/lib/prometheus
 # Node exporter configuration
 grafana_setup_node_exporter_port: 9100
 
+# ROCm/AMD GPU exporter configuration
+grafana_setup_amd_gpu_exporter_port: 9400
+
+# Network discovery configuration
+grafana_setup_discover_node_exporters: false
+grafana_setup_discover_amd_gpu_exporters: false
+grafana_setup_discovery_network: "{{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.netmask }}"
+grafana_setup_discovery_timeout: 2
+
+# Dashboard provisioning
+# Node Exporter Full dashboard - https://grafana.com/grafana/dashboards/1860
+grafana_setup_provision_node_exporter_dashboard: true
+grafana_setup_node_exporter_dashboard_id: 1860
+
+# AMD GPU / ROCm dashboard - https://grafana.com/grafana/dashboards/12239
+grafana_setup_provision_amd_gpu_dashboard: true
+grafana_setup_amd_gpu_dashboard_id: 12239
+
 # Enable/disable components
 grafana_setup_install_prometheus: true
 grafana_setup_install_node_exporter: true
