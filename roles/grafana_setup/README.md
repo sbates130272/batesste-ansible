@@ -12,6 +12,7 @@ This Ansible role installs and configures Grafana, Prometheus, and Node Exporter
 - Configures Grafana with admin credentials from Vault
 - Automatically synchronizes admin password on every run
 - Optional creation of additional users with custom roles
+- Automatically configures Prometheus as a datasource in Grafana
 - Disables default admin password requirement
 - Configures Prometheus to scrape local Node Exporter
 - Enables and starts all services via systemd
@@ -214,17 +215,20 @@ Both passwords are managed automatically and can be updated by re-running the pl
 
 ## Prometheus Data Sources
 
-The role automatically configures Prometheus to scrape:
-1. **Prometheus itself** - Self-monitoring metrics
-2. **Node Exporter** - System metrics (CPU, memory, disk, network)
-3. **Grafana** - Grafana's own metrics
+The role automatically:
+1. Configures Prometheus to scrape:
+   - **Prometheus itself** - Self-monitoring metrics
+   - **Node Exporter** - System metrics (CPU, memory, disk, network)
+   - **Grafana** - Grafana's own metrics
 
-To add Prometheus as a data source in Grafana:
-1. Login to Grafana
-2. Go to Configuration → Data Sources
-3. Add Prometheus data source
-4. URL: `http://localhost:9090`
-5. Save & Test
+2. Adds Prometheus as a datasource in Grafana:
+   - Creates the datasource if it doesn't exist
+   - Updates the datasource URL if it already exists
+   - Sets it as the default datasource
+   - Verifies the connection is working
+
+After the role runs, the Prometheus datasource is immediately available for creating dashboards.
+No manual configuration needed!
 
 ## Security Notes
 

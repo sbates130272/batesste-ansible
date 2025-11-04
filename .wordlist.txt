@@ -41,6 +41,7 @@ auth
 aws
 batesste
 cd
+datasource
 dest
 dir
 distros

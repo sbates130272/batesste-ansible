@@ -189,6 +189,94 @@
   when:
     - grafana_setup_create_user
 
+- name: Check if Prometheus datasource exists in Grafana
+  ansible.builtin.uri:
+    url: "http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/api/datasources/name/Prometheus"
+    method: GET
+    user: admin
+    password: "{{ grafana_setup_password }}"
+    force_basic_auth: true
+    status_code: [200, 404]
+  register: grafana_prometheus_datasource_check
+  when: grafana_setup_install_prometheus
+  changed_when: false
+  no_log: true
+
+- name: Create Prometheus datasource in Grafana
+  ansible.builtin.uri:
+    url: "http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/api/datasources"
+    method: POST
+    user: admin
+    password: "{{ grafana_setup_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      name: Prometheus
+      type: prometheus
+      url: "http://localhost:{{ grafana_setup_prometheus_port }}"
+      access: proxy
+      isDefault: true
+      jsonData:
+        httpMethod: POST
+        timeInterval: 30s
+    status_code: [200, 201]
+  when:
+    - grafana_setup_install_prometheus
+    - grafana_prometheus_datasource_check.status == 404
+  register: grafana_datasource_created
+
+- name: Update Prometheus datasource URL if it exists
+  ansible.builtin.uri:
+    url: >-
+      http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/api/datasources/{{ grafana_prometheus_datasource_check.json.id }}
+    method: PUT
+    user: admin
+    password: "{{ grafana_setup_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      id: "{{ grafana_prometheus_datasource_check.json.id }}"
+      uid: "{{ grafana_prometheus_datasource_check.json.uid }}"
+      orgId: "{{ grafana_prometheus_datasource_check.json.orgId }}"
+      name: Prometheus
+      type: prometheus
+      url: "http://localhost:{{ grafana_setup_prometheus_port }}"
+      access: proxy
+      isDefault: true
+      jsonData:
+        httpMethod: POST
+        timeInterval: 30s
+    status_code: 200
+  when:
+    - grafana_setup_install_prometheus
+    - grafana_prometheus_datasource_check.status == 200
+  changed_when: true
+
+- name: Test Prometheus datasource connection
+  ansible.builtin.uri:
+    url: >-
+      http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/api/datasources/name/Prometheus
+    method: GET
+    user: admin
+    password: "{{ grafana_setup_password }}"
+    force_basic_auth: true
+    status_code: 200
+  register: grafana_datasource_test
+  when: grafana_setup_install_prometheus
+  changed_when: false
+  no_log: true
+
+- name: Display Prometheus datasource status
+  ansible.builtin.debug:
+    msg:
+      - "Prometheus datasource configured successfully"
+      - "Datasource ID: {{ grafana_datasource_test.json.id }}"
+      - "URL: {{ grafana_datasource_test.json.url }}"
+      - "Default: {{ grafana_datasource_test.json.isDefault }}"
+  when:
+    - grafana_setup_install_prometheus
+    - grafana_datasource_test.json is defined
+
 - name: Install Prometheus
   ansible.builtin.package:
     name: prometheus
