@@ -37,6 +37,10 @@ rocm_setup_reboot_timeout: 300
 
 # Windows Subsystem for Linux installation
 rocm_setup_wsl_install: false
+
+# Run ROCm checks (rocminfo and HIP compilation)
+# Set to false in CI or when no AMD GPUs are present
+rocm_setup_run_checks: true
 ```
 
 ## Version Management

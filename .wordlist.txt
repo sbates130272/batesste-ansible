@@ -8,6 +8,7 @@ GeForce
 Gmail
 Grafana
 Grafana's
+GPUs
 HTTPS
 Homebrew
 InfiniBand
@@ -69,6 +70,7 @@ raithlin
 rdma
 repo
 rocm
+rocminfo
 rsa
 sbates
 scrape

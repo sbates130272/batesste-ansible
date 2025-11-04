@@ -23,6 +23,7 @@ all:
       vars:
         username: stebates
         user_setup_create: false
+        rocm_setup_add_new: true
     pliops:
       hosts:
         pliops-storage:

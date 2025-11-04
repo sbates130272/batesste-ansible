@@ -22,3 +22,7 @@ rocm_setup_reboot_timeout: 300
 
 # State if this is a Windows Subsystem for Linux (WSL) install or not.
 rocm_setup_wsl_install: false
+
+# Run ROCm checks (rocminfo and HIP compilation)
+# Set to false in CI or when no AMD GPUs are present
+rocm_setup_run_checks: true
