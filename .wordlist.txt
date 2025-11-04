@@ -41,6 +41,7 @@ auth
 aws
 batesste
 cd
+datasource
 dest
 dir
 distros
@@ -81,6 +82,7 @@ rsa
 sbates
 scrape
 signup
+stebates
 sudo
 systemd
 tmp

@@ -2,12 +2,22 @@
 # defaults file for grafana_setup
 
 # Grafana configuration
-grafana_setup_user: "{{ ansible_user }}"
+# Note: Grafana's default admin username is always 'admin'
+# The password is automatically synchronized after installation
 grafana_setup_password: "{{ vault_grafana_setup_password }}"
 grafana_setup_port: 3000
 grafana_setup_domain: localhost
 grafana_setup_root_url: >-
   http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/
+
+# Additional user configuration (optional)
+# Set to true to create an additional non-admin user
+grafana_setup_create_user: false
+grafana_setup_user_name: "{{ ansible_user }}"
+grafana_setup_user_email: "{{ ansible_user }}@localhost"
+grafana_setup_user_login: "{{ ansible_user }}"
+grafana_setup_user_password: "{{ vault_grafana_setup_user_password | default('') }}"
+grafana_setup_user_role: Admin  # Can be: Admin, Editor, or Viewer
 
 # GitHub OAuth configuration (optional)
 grafana_setup_github_auth_enabled: false
