@@ -1,3 +1,9 @@
+# Main CI workflow for batesste-ansible repository
+# 
+# This workflow runs linting, spelling checks, and core playbook tests.
+# Individual role tests are in separate auto-generated workflow files.
+# See .github/README.md for details on the automated workflow system.
+
 name: batesste-ansible
 
 on:
