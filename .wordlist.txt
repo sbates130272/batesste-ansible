@@ -32,6 +32,7 @@ OAuth
 PCI
 PROC
 PRs
+Passthrough
 Pre
 Prometheus
 RDMA
@@ -41,7 +42,9 @@ README
 ROCm
 SMI
 SSDs
+UFW
 VM
+VM's
 VMs
 CPUs
 cpus
@@ -59,8 +62,10 @@ config
 configs
 datasource
 dest
+dev
 dir
 distros
+dri
 driverctl
 emacs
 exporter
@@ -78,6 +83,8 @@ hostname
 http
 https
 ipv
+journalctl
+kfd
 libvirt
 localhost
 localmachines
@@ -86,10 +93,14 @@ md
 mlx
 motd
 netmask
+netstat
 myuser
+nc
 nmap
+num
 orgs
 passthru
+passthrough
 passwordless
 pci
 playbook
@@ -109,10 +120,14 @@ signup
 smi
 stebates
 sudo
+systemctl
 systemd
+tcp
 tmp
+tulpn
 txt
 ubuntu
+ufw
 url
 usr
 vCPUs
@@ -124,3 +139,4 @@ workflows
 wsl
 yaml
 yml
+zv

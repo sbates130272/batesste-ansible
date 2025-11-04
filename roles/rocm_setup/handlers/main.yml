@@ -1,0 +1,10 @@
+---
+# handlers file for rocm_setup
+
+- name: Restart device-metrics-exporter
+  ansible.builtin.systemd:
+    name: device-metrics-exporter
+    state: restarted
+    daemon_reload: true
+  become: true
+
