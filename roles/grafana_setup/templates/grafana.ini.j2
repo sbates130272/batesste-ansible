@@ -18,10 +18,11 @@ type = sqlite3
 path = grafana.db
 
 [security]
-# Disable admin user and admin password
-admin_user = {{ grafana_setup_user }}
+# Admin credentials - Note: these settings only apply during initial database creation
+# After the database exists, the password is managed via grafana-cli or the API
+# The ansible role will automatically sync the password after installation
+admin_user = admin
 admin_password = {{ grafana_setup_password }}
-# Disable the default admin password
 disable_initial_admin_creation = false
 # Allow embedding
 allow_embedding = true

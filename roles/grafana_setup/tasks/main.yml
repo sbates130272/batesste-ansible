@@ -78,6 +78,117 @@
     daemon_reload: true
   become: true
 
+- name: Wait for Grafana to be ready
+  ansible.builtin.uri:
+    url: "http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/api/health"
+    method: GET
+    status_code: 200
+  register: grafana_health
+  until: grafana_health.status == 200
+  retries: 30
+  delay: 2
+  changed_when: false
+
+- name: Check if Grafana database exists
+  ansible.builtin.stat:
+    path: /var/lib/grafana/grafana.db
+  register: grafana_db_stat
+  become: true
+
+- name: Reset admin password to match configuration
+  ansible.builtin.command:
+    cmd: >-
+      grafana-cli admin reset-admin-password
+      {{ grafana_setup_password }}
+  become: true
+  when: grafana_db_stat.stat.exists
+  changed_when: true
+  no_log: true
+
+- name: Display password sync notice
+  ansible.builtin.debug:
+    msg:
+      - "Note: Grafana admin password has been synchronized with configuration"
+      - "Login with username 'admin' and the configured password"
+  when: grafana_db_stat.stat.exists
+
+- name: Check if additional user exists
+  ansible.builtin.uri:
+    url: >-
+      http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/api/users/lookup?loginOrEmail={{ grafana_setup_user_login }}
+    method: GET
+    user: admin
+    password: "{{ grafana_setup_password }}"
+    force_basic_auth: true
+    status_code: [200, 404]
+  register: grafana_user_check
+  when: grafana_setup_create_user
+  changed_when: false
+  no_log: true
+
+- name: Create additional Grafana user
+  ansible.builtin.uri:
+    url: "http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/api/admin/users"
+    method: POST
+    user: admin
+    password: "{{ grafana_setup_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      name: "{{ grafana_setup_user_name }}"
+      email: "{{ grafana_setup_user_email }}"
+      login: "{{ grafana_setup_user_login }}"
+      password: "{{ grafana_setup_user_password }}"
+      OrgId: 1
+    status_code: [200, 201]
+  when:
+    - grafana_setup_create_user
+    - grafana_user_check.status == 404
+  no_log: true
+
+- name: Update additional user's password if user exists
+  ansible.builtin.uri:
+    url: >-
+      http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/api/admin/users/{{ grafana_user_check.json.id }}/password
+    method: PUT
+    user: admin
+    password: "{{ grafana_setup_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      password: "{{ grafana_setup_user_password }}"
+    status_code: 200
+  when:
+    - grafana_setup_create_user
+    - grafana_user_check.status == 200
+  changed_when: true
+  no_log: true
+
+- name: Set additional user's role
+  ansible.builtin.uri:
+    url: >-
+      http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/api/org/users/{{ grafana_user_check.json.id }}
+    method: PATCH
+    user: admin
+    password: "{{ grafana_setup_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      role: "{{ grafana_setup_user_role }}"
+    status_code: 200
+  when:
+    - grafana_setup_create_user
+    - grafana_user_check.status == 200
+  changed_when: true
+
+- name: Display additional user information
+  ansible.builtin.debug:
+    msg:
+      - "Additional user created: {{ grafana_setup_user_login }}"
+      - "Role: {{ grafana_setup_user_role }}"
+  when:
+    - grafana_setup_create_user
+
 - name: Install Prometheus
   ansible.builtin.package:
     name: prometheus
@@ -137,7 +248,8 @@
   ansible.builtin.debug:
     msg:
       - "Grafana: http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}"
-      - "Username: {{ grafana_setup_user }}"
+      - "Username: admin"
+      - "Password: (configured via vault_grafana_setup_password)"
       - >-
         Prometheus: http://localhost:{{ grafana_setup_prometheus_port }}
       - >-

@@ -9,7 +9,9 @@ This Ansible role installs and configures Grafana, Prometheus, and Node Exporter
 - Installs Grafana from official apt repository
 - Installs Prometheus for metrics collection
 - Installs Node Exporter for system metrics
-- Configures Grafana with custom user credentials from Vault
+- Configures Grafana with admin credentials from Vault
+- Automatically synchronizes admin password on every run
+- Optional creation of additional users with custom roles
 - Disables default admin password requirement
 - Configures Prometheus to scrape local Node Exporter
 - Enables and starts all services via systemd
@@ -21,11 +23,20 @@ Available variables are listed below, along with default values (see `defaults/m
 
 ```yaml
 # Grafana configuration
-grafana_setup_user: "{{ ansible_user }}"
+# Note: Grafana's default admin username is always 'admin'
+# The password is automatically synchronized after installation
 grafana_setup_password: "{{ vault_grafana_setup_password }}"
 grafana_setup_port: 3000
 grafana_setup_domain: localhost
 grafana_setup_root_url: "http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/"
+
+# Additional user configuration (optional)
+grafana_setup_create_user: false
+grafana_setup_user_name: "{{ ansible_user }}"
+grafana_setup_user_email: "{{ ansible_user }}@localhost"
+grafana_setup_user_login: "{{ ansible_user }}"
+grafana_setup_user_password: "{{ vault_grafana_setup_user_password | default('') }}"
+grafana_setup_user_role: Admin  # Can be: Admin, Editor, or Viewer
 
 # GitHub OAuth configuration (optional)
 grafana_setup_github_auth_enabled: false
@@ -54,7 +65,15 @@ grafana_setup_install_node_exporter: true
 You must define `vault_grafana_setup_password` in your Ansible Vault:
 
 ```yaml
-vault_grafana_setup_password: your_secure_password_here
+vault_grafana_setup_password: your_secure_admin_password
+```
+
+**For additional user creation (optional):**
+
+If you enable `grafana_setup_create_user`, define the user's password:
+
+```yaml
+vault_grafana_setup_user_password: your_secure_user_password
 ```
 
 **For GitHub OAuth authentication (optional):**
@@ -122,7 +141,6 @@ can authenticate.
   roles:
     - role: grafana_setup
       vars:
-        grafana_setup_user: "{{ ansible_user }}"
         grafana_setup_password: "{{ vault_grafana_setup_password }}"
 ```
 
@@ -147,11 +165,52 @@ can authenticate.
 
 After the role runs:
 - Grafana: `http://localhost:3000`
-  - **With password auth**: Use username from `grafana_setup_user` and
-    password from `vault_grafana_setup_password`
+  - **With password auth**: Username is `admin` and password is the value
+    from `vault_grafana_setup_password`
   - **With GitHub OAuth**: Click "Sign in with GitHub" button
 - Prometheus: `http://localhost:9090`
 - Node Exporter: `http://localhost:9100/metrics`
+
+### Important: Admin Password Management
+
+Grafana's admin password is automatically synchronized with your configuration:
+- On **first install**: Grafana creates the admin user with the configured password
+- On **subsequent runs**: The role uses `grafana-cli` to reset the password to match
+  your configuration, ensuring consistency
+
+This means you can update `vault_grafana_setup_password` and re-run the playbook
+to change the admin password without manual intervention.
+
+## Creating Additional Users
+
+You can create an additional user (besides the default `admin` user) by enabling 
+`grafana_setup_create_user`:
+
+```yaml
+---
+- name: Setup Grafana with additional user
+  hosts: monitoring_servers
+  roles:
+    - role: grafana_setup
+      vars:
+        grafana_setup_create_user: true
+        grafana_setup_user_login: stebates
+        grafana_setup_user_name: Stephen Bates
+        grafana_setup_user_email: stebates@example.com
+        grafana_setup_user_role: Admin  # Can be: Admin, Editor, or Viewer
+        grafana_setup_user_password: "{{ vault_grafana_setup_user_password }}"
+```
+
+The role will:
+- Create the user if it doesn't exist
+- Update the password if the user already exists
+- Set the appropriate role (Admin, Editor, or Viewer)
+
+This allows you to have both:
+- **admin** account (default Grafana admin)
+- **Your custom user** (e.g., `stebates`) with a configurable role
+
+Both passwords are managed automatically and can be updated by re-running the playbook.
 
 ## Prometheus Data Sources
 

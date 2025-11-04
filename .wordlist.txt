@@ -81,6 +81,7 @@ rsa
 sbates
 scrape
 signup
+stebates
 sudo
 systemd
 tmp

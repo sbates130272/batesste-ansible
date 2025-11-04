@@ -3,5 +3,12 @@ monitoring_servers:
     localhost:
       ansible_connection: local
       vault_grafana_setup_password: changeme
+      # Optional: Create an additional user
+      # grafana_setup_create_user: true
+      # vault_grafana_setup_user_password: user_password_here
   vars:
     ansible_user: stebates
+    # Optional: Customize the additional user
+    # grafana_setup_user_login: stebates
+    # grafana_setup_user_name: Stephen Bates
+    # grafana_setup_user_role: Admin
