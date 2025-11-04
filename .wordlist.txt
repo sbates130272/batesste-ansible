@@ -6,6 +6,9 @@ DOMs
 Dockerfile
 GeForce
 Gmail
+Grafana
+Grafana's
+HTTPS
 Homebrew
 InfiniBand
 IPv
@@ -19,6 +22,7 @@ NVMe
 OAuth
 PCI
 Pre
+Prometheus
 RDMA
 RTX
 Radeon
@@ -35,16 +39,20 @@ aws
 batesste
 cd
 dest
+dir
 distros
 driverctl
 emacs
+exporter
 filesystem
 fstab
 gmail
+grafana
 gnupgp
 homelab
 hostname
 libvirt
+localhost
 localmachines
 lspci
 md
@@ -55,6 +63,7 @@ passthru
 passwordless
 pci
 ppa
+prometheus
 qemu
 raithlin
 rdma
@@ -62,7 +71,10 @@ repo
 rocm
 rsa
 sbates
+scrape
+signup
 sudo
+systemd
 tmp
 txt
 ubuntu
@@ -71,6 +83,6 @@ vCPUs
 vfio
 virt
 vm
-yaml
 wsl
+yaml
 yml

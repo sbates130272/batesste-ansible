@@ -1,0 +1,19 @@
+---
+# defaults file for grafana_setup
+
+# Grafana configuration
+grafana_setup_user: "{{ ansible_user }}"
+grafana_setup_password: "{{ vault_grafana_setup_password }}"
+grafana_setup_port: 3000
+grafana_setup_domain: localhost
+
+# Prometheus configuration
+grafana_setup_prometheus_port: 9090
+grafana_setup_prometheus_data_dir: /var/lib/prometheus
+
+# Node exporter configuration
+grafana_setup_node_exporter_port: 9100
+
+# Enable/disable components
+grafana_setup_install_prometheus: true
+grafana_setup_install_node_exporter: true

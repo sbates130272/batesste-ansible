@@ -1,0 +1,145 @@
+---
+# Copyright (c) Stephen Bates, 2025
+#
+# Grafana, Prometheus, and Node Exporter setup
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path | default('') }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+  when: calling_role_path_fact | length > 0
+
+- name: Install required dependencies
+  ansible.builtin.package:
+    name:
+      - apt-transport-https
+      - software-properties-common
+      - wget
+      - curl
+    state: present
+    update_cache: true
+  become: true
+
+- name: Add Grafana GPG key
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      curl -fsSL https://apt.grafana.com/gpg.key | \
+      gpg --dearmor -o /usr/share/keyrings/grafana-archive-keyring.gpg
+    executable: /bin/bash
+    creates: /usr/share/keyrings/grafana-archive-keyring.gpg
+  become: true
+
+- name: Add Grafana repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.gpg]
+      https://apt.grafana.com stable main
+    state: present
+    filename: grafana
+  become: true
+
+- name: Install Grafana
+  ansible.builtin.package:
+    name: grafana
+    state: present
+    update_cache: true
+  become: true
+
+- name: Create Grafana configuration directory
+  ansible.builtin.file:
+    path: /etc/grafana
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: '0755'
+  become: true
+
+- name: Deploy Grafana configuration file
+  ansible.builtin.template:
+    src: grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    owner: grafana
+    group: grafana
+    mode: '0640'
+  become: true
+  notify: Restart grafana
+
+- name: Enable and start Grafana service
+  ansible.builtin.systemd:
+    name: grafana-server
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true
+
+- name: Install Prometheus
+  ansible.builtin.package:
+    name: prometheus
+    state: present
+    update_cache: true
+  become: true
+  when: grafana_setup_install_prometheus
+
+- name: Create Prometheus configuration directory
+  ansible.builtin.file:
+    path: /etc/prometheus
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: '0755'
+  become: true
+  when: grafana_setup_install_prometheus
+
+- name: Deploy Prometheus configuration file
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: prometheus
+    group: prometheus
+    mode: '0644'
+  become: true
+  notify: Restart prometheus
+  when: grafana_setup_install_prometheus
+
+- name: Enable and start Prometheus service
+  ansible.builtin.systemd:
+    name: prometheus
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true
+  when: grafana_setup_install_prometheus
+
+- name: Install Node Exporter
+  ansible.builtin.package:
+    name: prometheus-node-exporter
+    state: present
+    update_cache: true
+  become: true
+  when: grafana_setup_install_node_exporter
+
+- name: Enable and start Node Exporter service
+  ansible.builtin.systemd:
+    name: prometheus-node-exporter
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true
+  when: grafana_setup_install_node_exporter
+
+- name: Display Grafana access information
+  ansible.builtin.debug:
+    msg:
+      - "Grafana: http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}"
+      - "Username: {{ grafana_setup_user }}"
+      - >-
+        Prometheus: http://localhost:{{ grafana_setup_prometheus_port }}
+      - >-
+        Exporter:
+        http://localhost:{{ grafana_setup_node_exporter_port }}/metrics
