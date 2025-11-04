@@ -17,6 +17,7 @@ This Ansible role configures RDMA/InfiniBand support on Ubuntu systems. It insta
   - Network interface mappings
   - MAC addresses
 - Saves detection report to configurable location
+- Optionally displays RDMA/InfiniBand devices in Message of the Day
 
 ## Role Variables
 
@@ -31,6 +32,33 @@ rdma_detect_output_file: /tmp/rdma-detect.status
 
 # Installation location for the rdma-detect script
 rdma_detect_script_dest: /usr/local/bin/rdma-detect
+
+# Enable MOTD showing RDMA/InfiniBand devices (Ubuntu 24.04+)
+rdma_setup_motd: false
+```
+
+## RDMA/InfiniBand Devices MOTD
+
+When `rdma_setup_motd` is set to `true`, the role will:
+- Deploy a script to `/etc/update-motd.d/` that displays RDMA devices
+- Show device names, vendors, drivers, link states, and speeds
+- Automatically detect devices from `/sys/class/infiniband`
+
+This is useful for systems with RDMA or InfiniBand capable network
+adapters to see device status at login.
+
+Example output:
+```
+==========================================
+RDMA/InfiniBand Devices
+==========================================
+Device:  mlx5_0
+  Vendor:  Mellanox Technologies
+  Driver:  mlx5_core
+  Link:    ACTIVE
+  Speed:   100 Gb/s
+
+==========================================
 ```
 
 ## Dependencies
@@ -41,13 +69,14 @@ rdma_detect_script_dest: /usr/local/bin/rdma-detect
 
 ```yaml
 ---
-- name: Setup RDMA on hosts
+- name: Setup RDMA on hosts with MOTD
   hosts: rdma_hosts
   roles:
     - role: rdma_setup
       become: true
       vars:
         rdma_detect_output_file: /var/log/rdma-status.txt
+        rdma_setup_motd: true
 ```
 
 ## Accessing RDMA Detection Report

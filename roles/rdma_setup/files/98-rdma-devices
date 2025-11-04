@@ -1,0 +1,117 @@
+#!/bin/sh
+#
+# 98-rdma-devices
+#
+# Display RDMA/InfiniBand capable devices on the system
+# Part of the Message of the Day (MOTD) system
+
+# Check if /sys/class/infiniband directory exists and has entries
+if [ ! -d /sys/class/infiniband ] || \
+   [ -z "$(ls -A /sys/class/infiniband 2>/dev/null)" ]; then
+    exit 0
+fi
+
+# Function to get vendor name from sysfs
+get_vendor_name() {
+    VENDOR_ID="$1"
+    VENDOR_NAME=""
+    
+    # Remove 0x prefix if present
+    VENDOR_ID="${VENDOR_ID#0x}"
+    
+    # Try using lspci if available
+    if command -v lspci >/dev/null 2>&1; then
+        VENDOR_NAME=$(lspci -d "${VENDOR_ID}:" -vm 2>/dev/null | \
+            grep "^Vendor:" | cut -d: -f2- | \
+            sed 's/^[[:space:]]*//' | head -1)
+    fi
+    
+    if [ -n "$VENDOR_NAME" ]; then
+        echo "$VENDOR_NAME"
+    else
+        echo "Unknown (${VENDOR_ID})"
+    fi
+}
+
+# Function to get link state and speed
+get_link_info() {
+    DEV_PATH="$1"
+    
+    # Try to get link state
+    if [ -f "${DEV_PATH}/ports/1/state" ]; then
+        STATE=$(cat "${DEV_PATH}/ports/1/state" 2>/dev/null | \
+            awk '{print $2}' | sed 's/://g')
+    else
+        STATE="N/A"
+    fi
+    
+    # Try to get link speed (rate)
+    if [ -f "${DEV_PATH}/ports/1/rate" ]; then
+        SPEED=$(cat "${DEV_PATH}/ports/1/rate" 2>/dev/null | \
+            awk '{print $1}')
+        if [ -n "$SPEED" ]; then
+            SPEED="${SPEED} Gb/s"
+        else
+            SPEED="N/A"
+        fi
+    else
+        SPEED="N/A"
+    fi
+    
+    echo "${STATE}|${SPEED}"
+}
+
+# Function to get driver name
+get_driver_name() {
+    DEV_PATH="$1"
+    
+    if [ -L "${DEV_PATH}/device/driver" ]; then
+        DRIVER=$(basename $(readlink -f "${DEV_PATH}/device/driver" \
+            2>/dev/null) || echo "N/A")
+    else
+        DRIVER="N/A"
+    fi
+    
+    echo "$DRIVER"
+}
+
+# Print header
+echo "=========================================="
+echo "RDMA/InfiniBand Devices"
+echo "=========================================="
+
+# Process each RDMA device
+for DEV in /sys/class/infiniband/*; do
+    if [ ! -d "$DEV" ]; then
+        continue
+    fi
+    
+    DEVICE_NAME=$(basename "$DEV")
+    
+    # Get vendor ID
+    if [ -f "${DEV}/device/vendor" ]; then
+        VENDOR_ID=$(cat "${DEV}/device/vendor" 2>/dev/null)
+        VENDOR=$(get_vendor_name "$VENDOR_ID")
+    else
+        VENDOR="N/A"
+    fi
+    
+    # Get link information
+    LINK_INFO=$(get_link_info "$DEV")
+    LINK_STATE=$(echo "$LINK_INFO" | cut -d'|' -f1)
+    LINK_SPEED=$(echo "$LINK_INFO" | cut -d'|' -f2)
+    
+    # Get driver
+    DRIVER=$(get_driver_name "$DEV")
+    
+    # Print device information
+    echo "Device:  $DEVICE_NAME"
+    echo "  Vendor:  $VENDOR"
+    echo "  Driver:  $DRIVER"
+    echo "  Link:    $LINK_STATE"
+    echo "  Speed:   $LINK_SPEED"
+    echo ""
+done
+
+echo "=========================================="
+

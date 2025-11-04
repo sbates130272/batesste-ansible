@@ -109,3 +109,13 @@
 - name: Print the output of the rdma dev command
   ansible.builtin.debug:
     msg: "The rdma dev output was: {{ rdma_dev.stdout }}."
+
+- name: Copy RDMA devices MOTD script
+  ansible.builtin.copy:
+    src: 98-rdma-devices
+    dest: /etc/update-motd.d/98-rdma-devices
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+  when: rdma_setup_motd
