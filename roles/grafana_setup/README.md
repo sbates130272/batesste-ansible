@@ -25,6 +25,15 @@ grafana_setup_user: "{{ ansible_user }}"
 grafana_setup_password: "{{ vault_grafana_setup_password }}"
 grafana_setup_port: 3000
 grafana_setup_domain: localhost
+grafana_setup_root_url: "http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/"
+
+# GitHub OAuth configuration (optional)
+grafana_setup_github_auth_enabled: false
+grafana_setup_github_client_id: "{{ vault_grafana_setup_github_client_id | default('') }}"
+grafana_setup_github_client_secret: "{{ vault_grafana_setup_github_client_secret | default('') }}"
+grafana_setup_github_allowed_orgs: []
+grafana_setup_github_allow_sign_up: true
+grafana_setup_github_auto_assign_org_role: Editor
 
 # Prometheus configuration
 grafana_setup_prometheus_port: 9090
@@ -40,17 +49,71 @@ grafana_setup_install_node_exporter: true
 
 ### Required Vault Variables
 
+**For password authentication (default):**
+
 You must define `vault_grafana_setup_password` in your Ansible Vault:
 
 ```yaml
 vault_grafana_setup_password: your_secure_password_here
 ```
 
+**For GitHub OAuth authentication (optional):**
+
+If you enable GitHub OAuth, define these in your Ansible Vault:
+
+```yaml
+vault_grafana_setup_github_client_id: your_github_oauth_client_id
+vault_grafana_setup_github_client_secret: your_github_oauth_client_secret
+```
+
+## GitHub OAuth Setup
+
+To enable GitHub OAuth authentication:
+
+### 1. Create a GitHub OAuth Application
+
+1. Go to GitHub Settings → Developer settings → OAuth Apps
+2. Click "New OAuth App"
+3. Fill in the application details:
+   - **Application name**: Grafana (or your preferred name)
+   - **Homepage URL**: `http://your-server:3000`
+   - **Authorization callback URL**: `http://your-server:3000/login/github`
+4. Click "Register application"
+5. Copy the **Client ID** and **Client Secret**
+
+### 2. Configure Ansible Variables
+
+Add to your inventory or playbook:
+
+```yaml
+grafana_setup_github_auth_enabled: true
+grafana_setup_root_url: "http://your-server.example.com:3000/"
+grafana_setup_github_allowed_orgs:
+  - your-github-org
+```
+
+Add to your Ansible Vault:
+
+```yaml
+vault_grafana_setup_github_client_id: your_client_id_here
+vault_grafana_setup_github_client_secret: your_client_secret_here
+```
+
+### 3. Run the Playbook
+
+After deployment, users can log in using "Sign in with GitHub".
+
+**Note**: If you restrict access to specific organizations using
+`grafana_setup_github_allowed_orgs`, only members of those orgs
+can authenticate.
+
 ## Dependencies
 
 - Role: `check_platform` - Validates platform compatibility
 
 ## Example Playbook
+
+**Basic setup with password authentication:**
 
 ```yaml
 ---
@@ -63,12 +126,30 @@ vault_grafana_setup_password: your_secure_password_here
         grafana_setup_password: "{{ vault_grafana_setup_password }}"
 ```
 
+**Setup with GitHub OAuth authentication:**
+
+```yaml
+---
+- name: Setup Grafana with GitHub OAuth
+  hosts: monitoring_servers
+  roles:
+    - role: grafana_setup
+      vars:
+        grafana_setup_domain: grafana.example.com
+        grafana_setup_root_url: "https://grafana.example.com/"
+        grafana_setup_github_auth_enabled: true
+        grafana_setup_github_allowed_orgs:
+          - my-company
+        grafana_setup_github_auto_assign_org_role: Viewer
+```
+
 ## Accessing Grafana
 
 After the role runs:
 - Grafana: `http://localhost:3000`
-  - Username: Value of `grafana_setup_user` (defaults to `ansible_user`)
-  - Password: Value from `vault_grafana_setup_password`
+  - **With password auth**: Use username from `grafana_setup_user` and
+    password from `vault_grafana_setup_password`
+  - **With GitHub OAuth**: Click "Sign in with GitHub" button
 - Prometheus: `http://localhost:9090`
 - Node Exporter: `http://localhost:9100/metrics`
 
@@ -113,4 +194,3 @@ ANSIBLE_ROLES_PATH=../ ansible-playbook -i hosts-grafana-setup ./tests/test.yml 
 ## Author and License Information
 
 See the [meta file](./meta/main.yml) for more information on the author, licensing and other details.
-

@@ -11,7 +11,7 @@ provisioning = /etc/grafana/provisioning
 protocol = http
 http_port = {{ grafana_setup_port }}
 domain = {{ grafana_setup_domain }}
-root_url = http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/
+root_url = {{ grafana_setup_root_url }}
 
 [database]
 type = sqlite3
@@ -41,6 +41,23 @@ enabled = false
 [auth.basic]
 enabled = true
 
+{% if grafana_setup_github_auth_enabled %}
+[auth.github]
+enabled = true
+allow_sign_up = {{ grafana_setup_github_allow_sign_up | lower }}
+client_id = {{ grafana_setup_github_client_id }}
+client_secret = {{ grafana_setup_github_client_secret }}
+scopes = user:email,read:org
+auth_url = https://github.com/login/oauth/authorize
+token_url = https://github.com/login/oauth/access_token
+api_url = https://api.github.com/user
+{% if grafana_setup_github_allowed_orgs | length > 0 %}
+allowed_organizations = {{ grafana_setup_github_allowed_orgs | join(',') }}
+{% endif %}
+auto_assign_org = true
+auto_assign_org_role = {{ grafana_setup_github_auto_assign_org_role }}
+
+{% endif %}
 [auth]
 # Disable login form
 disable_login_form = false
