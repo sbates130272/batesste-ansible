@@ -2,6 +2,13 @@
 # Install and configure AMD Device Metrics Exporter for Prometheus metrics
 # https://github.com/ROCm/device-metrics-exporter
 
+- name: Install Go compiler for building AMD Device Metrics Exporter
+  ansible.builtin.package:
+    name: golang-go
+    state: present
+    update_cache: true
+  become: true
+
 - name: Get latest AMD Device Metrics Exporter release version
   ansible.builtin.uri:
     url: https://api.github.com/repos/ROCm/device-metrics-exporter/releases/latest
@@ -19,16 +26,42 @@
         else metrics_exporter_release.json.tag_name
       }}
 
-- name: Download AMD Device Metrics Exporter binary
-  ansible.builtin.get_url:
-    url: >-
-      https://github.com/ROCm/device-metrics-exporter/releases/download/{{
-      rocm_metrics_exporter_version }}/device-metrics-exporter
+- name: Create temporary directory for building exporter
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: _metrics_exporter
+  register: exporter_build_dir
+  changed_when: false
+
+- name: Clone AMD Device Metrics Exporter repository
+  ansible.builtin.git:
+    repo: https://github.com/ROCm/device-metrics-exporter.git
+    dest: "{{ exporter_build_dir.path }}"
+    version: "{{ rocm_metrics_exporter_version }}"
+    depth: 1
+  changed_when: false
+
+- name: Build AMD Device Metrics Exporter binary
+  ansible.builtin.shell:
+    cmd: make build
+    chdir: "{{ exporter_build_dir.path }}"
+  changed_when: false
+
+- name: Install AMD Device Metrics Exporter binary
+  ansible.builtin.copy:
+    src: "{{ exporter_build_dir.path }}/bin/device-metrics-exporter"
     dest: "{{ rocm_setup_metrics_exporter_path }}"
     mode: '0755'
     owner: root
     group: root
+    remote_src: true
   become: true
+
+- name: Clean up build directory
+  ansible.builtin.file:
+    path: "{{ exporter_build_dir.path }}"
+    state: absent
+  changed_when: false
 
 - name: Create AMD Device Metrics Exporter systemd service
   ansible.builtin.template:

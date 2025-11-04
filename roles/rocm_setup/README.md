@@ -77,10 +77,11 @@ This is useful for:
 This role can optionally install and configure the [AMD Device Metrics Exporter](https://github.com/ROCm/device-metrics-exporter), which exposes AMD GPU and CPU metrics in Prometheus format. The exporter runs as a systemd service and listens on port 2021 by default.
 
 Features:
-- Automatic download of the latest release from GitHub
+- Automatic build from source (latest release or specific version)
 - Systemd service configuration with automatic restart
 - Health checks to verify the exporter is responding
 - Configurable port and installation path
+- Automatic installation of Go compiler if needed
 
 To enable:
 ```yaml
