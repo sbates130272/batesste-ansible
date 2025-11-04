@@ -78,6 +78,9 @@
     daemon_reload: true
   become: true
 
+- name: Flush handlers to restart Grafana if config changed
+  ansible.builtin.meta: flush_handlers
+
 - name: Wait for Grafana to be ready
   ansible.builtin.uri:
     url: "http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/api/health"
@@ -421,6 +424,38 @@
     - grafana_setup_provision_amd_gpu_dashboard
     - grafana_amd_gpu_dashboard_updated is defined
 
+- name: Flush handlers to restart Grafana if dashboards changed
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for Grafana to be ready after dashboard provisioning
+  ansible.builtin.uri:
+    url: "http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/api/health"
+    method: GET
+    status_code: 200
+  register: grafana_health_after_dashboards
+  until: grafana_health_after_dashboards.status == 200
+  retries: 30
+  delay: 2
+  changed_when: false
+  when: grafana_setup_provision_node_exporter_dashboard or grafana_setup_provision_amd_gpu_dashboard
+
+- name: Install Node Exporter
+  ansible.builtin.package:
+    name: prometheus-node-exporter
+    state: present
+    update_cache: true
+  become: true
+  when: grafana_setup_install_node_exporter
+
+- name: Enable and start Node Exporter service
+  ansible.builtin.systemd:
+    name: prometheus-node-exporter
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true
+  when: grafana_setup_install_node_exporter
+
 - name: Install nmap for network discovery
   ansible.builtin.package:
     name: nmap
@@ -430,10 +465,13 @@
 
 - name: Scan local network for node exporters
   ansible.builtin.shell:
-    cmd: >
-      nmap -p {{ grafana_setup_node_exporter_port }}
-      --open -oG - {{ grafana_setup_discovery_network }}
-      | grep '{{ grafana_setup_node_exporter_port }}/open'
+    cmd: |
+      set -o pipefail
+      timeout {{ grafana_setup_discovery_scan_timeout }} \
+      nmap -p {{ grafana_setup_node_exporter_port }} \
+      -T4 --max-retries 1 --host-timeout 2s \
+      --open -oG - {{ grafana_setup_discovery_network }} \
+      | grep '{{ grafana_setup_node_exporter_port }}/open' \
       | awk '{print $2}'
     executable: /bin/bash
   register: grafana_discovered_node_exporters
@@ -479,12 +517,15 @@
     - grafana_verified_exporter_targets is defined
     - grafana_verified_exporter_targets | length > 0
 
-- name: Scan local network for AMD GPU exporters
+- name: Scan local network for AMD SMI exporters
   ansible.builtin.shell:
-    cmd: >
-      nmap -p {{ grafana_setup_amd_gpu_exporter_port }}
-      --open -oG - {{ grafana_setup_discovery_network }}
-      | grep '{{ grafana_setup_amd_gpu_exporter_port }}/open'
+    cmd: |
+      set -o pipefail
+      timeout {{ grafana_setup_discovery_scan_timeout }} \
+      nmap -p {{ grafana_setup_amd_gpu_exporter_port }} \
+      -T4 --max-retries 1 --host-timeout 2s \
+      --open -oG - {{ grafana_setup_discovery_network }} \
+      | grep '{{ grafana_setup_amd_gpu_exporter_port }}/open' \
       | awk '{print $2}'
     executable: /bin/bash
   register: grafana_discovered_amd_gpu_exporters
@@ -492,7 +533,7 @@
   when: grafana_setup_discover_amd_gpu_exporters
   failed_when: false
 
-- name: Verify discovered AMD GPU exporters are responding
+- name: Verify discovered AMD SMI exporters are responding
   ansible.builtin.uri:
     url: "http://{{ item }}:{{ grafana_setup_amd_gpu_exporter_port }}/metrics"
     method: GET
@@ -507,7 +548,7 @@
   failed_when: false
   changed_when: false
 
-- name: Build list of verified AMD GPU exporter targets
+- name: Build list of verified AMD SMI exporter targets
   ansible.builtin.set_fact:
     grafana_verified_amd_gpu_targets: >-
       {{ grafana_verified_amd_gpu_exporters.results |
@@ -520,11 +561,12 @@
     - grafana_setup_discover_amd_gpu_exporters
     - grafana_verified_amd_gpu_exporters.results is defined
 
-- name: Display discovered AMD GPU exporters
+- name: Display discovered AMD SMI exporters
   ansible.builtin.debug:
     msg:
-      - "Discovered {{ grafana_verified_amd_gpu_targets | default([]) | length }} AMD GPU exporter(s) on the network"
+      - "Discovered {{ grafana_verified_amd_gpu_targets | default([]) | length }} AMD SMI exporter(s) on the network"
       - "Targets: {{ grafana_verified_amd_gpu_targets | default([]) | join(', ') }}"
+      - "Port: {{ grafana_setup_amd_gpu_exporter_port }}"
   when:
     - grafana_setup_discover_amd_gpu_exporters
     - grafana_verified_amd_gpu_targets is defined
@@ -568,22 +610,8 @@
   become: true
   when: grafana_setup_install_prometheus
 
-- name: Install Node Exporter
-  ansible.builtin.package:
-    name: prometheus-node-exporter
-    state: present
-    update_cache: true
-  become: true
-  when: grafana_setup_install_node_exporter
-
-- name: Enable and start Node Exporter service
-  ansible.builtin.systemd:
-    name: prometheus-node-exporter
-    enabled: true
-    state: started
-    daemon_reload: true
-  become: true
-  when: grafana_setup_install_node_exporter
+- name: Flush handlers to restart Prometheus if config changed
+  ansible.builtin.meta: flush_handlers
 
 - name: Display Grafana access information
   ansible.builtin.debug:

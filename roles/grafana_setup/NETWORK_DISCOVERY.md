@@ -14,28 +14,49 @@ Automatically finds Node Exporters on your network:
 grafana_setup_discover_node_exporters: true
 grafana_setup_discovery_network: "192.168.1.0/24"
 grafana_setup_node_exporter_port: 9100
+grafana_setup_discovery_scan_timeout: 60  # Max scan time in seconds
 ```
 
 **How it works:**
-1. Uses `nmap` to scan the specified network for port 9100
-2. Verifies each discovered host responds with valid node exporter metrics
-3. Adds verified exporters to Prometheus scrape configuration
-4. Labels them with `discovered: 'true'` for filtering in Grafana
+1. Uses `nmap` with optimized timing (`-T4`, `--host-timeout 2s`) to scan for port 9100
+2. Scan is limited to maximum of 60 seconds (configurable)
+3. Verifies each discovered host responds with valid node exporter metrics
+4. Adds verified exporters to Prometheus scrape configuration
+5. Labels them with `discovered: 'true'` for filtering in Grafana
 
-### 2. AMD GPU / ROCm Exporter Discovery
+**Performance:**
+- Uses aggressive timing template (`-T4`) for faster scanning
+- Per-host timeout of 2 seconds to avoid hanging on dead hosts
+- Maximum retry count of 1 to reduce scan time
+- Overall scan limited to 60 seconds (default, configurable)
 
-Automatically finds AMD GPU exporters on your network:
+### 2. AMD SMI Exporter Discovery
+
+Automatically finds AMD SMI exporters on your network ([official AMD exporter](https://github.com/amd/amd_smi_exporter)):
 
 ```yaml
 grafana_setup_discover_amd_gpu_exporters: true
-grafana_setup_amd_gpu_exporter_port: 9400
+grafana_setup_amd_gpu_exporter_port: 2021  # AMD SMI Exporter default port
+grafana_setup_discovery_scan_timeout: 60  # Max scan time in seconds
 ```
 
 **How it works:**
-1. Scans the network for the specified GPU exporter port (default: 9400)
-2. Verifies each host is responding with GPU metrics
-3. Creates a dedicated `amd_gpu` job in Prometheus
-4. Labels targets with `group: 'gpus'` and `discovered: 'true'`
+1. Uses optimized `nmap` to scan for the AMD SMI Exporter port (default: 2021)
+2. Scan is limited to maximum of 60 seconds (same timeout as node exporters)
+3. Verifies each host is responding with AMD EPYC CPU & GPU metrics
+4. Creates a dedicated `amd_gpu` job in Prometheus
+5. Labels targets with `group: 'gpus'` and `discovered: 'true'`
+
+**What is AMD SMI Exporter?**
+- Official AMD exporter for EPYC CPUs and Datacenter GPUs (MI200, MI300)
+- Exports CPU metrics (core energy, socket power, boost limits, PROC_HOT status)
+- Exports GPU metrics (power, temperature, clock speeds, utilization, memory)
+- Written in Go with AMD SMI library bindings
+
+**Performance:**
+- Same optimizations as Node Exporter discovery
+- Fast scanning with aggressive timing
+- Prevents hanging on networks with many unresponsive hosts
 
 ### 3. Dashboard Provisioning
 
@@ -72,7 +93,7 @@ Automatically downloads and provisions dashboards:
         
         # Custom ports (if needed)
         grafana_setup_node_exporter_port: 9100
-        grafana_setup_amd_gpu_exporter_port: 9400
+        grafana_setup_amd_gpu_exporter_port: 2021  # AMD SMI Exporter default
         
         # Dashboard provisioning (enabled by default)
         grafana_setup_provision_node_exporter_dashboard: true
@@ -84,6 +105,33 @@ Automatically downloads and provisions dashboards:
 - `nmap` package (automatically installed when discovery is enabled)
 - Network access to target hosts
 - Exporters must be accessible without authentication
+
+## Performance Tuning
+
+The default settings are optimized for typical home/lab networks:
+
+```yaml
+# Default settings (good for most use cases)
+grafana_setup_discovery_scan_timeout: 60      # Total scan time limit
+grafana_setup_discovery_timeout: 2            # HTTP verification timeout per host
+grafana_setup_discovery_network: "192.168.1.0/24"
+```
+
+For **large networks** (e.g., /16 or /8), consider:
+- Narrowing the discovery network range
+- Increasing `grafana_setup_discovery_scan_timeout` to 120 or 180 seconds
+- Running discovery during off-peak hours
+
+For **fast networks** with few hosts, you can:
+- Keep the default 60-second timeout
+- The scan will complete faster if fewer hosts are present
+
+**Scan behavior:**
+- Nmap uses `-T4` (aggressive) timing template
+- Each host has a 2-second timeout
+- Maximum of 1 retry per port
+- Entire scan terminates after `grafana_setup_discovery_scan_timeout` seconds
+- Timeout exit (code 124) is treated as success (returns partial results)
 
 ## Prometheus Scrape Configuration
 
@@ -104,10 +152,10 @@ scrape_configs:
           group: 'nodes'
           discovered: 'true'
   
-  # AMD GPU Exporters
+  # AMD SMI Exporters
   - job_name: 'amd_gpu'
     static_configs:
-      - targets: ['192.168.1.20:9400']
+      - targets: ['192.168.1.20:2021']
         labels:
           instance: '192.168.1.20'
           group: 'gpus'

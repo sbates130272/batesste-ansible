@@ -53,7 +53,7 @@ scrape_configs:
           group: 'monitoring'
 
 {% if grafana_verified_amd_gpu_targets is defined and grafana_verified_amd_gpu_targets | length > 0 %}
-  # AMD GPU / ROCm Exporters
+  # AMD SMI Exporters (https://github.com/amd/amd_smi_exporter)
   - job_name: 'amd_gpu'
     static_configs:
 {% for target in grafana_verified_amd_gpu_targets %}
