@@ -25,7 +25,8 @@ get_device_description() {
     
     # Try to get description from lspci
     if command -v lspci >/dev/null 2>&1; then
-        DESCRIPTION=$(lspci -s "$PCI_ADDR" 2>/dev/null | cut -d: -f3- | sed 's/^[[:space:]]*//')
+        DESCRIPTION=$(lspci -s "$PCI_ADDR" 2>/dev/null | \
+            cut -d: -f3- | sed 's/^[[:space:]]*//')
         if [ -n "$DESCRIPTION" ]; then
             echo "$DESCRIPTION"
             return
@@ -36,11 +37,9 @@ get_device_description() {
 }
 
 # Print header
-echo ""
 echo "=========================================="
 echo "Driver Overrides (driverctl)"
 echo "=========================================="
-echo ""
 
 # Process each override line
 echo "$OVERRIDES" | while IFS= read -r LINE; do
@@ -57,7 +56,8 @@ echo "$OVERRIDES" | while IFS= read -r LINE; do
     
     # Extract device name from parentheses (everything after second field)
     # Remove the parentheses and trim spaces
-    DEVICE_NAME=$(echo "$LINE" | sed 's/^[^ ]* [^ ]* (//' | sed 's/)$//' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+    DEVICE_NAME=$(echo "$LINE" | sed 's/^[^ ]* [^ ]* (//' | \
+        sed 's/)$//' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
     
     if [ -n "$PCI_ADDR" ] && [ -n "$DRIVER" ]; then
         # If device name is empty from driverctl, try lspci
@@ -73,4 +73,3 @@ echo "$OVERRIDES" | while IFS= read -r LINE; do
 done
 
 echo "=========================================="
-echo ""

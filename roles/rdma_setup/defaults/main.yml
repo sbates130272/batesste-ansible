@@ -3,3 +3,6 @@
 rdma_setup_reboot_timeout: 60
 rdma_detect_output_file: /tmp/rdma-detect.status
 rdma_detect_script_dest: /usr/local/bin/rdma-detect
+
+# Enable MOTD showing RDMA/InfiniBand devices
+rdma_setup_motd: false

@@ -41,14 +41,14 @@ When `user_setup_motd` is set to `true`, the role will:
 - Deploy a script to `/etc/update-motd.d/` that displays all driver overrides
 - Show PCI device addresses, device names (from lspci), and assigned drivers
 
-This is useful for systems where specific drivers have been manually bound to devices using `driverctl`.
+This is useful for systems where specific drivers have been manually
+bound to devices using `driverctl`.
 
 Example output:
 ```
 ==========================================
 Driver Overrides (driverctl)
 ==========================================
-
 Device:  0000:01:00.0
   Name:    NVIDIA Corporation GA102 [GeForce RTX 3080]
   Driver:  vfio-pci
