@@ -18,3 +18,5 @@ galaxy_info:
     - amd
     - rocm
     - gpu
+
+dependencies: []

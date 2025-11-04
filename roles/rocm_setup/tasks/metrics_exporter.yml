@@ -41,7 +41,7 @@
   notify: Restart device-metrics-exporter
 
 - name: Open firewall port for AMD Device Metrics Exporter
-  ansible.builtin.ufw:
+  community.general.ufw:
     rule: allow
     port: "{{ rocm_setup_metrics_exporter_port }}"
     proto: tcp
@@ -123,4 +123,3 @@
     - metrics_exporter_health is defined
     - metrics_exporter_health.status is defined
     - metrics_exporter_health.status == 200
-
