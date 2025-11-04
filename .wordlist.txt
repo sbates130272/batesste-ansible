@@ -15,10 +15,14 @@ GPUs
 HTTPS
 Homebrew
 InfiniBand
+Instinct
 IPv
 JSON
 LTS
 MacOS
+MI100
+MI200
+MI300
 MKMSTEBATES
 MOTD
 Mellanox

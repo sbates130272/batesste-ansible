@@ -517,7 +517,7 @@
     - grafana_verified_exporter_targets is defined
     - grafana_verified_exporter_targets | length > 0
 
-- name: Scan local network for AMD SMI exporters
+- name: Scan local network for AMD Device Metrics exporters
   ansible.builtin.shell:
     cmd: |
       set -o pipefail
@@ -533,7 +533,7 @@
   when: grafana_setup_discover_amd_gpu_exporters
   failed_when: false
 
-- name: Verify discovered AMD SMI exporters are responding
+- name: Verify discovered AMD Device Metrics exporters are responding
   ansible.builtin.uri:
     url: "http://{{ item }}:{{ grafana_setup_amd_gpu_exporter_port }}/metrics"
     method: GET
@@ -548,7 +548,7 @@
   failed_when: false
   changed_when: false
 
-- name: Build list of verified AMD SMI exporter targets
+- name: Build list of verified AMD Device Metrics exporter targets
   ansible.builtin.set_fact:
     grafana_verified_amd_gpu_targets: >-
       {{ grafana_verified_amd_gpu_exporters.results |
@@ -561,10 +561,10 @@
     - grafana_setup_discover_amd_gpu_exporters
     - grafana_verified_amd_gpu_exporters.results is defined
 
-- name: Display discovered AMD SMI exporters
+- name: Display discovered AMD Device Metrics exporters
   ansible.builtin.debug:
     msg:
-      - "Discovered {{ grafana_verified_amd_gpu_targets | default([]) | length }} AMD SMI exporter(s) on the network"
+      - "Discovered {{ grafana_verified_amd_gpu_targets | default([]) | length }} AMD Device Metrics exporter(s) on the network"
       - "Targets: {{ grafana_verified_amd_gpu_targets | default([]) | join(', ') }}"
       - "Port: {{ grafana_setup_amd_gpu_exporter_port }}"
   when:
