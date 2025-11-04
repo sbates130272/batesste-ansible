@@ -6,6 +6,18 @@ grafana_setup_user: "{{ ansible_user }}"
 grafana_setup_password: "{{ vault_grafana_setup_password }}"
 grafana_setup_port: 3000
 grafana_setup_domain: localhost
+grafana_setup_root_url: >-
+  http://{{ grafana_setup_domain }}:{{ grafana_setup_port }}/
+
+# GitHub OAuth configuration (optional)
+grafana_setup_github_auth_enabled: false
+grafana_setup_github_client_id: >-
+  {{ vault_grafana_setup_github_client_id | default('') }}
+grafana_setup_github_client_secret: >-
+  {{ vault_grafana_setup_github_client_secret | default('') }}
+grafana_setup_github_allowed_orgs: []
+grafana_setup_github_allow_sign_up: true
+grafana_setup_github_auto_assign_org_role: Editor
 
 # Prometheus configuration
 grafana_setup_prometheus_port: 9090
