@@ -48,10 +48,10 @@ grafana_setup_discovery_scan_timeout: 60  # Max scan time in seconds
 5. Labels targets with `group: 'gpus'` and `discovered: 'true'`
 
 **What is AMD Device Metrics Exporter?**
-- Official AMD ROCm exporter for Datacenter GPUs (MI100, MI200, MI300 series)
+- Official AMD ROCm exporter for EPYC CPUs and Datacenter GPUs (MI200, MI300)
+- Exports CPU metrics (core energy, socket power, boost limits, PROC_HOT status)
 - Exports GPU metrics (power, temperature, clock speeds, utilization, memory)
-- Integrates seamlessly with Prometheus and Grafana
-- Part of the official ROCm software stack
+- Written in Go with AMD library bindings
 
 **Performance:**
 - Same optimizations as Node Exporter discovery

@@ -1,0 +1,25 @@
+[Unit]
+Description=AMD Device Metrics Exporter
+Documentation=https://github.com/ROCm/device-metrics-exporter
+After=network.target
+
+[Service]
+Type=simple
+ExecStart={{ rocm_setup_metrics_exporter_path }} --port={{ rocm_setup_metrics_exporter_port }} --address={{ rocm_setup_metrics_exporter_bind_address }}
+Restart=always
+RestartSec=10
+User=root
+# Required for GPU access
+DeviceAllow=/dev/kfd rw
+DeviceAllow=/dev/dri rw
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/dev/kfd /dev/dri
+
+[Install]
+WantedBy=multi-user.target
+

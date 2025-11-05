@@ -21,6 +21,7 @@ ROLE_CONFIGS = {
             "rocm_setup_rocm_version": "latest",
             "rocm_setup_amdgpu_version": "latest",
             "rocm_setup_run_checks": False,
+            "rocm_setup_install_metrics_exporter": False,
         },
         "verification_commands": [
             "systemctl status amdgpu-dkms || true",

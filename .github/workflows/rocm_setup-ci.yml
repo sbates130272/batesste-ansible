@@ -55,6 +55,7 @@ jobs:
                   rocm_setup_rocm_version: latest
                   rocm_setup_amdgpu_version: latest
                   rocm_setup_run_checks: false
+                  rocm_setup_install_metrics_exporter: false
 
       - name: Run the test playbook against the local runner
         run: ansible-playbook -v -i hosts-ci ./tests/test.yml

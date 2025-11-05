@@ -1,0 +1,6 @@
+# Generated test files - do not commit
+test_id_rsa
+test_id_rsa.pub
+inventory-docker.yml
+test-playbook.yml
+

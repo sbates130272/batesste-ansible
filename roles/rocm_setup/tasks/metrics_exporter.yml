@@ -1,0 +1,160 @@
+---
+# Install and configure AMD Device Metrics Exporter for Prometheus metrics
+# https://github.com/ROCm/device-metrics-exporter
+
+- name: Install Go compiler for building AMD Device Metrics Exporter
+  ansible.builtin.package:
+    name: golang-go
+    state: present
+    update_cache: true
+  become: true
+
+- name: Get latest AMD Device Metrics Exporter release version
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/ROCm/device-metrics-exporter/releases/latest
+    return_content: true
+  register: metrics_exporter_release
+  when: rocm_setup_metrics_exporter_version == 'latest'
+  changed_when: false
+
+- name: Set AMD Device Metrics Exporter version fact
+  ansible.builtin.set_fact:
+    rocm_metrics_exporter_version: >-
+      {{
+        rocm_setup_metrics_exporter_version
+        if rocm_setup_metrics_exporter_version != 'latest'
+        else metrics_exporter_release.json.tag_name
+      }}
+
+- name: Create temporary directory for building exporter
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: _metrics_exporter
+  register: exporter_build_dir
+  changed_when: false
+
+- name: Clone AMD Device Metrics Exporter repository
+  ansible.builtin.git:
+    repo: https://github.com/ROCm/device-metrics-exporter.git
+    dest: "{{ exporter_build_dir.path }}"
+    version: "{{ rocm_metrics_exporter_version }}"
+    depth: 1
+  changed_when: false
+
+- name: Build AMD Device Metrics Exporter binary
+  ansible.builtin.shell:
+    cmd: make amdexporter
+    chdir: "{{ exporter_build_dir.path }}"
+  changed_when: false
+  environment:
+    CGO_ENABLED: "0"
+
+- name: Install AMD Device Metrics Exporter binary
+  ansible.builtin.copy:
+    src: "{{ exporter_build_dir.path }}/bin/amd-metrics-exporter"
+    dest: "{{ rocm_setup_metrics_exporter_path }}"
+    mode: '0755'
+    owner: root
+    group: root
+    remote_src: true
+  become: true
+
+- name: Clean up build directory
+  ansible.builtin.file:
+    path: "{{ exporter_build_dir.path }}"
+    state: absent
+  changed_when: false
+
+- name: Create AMD Device Metrics Exporter systemd service
+  ansible.builtin.template:
+    src: device-metrics-exporter.service.j2
+    dest: /etc/systemd/system/device-metrics-exporter.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify: Restart device-metrics-exporter
+
+- name: Open firewall port for AMD Device Metrics Exporter
+  community.general.ufw:
+    rule: allow
+    port: "{{ rocm_setup_metrics_exporter_port }}"
+    proto: tcp
+    comment: AMD Device Metrics Exporter
+  become: true
+  when:
+    - rocm_setup_metrics_exporter_open_firewall
+    - ansible_facts.services['ufw.service'] is defined
+    - ansible_facts.services['ufw.service'].state == 'running'
+  failed_when: false
+
+- name: Enable and start AMD Device Metrics Exporter service
+  ansible.builtin.systemd:
+    name: device-metrics-exporter
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true
+  register: metrics_exporter_start
+  failed_when: false
+
+- name: Check if AMD Device Metrics Exporter service failed to start
+  ansible.builtin.systemd:
+    name: device-metrics-exporter
+  register: metrics_exporter_status
+  become: true
+
+- name: Display warning if exporter failed to start
+  ansible.builtin.debug:
+    msg:
+      - "WARNING: AMD Device Metrics Exporter service failed to start"
+      - "Possible reasons:"
+      - "  - AMD kernel modules not loaded (try: modprobe amdgpu)"
+      - "  - Insufficient permissions to access /dev/kfd or /dev/dri"
+      - "  - ROCm libraries not properly installed"
+      - "Check logs with: journalctl -u device-metrics-exporter -n 50"
+  when:
+    - metrics_exporter_status.status is defined
+    - metrics_exporter_status.status.ActiveState != 'active'
+
+- name: Wait for AMD Device Metrics Exporter to be ready
+  ansible.builtin.wait_for:
+    port: "{{ rocm_setup_metrics_exporter_port }}"
+    delay: 2
+    timeout: 30
+  when:
+    - rocm_setup_run_checks
+    - metrics_exporter_status.status is defined
+    - metrics_exporter_status.status.ActiveState == 'active'
+  register: metrics_exporter_ready
+  failed_when: false
+
+- name: Verify AMD Device Metrics Exporter is responding
+  ansible.builtin.uri:
+    url: "http://localhost:{{ rocm_setup_metrics_exporter_port }}/metrics"
+    method: GET
+    status_code: 200
+  register: metrics_exporter_health
+  failed_when: false
+  when:
+    - rocm_setup_run_checks
+    - metrics_exporter_ready is defined
+    - metrics_exporter_ready is not skipped
+    - metrics_exporter_ready is not failed
+
+- name: Display AMD Device Metrics Exporter status
+  ansible.builtin.debug:
+    msg:
+      - "✓ AMD Device Metrics Exporter {{ rocm_metrics_exporter_version }} is running"
+      - "Listening on: {{ rocm_setup_metrics_exporter_bind_address }}:{{ rocm_setup_metrics_exporter_port }}"
+      - "Access from LAN: http://{{ ansible_default_ipv4.address }}:{{ rocm_setup_metrics_exporter_port }}/metrics"
+      - ""
+      - "Note: The exporter handles missing GPUs gracefully:"
+      - "  - Version 1.3.1+: Omits unsupported/unavailable metrics"
+      - "  - Older versions: Reports unavailable metrics as 0"
+      - "  - Check logs for details: journalctl -u device-metrics-exporter"
+  when:
+    - rocm_setup_run_checks
+    - metrics_exporter_health is defined
+    - metrics_exporter_health.status is defined
+    - metrics_exporter_health.status == 200
