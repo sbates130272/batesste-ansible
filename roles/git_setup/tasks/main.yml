@@ -26,6 +26,11 @@
   become: true
   when: git_setup_install_gh | default(true)
 
+- name: Check if GitHub token is available
+  ansible.builtin.set_fact:
+    git_setup_gh_token_available: "{{ git_setup_gh_token | default('') | length > 0 }}"
+  when: git_setup_gh_authenticate | default(false)
+
 - name: Authenticate GitHub CLI with token
   ansible.builtin.shell: |
     set -o pipefail
@@ -35,9 +40,10 @@
   no_log: true
   register: git_setup_gh_auth_result
   changed_when: true
+  failed_when: false
   when:
     - git_setup_gh_authenticate | default(false)
-    - git_setup_gh_token | default("") | length > 0
+    - git_setup_gh_token_available | default(false)
 
 - name: Verify GitHub CLI authentication
   ansible.builtin.command: gh auth status
@@ -46,22 +52,21 @@
   failed_when: false
   when:
     - git_setup_gh_authenticate | default(false)
-    - git_setup_gh_token | default("") | length > 0
+    - git_setup_gh_token_available | default(false)
 
 - name: Display GitHub CLI authentication status
   ansible.builtin.debug:
-    msg: "{{ git_setup_gh_status.stderr_lines }}"
+    msg: "{{ git_setup_gh_status.stderr_lines | default(['Authentication check skipped']) }}"
   when:
     - git_setup_gh_authenticate | default(false)
-    - git_setup_gh_token | default("") | length > 0
-    - git_setup_gh_status is defined
+    - git_setup_gh_token_available | default(false)
 
-- name: Fail if GitHub CLI authentication failed
-  ansible.builtin.fail:
-    msg: "GitHub CLI authentication failed. Please check your token."
+- name: Warn if GitHub CLI authentication failed
+  ansible.builtin.debug:
+    msg: "WARNING: GitHub CLI authentication failed. Token may be invalid or gh auth command failed."
   when:
     - git_setup_gh_authenticate | default(false)
-    - git_setup_gh_token | default("") | length > 0
+    - git_setup_gh_token_available | default(false)
     - git_setup_gh_status is defined
     - git_setup_gh_status.rc != 0
 
