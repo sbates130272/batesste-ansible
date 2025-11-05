@@ -129,7 +129,7 @@ See `.github/workflows/rocm_setup-ci.yml` for details.
 
 ```bash
 # Check if exporter binary exists
-ls -la /usr/local/bin/device-metrics-exporter
+ls -la /usr/local/bin/amd-metrics-exporter
 
 # Check systemd service file
 cat /etc/systemd/system/device-metrics-exporter.service
@@ -176,7 +176,7 @@ ls -la /dev/kfd /dev/dri
 rocminfo
 
 # Try running manually
-sudo /usr/local/bin/device-metrics-exporter --port=2021 --address=0.0.0.0
+sudo /usr/local/bin/amd-metrics-exporter --port=2021 --address=0.0.0.0
 ```
 
 ### Can't access from LAN

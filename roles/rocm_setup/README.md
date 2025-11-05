@@ -47,7 +47,7 @@ rocm_setup_install_metrics_exporter: true
 rocm_setup_metrics_exporter_version: latest
 rocm_setup_metrics_exporter_port: 2021
 rocm_setup_metrics_exporter_bind_address: 0.0.0.0  # Bind to all interfaces for LAN access
-rocm_setup_metrics_exporter_path: /usr/local/bin/device-metrics-exporter
+rocm_setup_metrics_exporter_path: /usr/local/bin/amd-metrics-exporter
 rocm_setup_metrics_exporter_open_firewall: true  # Open firewall port for external access
 ```
 
