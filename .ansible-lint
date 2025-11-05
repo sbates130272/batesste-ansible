@@ -13,6 +13,7 @@ warn_list:
   - name[template]
   - no-changed-when
   - role-name
+  - schema[meta]  # Ubuntu noble not yet in ansible-lint schema
   - var-naming[no-role-prefix]
 
 extra_vars:
