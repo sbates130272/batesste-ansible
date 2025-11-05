@@ -18,6 +18,7 @@
   ansible.builtin.package:
     update_cache: true
     name:
+      - aspell
       - bmon
       - build-essential
       - cmake

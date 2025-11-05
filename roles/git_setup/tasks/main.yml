@@ -19,6 +19,57 @@
   vars:
     calling_role_path: "{{ calling_role_path_fact }}"
 
+- name: Install GitHub CLI
+  ansible.builtin.package:
+    name: gh
+    state: present
+  become: true
+  when: git_setup_install_gh | default(true)
+
+- name: Check if GitHub token is available
+  ansible.builtin.set_fact:
+    git_setup_gh_token_available: "{{ git_setup_gh_token | default('') | length > 0 }}"
+  when: git_setup_gh_authenticate | default(false)
+
+- name: Authenticate GitHub CLI with token
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo "{{ git_setup_gh_token }}" | gh auth login --with-token
+  args:
+    executable: /bin/bash
+  no_log: true
+  register: git_setup_gh_auth_result
+  changed_when: true
+  failed_when: false
+  when:
+    - git_setup_gh_authenticate | default(false)
+    - git_setup_gh_token_available | default(false)
+
+- name: Verify GitHub CLI authentication
+  ansible.builtin.command: gh auth status
+  register: git_setup_gh_status
+  changed_when: false
+  failed_when: false
+  when:
+    - git_setup_gh_authenticate | default(false)
+    - git_setup_gh_token_available | default(false)
+
+- name: Display GitHub CLI authentication status
+  ansible.builtin.debug:
+    msg: "{{ git_setup_gh_status.stderr_lines | default(['Authentication check skipped']) }}"
+  when:
+    - git_setup_gh_authenticate | default(false)
+    - git_setup_gh_token_available | default(false)
+
+- name: Warn if GitHub CLI authentication failed
+  ansible.builtin.debug:
+    msg: "WARNING: GitHub CLI authentication failed. Token may be invalid or gh auth command failed."
+  when:
+    - git_setup_gh_authenticate | default(false)
+    - git_setup_gh_token_available | default(false)
+    - git_setup_gh_status is defined
+    - git_setup_gh_status.rc != 0
+
 - name: Copy over gnupg folder to ensure PGP keys are on target(s)
   ansible.posix.synchronize:
     src: ~/.gnupg/
@@ -28,6 +79,7 @@
       - --exclude=*~
       - --exclude=*.conf
   when:
+    - git_setup_enable_gpg_signing | default(true)
     - inventory_hostname not in groups['locals'] | default([]) and
       inventory_hostname not in groups['runners'] | default([])
 
@@ -54,12 +106,16 @@
     name: commit.gpgsign
     value: "true"
     scope: global
+  when: git_setup_enable_gpg_signing | default(true)
 
 - name: Setup pgp signing for all commits
   community.general.git_config:
     name: user.signingkey
     value: "{{ git_setup_signingkey }}"
     scope: global
+  when:
+    - git_setup_enable_gpg_signing | default(true)
+    - git_setup_signingkey | default("") | length > 0
 
 - name: Setup gpg-agent correctly in .bashrc
   ansible.builtin.blockinfile:
@@ -70,6 +126,7 @@
     block: |
       GPG_TTY=$(tty)
       export GPG_TTY
+  when: git_setup_enable_gpg_signing | default(true)
 
 - name: Setup default merge behaviour
   community.general.git_config:

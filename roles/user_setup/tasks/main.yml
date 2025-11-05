@@ -182,7 +182,7 @@
 
 - name: Perform a systemctl daemon-reload and start of mount
   ansible.builtin.service:
-    service: home-{{ username }}-Projects.mount
+    name: home-{{ username }}-Projects.mount
     state: started
     daemon_reload: true
   become: true

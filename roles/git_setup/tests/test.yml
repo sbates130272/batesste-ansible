@@ -1,0 +1,18 @@
+---
+# Test playbook for git_setup role
+- name: Test git_setup role
+  hosts: all
+  vars:
+    # Override signing key for CI (use GitHub's key or test key)
+    git_setup_signingkey: ""
+    # Disable GPG signing for CI tests
+    git_setup_enable_gpg_signing: false
+    # Enable GitHub CLI authentication in CI
+    git_setup_gh_authenticate: true
+    # Use GitHub's built-in token from environment
+    git_setup_gh_token: "{{ lookup('env', 'GITHUB_TOKEN') }}"
+
+  tasks:
+    - name: Include git_setup role
+      ansible.builtin.include_role:
+        name: git_setup

@@ -1,2 +1,6 @@
 ---
 git_setup_signingkey: CB05CB5CFA5DFD9850BB814DE0C020C1975548AE
+git_setup_enable_gpg_signing: true  # Set to false to disable GPG signing (e.g., in CI)
+git_setup_install_gh: true
+git_setup_gh_token: ""  # Set this in vault to enable gh authentication
+git_setup_gh_authenticate: false  # Set to true to authenticate gh with token
