@@ -57,6 +57,22 @@ ROLE_CONFIGS = {
         ],
         "needs_vault": False,
     },
+    "git_setup": {
+        "ubuntu_versions": ["22.04", "24.04"],
+        "free_disk_space": False,
+        "extra_vars": {
+            "git_setup_enable_gpg_signing": False,
+            "git_setup_gh_authenticate": True,
+        },
+        "verification_commands": [
+            "git --version",
+            "gh --version",
+            "git config --global --list",
+            "gh auth status || true",
+        ],
+        "needs_vault": False,
+        "needs_github_token": True,
+    },
 }
 
 # Default configuration for roles without specific config
@@ -190,6 +206,10 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
             "          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env",
             "          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}",
         ])
+    
+    # Add GitHub token if needed
+    if config.get("needs_github_token", False):
+        lines.append("          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}")
     
     # Add verification commands if any
     if config.get("verification_commands"):
