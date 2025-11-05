@@ -1,2 +1,3 @@
 ---
 git_setup_signingkey: CB05CB5CFA5DFD9850BB814DE0C020C1975548AE
+git_setup_install_gh: true

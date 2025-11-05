@@ -19,6 +19,13 @@
   vars:
     calling_role_path: "{{ calling_role_path_fact }}"
 
+- name: Install GitHub CLI
+  ansible.builtin.package:
+    name: gh
+    state: present
+  become: true
+  when: git_setup_install_gh | default(true)
+
 - name: Copy over gnupg folder to ensure PGP keys are on target(s)
   ansible.posix.synchronize:
     src: ~/.gnupg/
