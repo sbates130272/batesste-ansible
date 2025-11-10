@@ -1,0 +1,215 @@
+---
+# Copyright (c) Stephen Bates, 2025
+#
+# Set up a GitHub self-hosted runner using Ansible.
+# This role installs, configures, and registers a GitHub Actions runner
+# with a repository or organization.
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - github_runner_url is defined
+      - github_runner_url | length > 0
+      - github_runner_token is defined
+      - github_runner_token | length > 0
+    fail_msg: "github_runner_url and github_runner_token must be set"
+    success_msg: "Required variables are defined"
+
+- name: Install required packages
+  ansible.builtin.package:
+    name:
+      - curl
+      - jq
+      - tar
+      - libicu-dev
+    state: present
+    update_cache: true
+  become: true
+
+- name: Create GitHub runner user
+  ansible.builtin.user:
+    name: "{{ github_runner_user }}"
+    comment: "GitHub Actions Runner"
+    shell: /bin/bash
+    system: true
+    create_home: true
+  become: true
+
+- name: Create installation directory
+  ansible.builtin.file:
+    path: "{{ github_runner_install_dir }}"
+    state: directory
+    owner: "{{ github_runner_user }}"
+    group: "{{ github_runner_user }}"
+    mode: '0755'
+  become: true
+
+- name: Get latest runner version from GitHub API
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/actions/runner/releases/latest
+    return_content: true
+  register: github_runner_latest_release
+  when: github_runner_version == "latest"
+  changed_when: false
+
+- name: Set runner version fact
+  ansible.builtin.set_fact:
+    github_runner_actual_version: >-
+      {{
+        github_runner_latest_release.json.tag_name | regex_replace('^v', '')
+        if github_runner_version == 'latest'
+        else github_runner_version
+      }}
+
+- name: Check if runner is already installed
+  ansible.builtin.stat:
+    path: "{{ github_runner_install_dir }}/bin/Runner.Listener"
+  register: github_runner_installed
+
+- name: Check installed runner version
+  ansible.builtin.command:
+    cmd: "{{ github_runner_install_dir }}/config.sh --version"
+  register: github_runner_current_version
+  changed_when: false
+  failed_when: false
+  when: github_runner_installed.stat.exists
+  become: true
+  become_user: "{{ github_runner_user }}"
+
+- name: Download and extract GitHub runner
+  when: >-
+    not github_runner_installed.stat.exists or
+    (github_runner_current_version.stdout is defined and
+     github_runner_actual_version not in github_runner_current_version.stdout)
+  block:
+    - name: Stop runner service if it exists
+      ansible.builtin.systemd:
+        name: github-runner
+        state: stopped
+      become: true
+      failed_when: false
+
+    - name: Create temporary download directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: runner
+      register: github_runner_temp_dir
+
+    - name: Download GitHub runner archive
+      ansible.builtin.get_url:
+        url: >-
+          https://github.com/actions/runner/releases/download/v{{ github_runner_actual_version }}/
+          actions-runner-linux-x64-{{ github_runner_actual_version }}.tar.gz
+        dest: "{{ github_runner_temp_dir.path }}/actions-runner.tar.gz"
+        mode: '0644'
+
+    - name: Extract runner archive
+      ansible.builtin.unarchive:
+        src: "{{ github_runner_temp_dir.path }}/actions-runner.tar.gz"
+        dest: "{{ github_runner_install_dir }}"
+        remote_src: true
+        owner: "{{ github_runner_user }}"
+        group: "{{ github_runner_user }}"
+      become: true
+
+    - name: Clean up temporary directory
+      ansible.builtin.file:
+        path: "{{ github_runner_temp_dir.path }}"
+        state: absent
+
+- name: Check if runner is configured
+  ansible.builtin.stat:
+    path: "{{ github_runner_install_dir }}/.runner"
+  register: github_runner_configured
+
+- name: Check if runner is already running
+  ansible.builtin.systemd:
+    name: github-runner
+  register: github_runner_service_status
+  become: true
+  failed_when: false
+
+- name: Configure and register runner
+  when: not github_runner_configured.stat.exists or github_runner_replace | bool
+  block:
+    - name: Remove existing runner configuration if replacing
+      ansible.builtin.command:
+        cmd: "{{ github_runner_install_dir }}/config.sh remove --token {{ github_runner_token }}"
+        chdir: "{{ github_runner_install_dir }}"
+      become: true
+      become_user: "{{ github_runner_user }}"
+      no_log: true
+      register: github_runner_remove_result
+      failed_when: false
+      changed_when: github_runner_remove_result.rc == 0
+      when: github_runner_configured.stat.exists and github_runner_replace | bool
+
+    - name: Build runner configuration command
+      ansible.builtin.set_fact:
+        github_runner_config_cmd: >-
+          {{ github_runner_install_dir }}/config.sh
+          --url {{ github_runner_url }}
+          --token {{ github_runner_token }}
+          --name {{ github_runner_name }}
+          --labels {{ github_runner_labels }}
+          --runnergroup {{ github_runner_group }}
+          --work {{ github_runner_work_directory }}
+          --unattended
+          {{ '--replace' if github_runner_replace | bool else '' }}
+          {{ '--ephemeral' if github_runner_ephemeral | bool else '' }}
+          {{ '--disableupdate' if github_runner_disable_auto_update | bool else '' }}
+          {{ github_runner_extra_options }}
+
+    - name: Configure runner
+      ansible.builtin.command:
+        cmd: "{{ github_runner_config_cmd }}"
+        chdir: "{{ github_runner_install_dir }}"
+      become: true
+      become_user: "{{ github_runner_user }}"
+      no_log: true
+      register: github_runner_config_result
+      changed_when: true
+
+- name: Install runner systemd service
+  ansible.builtin.template:
+    src: github-runner.service.j2
+    dest: /etc/systemd/system/github-runner.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify: Reload systemd
+
+- name: Flush handlers to reload systemd
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start GitHub runner service
+  ansible.builtin.systemd:
+    name: github-runner
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true
+
+- name: Wait for runner to be ready
+  ansible.builtin.pause:
+    seconds: 5
+- name: Check runner service status
+  ansible.builtin.systemd:
+    name: github-runner
+  register: github_runner_final_status
+  become: true
+
+- name: Display runner status
+  ansible.builtin.debug:
+    msg: "GitHub runner '{{ github_runner_name }}' is {{ github_runner_final_status.status.ActiveState }}"

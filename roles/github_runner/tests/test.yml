@@ -1,0 +1,29 @@
+---
+# Test playbook for github_runner role
+- name: Test github_runner role
+  hosts: all
+  vars:
+    # Use environment variables for CI testing
+    github_runner_url: "{{ lookup('env', 'GITHUB_REPOSITORY_URL') | default('https://github.com/sbates130272/batesste-ansible', true) }}"
+    github_runner_token: "{{ lookup('env', 'GITHUB_RUNNER_TOKEN') }}"
+    # Use ephemeral mode for CI testing (runner removed after job)
+    github_runner_ephemeral: true
+    # Custom name for CI runner
+    github_runner_name: "ci-test-{{ ansible_hostname }}-{{ ansible_date_time.epoch }}"
+    # Custom labels for testing
+    github_runner_labels: "self-hosted,linux,x64,ci-test"
+
+  tasks:
+    - name: Check if runner token is available
+      ansible.builtin.set_fact:
+        runner_token_available: "{{ github_runner_token | default('') | length > 0 }}"
+
+    - name: Skip test if no token available
+      ansible.builtin.debug:
+        msg: "Skipping github_runner test - no GITHUB_RUNNER_TOKEN provided"
+      when: not runner_token_available | bool
+
+    - name: Include github_runner role
+      ansible.builtin.include_role:
+        name: github_runner
+      when: runner_token_available | bool
