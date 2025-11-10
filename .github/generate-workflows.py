@@ -73,6 +73,21 @@ ROLE_CONFIGS = {
         "needs_vault": False,
         "needs_github_token": True,
     },
+    "github_runner": {
+        "ubuntu_versions": ["22.04", "24.04"],
+        "free_disk_space": False,
+        "extra_vars": {
+            "github_runner_url": "https://github.com/sbates130272/batesste-ansible",
+            "github_runner_token": "",  # Token not available in CI, test will skip
+        },
+        "verification_commands": [
+            "id github-runner || true",
+            "ls -la /opt/github-runner || true",
+            "systemctl status github-runner || true",
+        ],
+        "needs_vault": False,
+        "needs_github_token": False,
+    },
 }
 
 # Default configuration for roles without specific config

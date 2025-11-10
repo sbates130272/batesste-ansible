@@ -1,0 +1,41 @@
+---
+# GitHub Runner Installation Defaults
+
+# Runner version (use "latest" or specific version like "2.311.0")
+github_runner_version: "latest"
+
+# GitHub organization or repository URL (e.g., "https://github.com/myorg" or "https://github.com/myorg/myrepo")
+github_runner_url: ""
+
+# GitHub Personal Access Token for runner registration (store in vault)
+github_runner_token: ""
+
+# Runner name (defaults to hostname if not specified)
+github_runner_name: "{{ ansible_hostname }}"
+
+# Runner labels (comma-separated, e.g., "self-hosted,linux,x64,gpu")
+github_runner_labels: "self-hosted,linux,x64"
+
+# Runner group (for enterprise/organization runners)
+github_runner_group: "Default"
+
+# Work directory for runner
+github_runner_work_directory: "_work"
+
+# Installation directory
+github_runner_install_dir: "/opt/github-runner"
+
+# User to run the runner service
+github_runner_user: "github-runner"
+
+# Whether to replace an existing runner with the same name
+github_runner_replace: false
+
+# Whether to run the runner as an ephemeral runner (removed after each job)
+github_runner_ephemeral: false
+
+# Whether to disable automatic updates
+github_runner_disable_auto_update: false
+
+# Additional runner options (passed to config.sh)
+github_runner_extra_options: ""

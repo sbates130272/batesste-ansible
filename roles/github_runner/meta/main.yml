@@ -1,0 +1,12 @@
+galaxy_info:
+  author: Stephen Bates
+  description: Install and configure GitHub self-hosted runners
+  company: Raithlin Semiconductors
+  license: BSD-3-Clause
+  min_ansible_version: "8.2.0"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+dependencies: []

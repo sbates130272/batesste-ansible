@@ -1,0 +1,22 @@
+[Unit]
+Description=GitHub Actions Runner
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ github_runner_user }}
+WorkingDirectory={{ github_runner_install_dir }}
+ExecStart={{ github_runner_install_dir }}/run.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+
