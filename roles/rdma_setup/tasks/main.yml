@@ -64,6 +64,12 @@
   become: true
   changed_when: false
 
+- name: Perform another reboot to allow modules to load
+  ansible.builtin.reboot:
+    reboot_timeout: "{{ rdma_setup_reboot_timeout }}"
+  become: true
+  when: ansible_connection != 'local'
+
 - name: Copy rdma-detect script to target host
   ansible.builtin.copy:
     src: rdma-detect
