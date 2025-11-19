@@ -1,7 +1,7 @@
 # imap settings
 set imap_user = "sbates@raithlin.com"
 set imap_authenticators="xoauth2:oauthbearer"
-set imap_oauth_refresh_command="/home/batesste/.mutt/scripts/mutt_oauth2.py /home/batesste/.mutt/tokens/${imap_user}.token"
+set imap_oauth_refresh_command="{{ ansible_env.HOME }}/.mutt/scripts/mutt_oauth2.py {{ ansible_env.HOME }}/.mutt/tokens/${imap_user}.token"
 # smtp settings
 set smtp_url="smtp://${imap_user}@smtp.office365.com:587/"
 set smtp_authenticators=${imap_authenticators}
@@ -18,3 +18,4 @@ set message_cachedir="~/.mutt/cache/raithlin/bodies"
 set header_cache="~/.mutt/cache/raithlin/headers"
 set from = "sbates@raithlin.com"
 set realname = "Stephen Bates"
+

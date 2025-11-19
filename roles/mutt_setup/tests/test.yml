@@ -1,0 +1,6 @@
+---
+- name: The test playbook for the mutt_setup role
+  hosts: all
+  roles:
+    - role: mutt_setup
+      become: false

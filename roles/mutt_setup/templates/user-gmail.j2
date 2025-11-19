@@ -1,7 +1,7 @@
 # imap settings
 set imap_user = "sbates130272@gmail.com"
 set imap_authenticators="xoauth2:oauthbearer"
-set imap_oauth_refresh_command="/home/batesste/.mutt/scripts/mutt_oauth2.py /home/batesste/.mutt/tokens/${imap_user}.token"
+set imap_oauth_refresh_command="{{ ansible_env.HOME }}/.mutt/scripts/mutt_oauth2.py {{ ansible_env.HOME }}/.mutt/tokens/${imap_user}.token"
 # smtp settings
 set smtp_url = "smtps://sbates130272@smtp.gmail.com"
 set smtp_authenticators=${imap_authenticators}
@@ -17,3 +17,4 @@ set message_cachedir="~/.mutt/cache/gmail/bodies"
 set header_cache="~/.mutt/cache/gmail/headers"
 set from = "sbates130272@gmail.com"
 set realname = "Stephen Bates"
+

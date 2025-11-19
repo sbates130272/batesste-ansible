@@ -1,4 +1,5 @@
 AE
+AES
 Ansible
 CFA
 CLI
@@ -73,6 +74,7 @@ config
 configs
 cpus
 datasource
+decrypt
 dest
 dev
 dir
@@ -116,6 +118,7 @@ netmask
 netstat
 nmap
 num
+oauth
 orgs
 passthrough
 passthru

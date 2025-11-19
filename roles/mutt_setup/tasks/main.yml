@@ -76,15 +76,15 @@
     mode: "0644"
 
 - name: Copy mutt user file for raithlin
-  ansible.builtin.copy:
-    src: user-raithlin
-    dest: ~/.mutt/
+  ansible.builtin.template:
+    src: user-raithlin.j2
+    dest: ~/.mutt/user-raithlin
     mode: "0644"
 
 - name: Copy the mutt user file for gmail
-  ansible.builtin.copy:
-    src: user-gmail
-    dest: ~/.mutt/
+  ansible.builtin.template:
+    src: user-gmail.j2
+    dest: ~/.mutt/user-gmail
     mode: "0644"
 
 - name: Copy the mutt signature file
@@ -127,7 +127,7 @@
   ansible.builtin.replace:
     path: ~/.mutt/scripts/mutt_oauth2.py
     regexp: <GOOGLE_CLIENT_SECRET>
-    replace: "{{ google_oauth2_client_secret }}"
+    replace: "{{ mutt_setup_google_oauth2_client_secret }}"
 
 - name: Update .bashrc with some mutt specific environment variables.
   ansible.builtin.blockinfile:

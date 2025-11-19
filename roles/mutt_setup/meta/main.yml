@@ -1,7 +1,12 @@
+---
+# meta file for mutt_setup
+
 galaxy_info:
   author: Stephen Bates
-  description: Stephen Bates
   company: Raithlin Semiconductors
+  role_name: mutt_setup
+  namespace: sbates130272
+  description: A role to setup mutt email client with OAuth2
   license: BSD-3-Clause
   min_ansible_version: "8.2.0"
   platforms:
@@ -9,3 +14,6 @@ galaxy_info:
       versions:
         - jammy
         - noble
+  galaxy_tags:
+    - email
+    - mutt
