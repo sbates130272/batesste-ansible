@@ -23,6 +23,7 @@
   loop:
     - users
     - admin
+  become: true
 
 - name: Create (or update) an account for the specified user
   ansible.builtin.user:
@@ -56,18 +57,16 @@
   ansible.builtin.copy:
     force: true
     src: ~/.ssh/id_rsa
-    dest: /home/{{ username }}/.ssh/id_rsa
+    dest: "{{ ansible_user_dir }}/.ssh/id_rsa"
     owner: "{{ username }}"
-    group: "{{ username }}"
     mode: "0600"
 
 - name: Copy SSH public key
   ansible.builtin.copy:
     force: true
     src: ~/.ssh/id_rsa.pub
-    dest: /home/{{ username }}/.ssh/id_rsa.pub
+    dest: "{{ ansible_user_dir }}/.ssh/id_rsa.pub"
     owner: "{{ username }}"
-    group: "{{ username }}"
     mode: "0644"
 
 - name: Ensure users can access dmesg without sudo # noqa: args[module]
@@ -117,17 +116,16 @@
 
 - name: Ensure SSH config file exists for user and create a Host * when absent
   ansible.builtin.lineinfile:
-    path: /home/{{ username }}/.ssh/config
+    path: "{{ ansible_user_dir }}/.ssh/config"
     line: Host *
     state: present
     create: true
     owner: "{{ username }}"
-    group: "{{ username }}"
     mode: "0644"
 
 - name: Set important values in user's ssh config file
   ansible.builtin.lineinfile:
-    path: /home/{{ username }}/.ssh/config
+    path: "{{ ansible_user_dir }}/.ssh/config"
     line: "{{ item }}"
     insertafter: Host *
     state: present
@@ -139,43 +137,39 @@
 
 - name: Ensure .emacs.d folder exists
   ansible.builtin.file:
-    path: /home/{{ username }}/.emacs.d
+    path: "{{ ansible_user_dir }}/.emacs.d"
     state: directory
     owner: "{{ username }}"
-    group: "{{ username }}"
     mode: "0755"
 
 - name: Copy emacs config file from our files folder
   ansible.builtin.copy:
     force: true
     src: init.el
-    dest: /home/{{ username }}/.emacs.d/init.el
+    dest: "{{ ansible_user_dir }}/.emacs.d/init.el"
     owner: "{{ username }}"
-    group: "{{ username }}"
     mode: "0644"
 
 - name: Copy emacs config file from our files folder
   ansible.builtin.copy:
     force: true
     src: .emacs
-    dest: /home/{{ username }}/.emacs
+    dest: "{{ ansible_user_dir }}/.emacs"
     owner: "{{ username }}"
-    group: "{{ username }}"
     mode: "0644"
 
 - name: Create Projects folder if it does not exist
   ansible.builtin.file:
-    path: /home/{{ username }}/Projects
+    path: "{{ ansible_user_dir }}/Projects"
     state: directory
     owner: "{{ username }}"
-    group: "{{ username }}"
     mode: "0755"
   when: user_setup_vm_fstab
 
 - name: Add an entry in fstab for VM virtio-fs
   ansible.builtin.lineinfile:
     path: /etc/fstab
-    line: "hostfs /home/{{ username }}/Projects 9p trans=virtio,version=9p2000.L,nofail 0 1"
+    line: "hostfs {{ ansible_user_dir }}/Projects 9p trans=virtio,version=9p2000.L,nofail 0 1"
     state: present
   become: true
   when: user_setup_vm_fstab
