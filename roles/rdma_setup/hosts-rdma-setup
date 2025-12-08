@@ -2,7 +2,13 @@ rdma_servers:
   hosts:
     snoc-think-vm:
         ansible_host: snoc-think
+        ansible_port: 2223
+        rmda_setup_motd: true
+    snoc-think-host-vm:
+        ansible_host: snoc-think
         ansible_port: 2222
+        rmda_setup_motd: true
+        ansible_user: aiseap
     stebates-amd-laptop:
         ansible_connection: local
   vars:
