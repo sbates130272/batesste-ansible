@@ -1,0 +1,37 @@
+---
+# Discover RDMA-capable interfaces and their IPv4 addresses.
+# Sets nvmeof_rdma_interfaces: [{ name: "ib0", address: "192.168.2.2" }, ...]
+
+- name: Get RDMA link netdev names
+  ansible.builtin.shell: |
+    set -o pipefail
+    rdma link show 2>/dev/null | awk '{print $8}' | sort -u
+  args:
+    executable: /bin/bash
+  register: nvmeof_rdma_link_out
+  changed_when: false
+  failed_when: false
+
+- name: Initialize RDMA interfaces list
+  ansible.builtin.set_fact:
+    nvmeof_rdma_interfaces: []
+  when: (nvmeof_rdma_link_out.stdout_lines | default([]) | length) > 0
+
+- name: Build RDMA interfaces list with IPv4
+  ansible.builtin.set_fact:
+    nvmeof_rdma_interfaces: "{{
+      nvmeof_rdma_interfaces + [{'name': item, 'address': nvmeof_iface_ipv4}]
+    }}"
+  loop: "{{ nvmeof_rdma_link_out.stdout_lines | default([]) | map('trim') | select() | unique | list }}"
+  when:
+    - (nvmeof_rdma_link_out.stdout_lines | default([]) | length) > 0
+    - nvmeof_iface_fact.ipv4 is defined
+    - nvmeof_iface_ipv4 | length > 0
+  vars:
+    nvmeof_iface_fact: "{{
+      hostvars[inventory_hostname]['ansible_' ~ item] | default({})
+    }}"
+    nvmeof_iface_ipv4: "{{
+      nvmeof_iface_fact.ipv4.address
+      | default(nvmeof_iface_fact.ipv4[0].address | default(''))
+    }}"

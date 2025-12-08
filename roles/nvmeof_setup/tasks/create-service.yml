@@ -1,0 +1,38 @@
+---
+# Create systemd service for NVMe-oF target persistence
+
+- name: Create NVMe-oF target configuration script
+  ansible.builtin.template:
+    src: nvmeof-target-setup.sh.j2
+    dest: /usr/local/bin/nvmeof-target-setup.sh
+    mode: "0755"
+    owner: root
+    group: root
+  become: true
+
+- name: Create NVMe-oF target cleanup script
+  ansible.builtin.template:
+    src: nvmeof-target-cleanup.sh.j2
+    dest: /usr/local/bin/nvmeof-target-cleanup.sh
+    mode: "0755"
+    owner: root
+    group: root
+  become: true
+
+- name: Create systemd service file
+  ansible.builtin.template:
+    src: nvmeof-target.service.j2
+    dest: /etc/systemd/system/nvmeof-target.service
+    mode: "0644"
+    owner: root
+    group: root
+  become: true
+  notify: Reload systemd
+
+- name: Enable and start nvmeof-target service
+  ansible.builtin.systemd:
+    name: nvmeof-target
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true

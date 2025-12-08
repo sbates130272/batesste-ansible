@@ -14,7 +14,6 @@ from typing import Dict, List, Optional
 # Configuration for role-specific settings
 ROLE_CONFIGS = {
     "rocm_setup": {
-        "ubuntu_versions": ["24.04"],
         "free_disk_space": True,
         "extra_vars": {
             "rocm_setup_wsl_install": False,
@@ -30,7 +29,6 @@ ROLE_CONFIGS = {
         "needs_vault": True,
     },
     "grafana_setup": {
-        "ubuntu_versions": ["24.04"],
         "free_disk_space": False,
         "extra_vars": {
             "vault_grafana_setup_password": "test_ci_password_123",
@@ -48,7 +46,6 @@ ROLE_CONFIGS = {
         "needs_vault": True,
     },
     "rdma_setup": {
-        "ubuntu_versions": ["24.04"],
         "free_disk_space": False,
         "extra_vars": {},
         "verification_commands": [
@@ -58,7 +55,6 @@ ROLE_CONFIGS = {
         "needs_vault": False,
     },
     "git_setup": {
-        "ubuntu_versions": ["24.04"],
         "free_disk_space": False,
         "extra_vars": {
             "git_setup_enable_gpg_signing": False,
@@ -74,7 +70,6 @@ ROLE_CONFIGS = {
         "needs_github_token": True,
     },
     "github_runner": {
-        "ubuntu_versions": ["24.04"],
         "free_disk_space": False,
         "extra_vars": {
             "github_runner_url": "https://github.com/sbates130272/batesste-ansible",
@@ -89,7 +84,6 @@ ROLE_CONFIGS = {
         "needs_github_token": False,
     },
     "mutt_setup": {
-        "ubuntu_versions": ["24.04"],
         "free_disk_space": False,
         "extra_vars": {},
         "verification_commands": [
@@ -101,7 +95,28 @@ ROLE_CONFIGS = {
         "needs_vault": True,
         "needs_github_token": False,
     },
+    "nvmeof_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "nvmeof_setup_create_service": False,
+            "nvmeof_setup_cleanup": False,
+        },
+        "verification_commands": [
+            "nvme version || true",
+            "lsmod | grep nvme || true",
+            "which nvme || true",
+            "ls -la /sys/kernel/config/ || true",
+        ],
+        "needs_vault": False,
+        "needs_github_token": False,
+        "ignore_failure": True,
+        "workflow_dispatch_only": True,
+    },
 }
+
+# Roles in this list only run on workflow_dispatch (manual); they do not
+# run on pull_request or push. Use for flaky or environment-specific tests.
+WORKFLOW_DISPATCH_ONLY_ROLES: List[str] = []  # e.g. ["nvmeof_setup"]
 
 # Default configuration for roles without specific config
 DEFAULT_CONFIG = {
@@ -110,8 +125,9 @@ DEFAULT_CONFIG = {
     "extra_vars": {},
     "verification_commands": [],
     "needs_vault": False,
+    "ignore_failure": False,
+    "workflow_dispatch_only": False,
 }
-
 
 def find_roles_with_tests(roles_dir: Path) -> List[str]:
     """Find all roles that have a tests directory."""
@@ -127,30 +143,36 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
     
     ubuntu_versions = config.get("ubuntu_versions", ["24.04"])
     use_matrix = len(ubuntu_versions) > 1
-    
-    # Header
+    dispatch_only = (
+        role_name in WORKFLOW_DISPATCH_ONLY_ROLES
+        or config.get("workflow_dispatch_only", False)
+    )
+
+    # Header and triggers: dispatch-only workflows run only on manual run
     lines = [
         f"name: {role_name} CI",
         "'on':",
         "  workflow_dispatch: {}",
-        "  pull_request:",
-        "    branches:",
-        "      - main",
-        "    paths:",
-        f"      - roles/{role_name}/**",
-        "      - .github/workflows/**",
-        "      - requirements.txt",
-        "      - requirements.yml",
-        "  push:",
-        "    branches:",
-        "      - main",
-        "    paths:",
-        f"      - roles/{role_name}/**",
+    ]
+    if not dispatch_only:
+        lines.extend([
+            "  pull_request:",
+            "    branches:",
+            "      - main",
+            "    paths:",
+            f"      - roles/{role_name}/**",
+            "      - .github/workflows/**",
+            "      - requirements.txt",
+            "      - requirements.yml",
+        ])
+    lines.extend([
         "",
         "jobs:",
         f"  {role_name}-test:",
-    ]
-    
+    ])
+    if config.get("ignore_failure", False):
+        lines.append("    continue-on-error: true")
+
     # Add matrix or single runner
     if use_matrix:
         lines.append("    strategy:")

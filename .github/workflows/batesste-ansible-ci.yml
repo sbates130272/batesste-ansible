@@ -19,18 +19,7 @@ on:
       - '.wordlist.txt'
       - 'requirements.txt'
       - 'requirements.yml'
-      - 'roles/check_platform/**'
-      - 'roles/user_setup/**'
-      - 'roles/fave_packages/**'
-      - 'roles/tmux_scripts/**'
-      - 'roles/cloud_setup/**'
-      - 'roles/consul_setup/**'
-      - 'roles/kernel_setup/**'
-      - 'roles/fio_devel/**'
-      - 'roles/aws_grub/**'
-      - 'roles/qemu_setup/**'
-      - 'roles/vm_create/**'
-      - 'roles/eideticom_scripts/**'
+      - 'roles/**'
 
 jobs:
 
@@ -74,7 +63,7 @@ jobs:
       - name: Run the default playbook against the local runner
         run: >
           ansible-playbook ${PLAYBOOK} -v -i ${HOSTS}
-          --extra-vars "targets=${TARGETS} consul_setup_start_service=false"
+          -e "targets=${TARGETS}" -e "{ 'consul_setup_start_service': false }"
         working-directory: ./playbooks
         env:
           PLAYBOOK: setup-newmachine.yml

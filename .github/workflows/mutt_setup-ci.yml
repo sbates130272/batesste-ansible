@@ -13,11 +13,6 @@ name: mutt_setup CI
       - .github/workflows/**
       - requirements.txt
       - requirements.yml
-  push:
-    branches:
-      - main
-    paths:
-      - roles/mutt_setup/**
 
 jobs:
   mutt_setup-test:

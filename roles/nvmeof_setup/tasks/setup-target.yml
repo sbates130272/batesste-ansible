@@ -1,0 +1,14 @@
+---
+# Configure NVMe-oF target subsystems and ports
+
+- name: Create NVMe-oF subsystems
+  ansible.builtin.include_tasks: create-subsystem.yml
+  loop: "{{ nvmeof_setup_subsystems }}"
+  loop_control:
+    loop_var: subsystem
+
+- name: Create NVMe-oF ports
+  ansible.builtin.include_tasks: create-port.yml
+  loop: "{{ nvmeof_setup_ports_resolved }}"
+  loop_control:
+    loop_var: port

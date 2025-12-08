@@ -1,0 +1,52 @@
+---
+# Optional: configure host RDMA interface(s) for DHCP and re-gather facts
+
+- name: Fail when RDMA DHCP host interface cannot be determined
+  ansible.builtin.fail:
+    msg: >-
+      nvmeof_setup_rdma_dhcp_enable is true but RDMA interface for host
+      is unknown. Set nvmeof_setup_rdma_dhcp_interface_host (e.g. ib0) or
+      ensure nvmeof_rdma_interfaces is populated.
+  when:
+    - nvmeof_setup_rdma_dhcp_interface_host | length == 0
+    - (nvmeof_rdma_interfaces | default([]) | length) == 0
+
+- name: Set host RDMA interface list for DHCP
+  ansible.builtin.set_fact:
+    nvmeof_rdma_dhcp_host_ifaces_list: "{{
+      [nvmeof_setup_rdma_dhcp_interface_host]
+      if (nvmeof_setup_rdma_dhcp_interface_host | length > 0)
+      else (nvmeof_rdma_interfaces | default([]) | map(attribute='name') | list)
+    }}"
+
+- name: Deploy netplan for RDMA DHCP on host
+  ansible.builtin.template:
+    src: netplan-rdma-dhcp.yaml.j2
+    dest: /etc/netplan/99-nvmeof-rdma-dhcp.yaml
+    mode: "0644"
+    owner: root
+    group: root
+  become: true
+
+- name: Apply netplan (host RDMA DHCP)
+  ansible.builtin.command: netplan apply
+  become: true
+
+- name: Wait for IPv4 on RDMA interface
+  ansible.builtin.shell: |
+    set -o pipefail
+    for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+      ip -4 addr show {{ item }} 2>/dev/null | grep -q inet && exit 0
+      sleep 5
+    done
+    exit 1
+  args:
+    executable: /bin/bash
+  loop: "{{ nvmeof_rdma_dhcp_host_ifaces_list }}"
+  register: nvmeof_rdma_wait_ip
+  changed_when: false
+  failed_when: nvmeof_rdma_wait_ip.rc != 0
+
+- name: Re-gather network facts after DHCP
+  ansible.builtin.gather_facts:
+    gather_subset: network

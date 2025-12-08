@@ -1,0 +1,93 @@
+---
+# Configure NVMe-oF host/initiator connections
+
+- name: Get current NVMe-oF connected subsystem NQNs
+  ansible.builtin.shell: |
+    set -o pipefail
+    nvme list-subsys 2>/dev/null | awk -F'NQN=' '/NQN=/{print $2}' | tr -d ' \r'
+  args:
+    executable: /bin/bash
+  become: true
+  register: nvme_list_subsys_out
+  changed_when: false
+
+- name: Set list of connected NQNs for host
+  ansible.builtin.set_fact:
+    nvmeof_connected_nqns: "{{
+      (nvme_list_subsys_out.stdout_lines | default([]))
+      | map('trim') | select() | list
+    }}"
+
+# If we are connected but the subsystem has no namespaces (e.g. stale
+# connection), disconnect so the next connect can re-establish properly.
+- name: Disconnect when connected but namespaces missing
+  ansible.builtin.shell: |
+    set -o pipefail
+    NQN="{{ item.nqn }}"
+    SUBSYS=$(nvme list-subsys 2>/dev/null || true)
+    if ! echo "$SUBSYS" | grep -q "NQN=.*$NQN"; then
+      exit 0
+    fi
+    CTRL=$(echo "$SUBSYS" | awk -v nqn="$NQN" '
+      $0 ~ "NQN=.*" nqn { getline; if (match($0, /nvme[0-9]+/))
+        print substr($0, RSTART, RLENGTH); exit
+      }
+    ')
+    [ -z "$CTRL" ] && exit 0
+    if nvme list 2>/dev/null | grep -qE "^/dev/${CTRL}n[0-9]"; then
+      exit 0
+    fi
+    nvme disconnect -n "$NQN" || true
+  args:
+    executable: /bin/bash
+  become: true
+  loop: "{{ nvmeof_setup_connections_resolved | default(nvmeof_setup_connections) }}"
+  register: nvme_disconnect_missing_ns
+  changed_when: false
+  failed_when: false
+
+# Attempt connect for each target; idempotent (already connected / reset
+# by peer are not treated as failures). Always trying ensures fabrics
+# namespaces appear after reboot or when the "already connected" check
+# was wrong (e.g. substring match against a different NQN).
+- name: Connect to NVMe-oF targets
+  ansible.builtin.command:
+    cmd: >-
+      nvme connect
+      -t {{ item.transport }}
+      --traddr {{ item.traddr }}
+      --trsvcid {{ item.trsvcid }}
+      --nqn {{ item.nqn }}
+  become: true
+  loop: "{{ nvmeof_setup_connections_resolved | default(nvmeof_setup_connections) }}"
+  register: nvme_connect
+  changed_when: "'Success' in nvme_connect.stdout or nvme_connect.rc == 0"
+  failed_when:
+    - nvme_connect.rc != 0
+    - "'already connected' not in nvme_connect.stderr"
+    - "'Connection reset by peer' not in nvme_connect.stderr"
+
+- name: Warn when connect was reset by target
+  ansible.builtin.debug:
+    msg: >-
+      Connect to {{ item.item.nqn }} ({{ item.item.traddr }}:{{ item.item.trsvcid }})
+      was reset by peer; target may be unavailable or not exporting this NQN.
+  when:
+    - nvme_connect.results is defined
+    - item.skipped is not defined or not item.skipped
+    - item.rc | default(0) != 0
+    - "'Connection reset by peer' in (item.stderr | default(''))"
+  loop: "{{ nvme_connect.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item.nqn }}"
+
+- name: List NVMe-oF connections
+  ansible.builtin.command:
+    cmd: nvme list
+  become: true
+  register: nvme_list
+  changed_when: false
+
+- name: Display connected NVMe-oF devices
+  ansible.builtin.debug:
+    msg: "{{ nvme_list.stdout_lines }}"
