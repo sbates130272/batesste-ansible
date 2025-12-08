@@ -88,6 +88,19 @@ ROLE_CONFIGS = {
         "needs_vault": False,
         "needs_github_token": False,
     },
+    "mutt_setup": {
+        "ubuntu_versions": ["22.04", "24.04"],
+        "free_disk_space": False,
+        "extra_vars": {},
+        "verification_commands": [
+            "mutt -v | head -5",
+            "ls -la ~/.mutt/ || true",
+            "ls -la ~/.mutt/scripts/mutt_oauth2.py || true",
+            "ls -la ~/.mutt/tokens/ || true",
+        ],
+        "needs_vault": True,
+        "needs_github_token": False,
+    },
 }
 
 # Default configuration for roles without specific config
