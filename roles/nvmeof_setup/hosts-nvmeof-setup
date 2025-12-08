@@ -1,0 +1,29 @@
+nvmeof_servers:
+  children:
+    nvmeof_targets:
+      hosts:
+        storage-server:
+          ansible_host: 192.168.2.2
+          nvmeof_setup_mode: target
+          nvmeof_setup_transport: rdma
+          nvmeof_setup_target_ip: 192.168.2.2
+          nvmeof_setup_subsystems:
+            - name: nvmet-storage
+              allow_any_host: true
+              namespaces:
+                - nsid: 1
+                  device_path: /dev/nvme0n1
+                  enable: true
+    nvmeof_hosts:
+      hosts:
+        client-host:
+          ansible_host: 192.168.2.4
+          nvmeof_setup_mode: host
+          nvmeof_setup_connections:
+            - transport: rdma
+              traddr: 192.168.2.2
+              trsvcid: 4420
+              nqn: nvmet-storage
+  vars:
+    ansible_user: stebates
+

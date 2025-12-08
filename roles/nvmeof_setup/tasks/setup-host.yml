@@ -1,0 +1,29 @@
+---
+# Configure NVMe-oF host/initiator connections
+
+- name: Connect to NVMe-oF targets
+  ansible.builtin.command:
+    cmd: >-
+      nvme connect
+      -t {{ item.transport }}
+      --traddr {{ item.traddr }}
+      --trsvcid {{ item.trsvcid }}
+      --nqn {{ item.nqn }}
+  become: true
+  loop: "{{ nvmeof_setup_connections }}"
+  register: nvme_connect
+  changed_when: "'Success' in nvme_connect.stdout or nvme_connect.rc == 0"
+  failed_when:
+    - nvme_connect.rc != 0
+    - "'already connected' not in nvme_connect.stderr"
+
+- name: List NVMe-oF connections
+  ansible.builtin.command:
+    cmd: nvme list
+  become: true
+  register: nvme_list
+  changed_when: false
+
+- name: Display connected NVMe-oF devices
+  ansible.builtin.debug:
+    msg: "{{ nvme_list.stdout_lines }}"
