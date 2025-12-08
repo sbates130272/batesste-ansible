@@ -1,0 +1,55 @@
+---
+# Create a single NVMe-oF port
+
+- name: Check if port exists
+  ansible.builtin.stat:
+    path: /sys/kernel/config/nvmet/ports/{{ port.port_id }}
+  register: port_exists
+  become: true
+
+- name: Create port directory
+  ansible.builtin.file:
+    path: /sys/kernel/config/nvmet/ports/{{ port.port_id }}
+    state: directory
+    mode: "0755"
+  become: true
+  when: not port_exists.stat.exists
+
+- name: Set transport type for port {{ port.port_id }}
+  ansible.builtin.copy:
+    content: "{{ port.trtype }}"
+    dest: /sys/kernel/config/nvmet/ports/{{ port.port_id }}/addr_trtype
+    mode: "0644"
+  become: true
+
+- name: Set address family for port {{ port.port_id }}
+  ansible.builtin.copy:
+    content: "{{ port.adrfam }}"
+    dest: /sys/kernel/config/nvmet/ports/{{ port.port_id }}/addr_adrfam
+    mode: "0644"
+  become: true
+
+- name: Set target address for port {{ port.port_id }}
+  ansible.builtin.copy:
+    content: "{{ port.traddr }}"
+    dest: /sys/kernel/config/nvmet/ports/{{ port.port_id }}/addr_traddr
+    mode: "0644"
+  become: true
+
+- name: Set service ID for port {{ port.port_id }}
+  ansible.builtin.copy:
+    content: "{{ port.trsvcid }}"
+    dest: /sys/kernel/config/nvmet/ports/{{ port.port_id }}/addr_trsvcid
+    mode: "0644"
+  become: true
+
+- name: Link subsystems to port {{ port.port_id }}
+  ansible.builtin.file:
+    src: /sys/kernel/config/nvmet/subsystems/{{ item }}
+    dest: >-
+      /sys/kernel/config/nvmet/ports/{{
+        port.port_id
+      }}/subsystems/{{ item }}
+    state: link
+  become: true
+  loop: "{{ port.subsystems }}"

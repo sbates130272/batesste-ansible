@@ -1,0 +1,42 @@
+---
+# Create a namespace within a subsystem
+
+- name: "Check if namespace exists for {{ subsystem_name }}"
+  ansible.builtin.stat:
+    path: >-
+      /sys/kernel/config/nvmet/subsystems/{{
+        subsystem_name
+      }}/namespaces/{{ namespace.nsid }}
+  register: namespace_exists
+  become: true
+
+- name: Create namespace directory
+  ansible.builtin.file:
+    path: >-
+      /sys/kernel/config/nvmet/subsystems/{{
+        subsystem_name
+      }}/namespaces/{{ namespace.nsid }}
+    state: directory
+    mode: "0755"
+  become: true
+  when: not namespace_exists.stat.exists
+
+- name: Set device path for namespace
+  ansible.builtin.copy:
+    content: "{{ namespace.device_path }}"
+    dest: >-
+      /sys/kernel/config/nvmet/subsystems/{{
+        subsystem_name
+      }}/namespaces/{{ namespace.nsid }}/device_path
+    mode: "0644"
+  become: true
+
+- name: Enable namespace
+  ansible.builtin.copy:
+    content: "{{ '1' if namespace.enable else '0' }}"
+    dest: >-
+      /sys/kernel/config/nvmet/subsystems/{{
+        subsystem_name
+      }}/namespaces/{{ namespace.nsid }}/enable
+    mode: "0644"
+  become: true
