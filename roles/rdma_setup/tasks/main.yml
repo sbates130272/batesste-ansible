@@ -24,7 +24,7 @@
   ansible.builtin.reboot:
     reboot_timeout: "{{ rdma_setup_reboot_timeout }}"
   become: true
-  when: ansible_connection != 'local'
+  when: rdma_setup_reboot and ansible_connection != 'local'
 
 - name: Update ansible_kernel as it may have changed
   ansible.builtin.setup:
@@ -68,7 +68,7 @@
   ansible.builtin.reboot:
     reboot_timeout: "{{ rdma_setup_reboot_timeout }}"
   become: true
-  when: ansible_connection != 'local'
+  when: rdma_setup_reboot and ansible_connection != 'local'
 
 - name: Copy rdma-detect script to target host
   ansible.builtin.copy:
