@@ -11,6 +11,27 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - 'playbooks/**'
+      - 'docker/**'
+      - '.github/workflows/batesste-ansible-ci.yml'
+      - '.ansible-lint'
+      - '.spellcheck.yml'
+      - '.wordlist.txt'
+      - 'requirements.txt'
+      - 'requirements.yml'
+      - 'roles/check_platform/**'
+      - 'roles/user_setup/**'
+      - 'roles/fave_packages/**'
+      - 'roles/tmux_scripts/**'
+      - 'roles/cloud_setup/**'
+      - 'roles/consul_setup/**'
+      - 'roles/kernel_setup/**'
+      - 'roles/fio_devel/**'
+      - 'roles/aws_grub/**'
+      - 'roles/qemu_setup/**'
+      - 'roles/vm_create/**'
+      - 'roles/eideticom_scripts/**'
 
 jobs:
 
