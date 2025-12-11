@@ -133,6 +133,7 @@
   ansible.builtin.package:
     update_cache: true
     name:
+      - linux-generic
       - linux-headers-{{ ansible_kernel }}
       - linux-modules-extra-{{ ansible_kernel }}
   become: true
