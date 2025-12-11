@@ -31,6 +31,7 @@
       - gpg-agent
       - libaio-dev
       - liburing-dev
+      - linux-generic
       - prometheus-node-exporter
       - prometheus-node-exporter-collectors
       - python-is-python3
