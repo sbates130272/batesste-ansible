@@ -83,7 +83,7 @@
     architectures: amd64
     signed_by: https://repo.radeon.com/rocm/rocm.gpg.key
   become: true
-  when: not rocm_setup_wsl_install and not rocm_setup_add_new
+  when: rocm_setup_wsl_install and not rocm_setup_add_new
 
 - name: Add the AMD ROCm apt siging key and repo for WSL (add new mode)
   ansible.builtin.deb822_repository:
@@ -97,7 +97,7 @@
     architectures: amd64
     signed_by: https://repo.radeon.com/rocm/rocm.gpg.key
   become: true
-  when: not rocm_setup_wsl_install and rocm_setup_add_new
+  when: rocm_setup_wsl_install and rocm_setup_add_new
 
 - name: Create a rocm-pin-600 file to pin the repos want to install
   ansible.builtin.copy:
