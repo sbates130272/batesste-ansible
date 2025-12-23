@@ -1,0 +1,61 @@
+---
+# Copyright (c) Stephen Bates, 2025
+#
+# NVMe-oF setup for both targets and hosts
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
+- name: Install NVMe CLI tools
+  ansible.builtin.package:
+    name:
+      - nvme-cli
+    state: present
+    update_cache: true
+  become: true
+  when: nvmeof_setup_install_tools
+
+- name: Install configfs-tools for target configuration
+  ansible.builtin.package:
+    name:
+      - linux-modules-extra-{{ ansible_kernel }}
+    state: present
+  become: true
+  when: nvmeof_setup_mode == 'target'
+
+- name: Cleanup existing NVMe-oF configuration
+  ansible.builtin.include_tasks: cleanup.yml
+  when: nvmeof_setup_cleanup
+
+- name: Load kernel modules for target mode
+  ansible.builtin.include_tasks: load-modules-target.yml
+  when:
+    - nvmeof_setup_mode == 'target'
+    - nvmeof_setup_load_modules
+
+- name: Load kernel modules for host mode
+  ansible.builtin.include_tasks: load-modules-host.yml
+  when:
+    - nvmeof_setup_mode == 'host'
+    - nvmeof_setup_load_modules
+
+- name: Configure NVMe-oF target
+  ansible.builtin.include_tasks: setup-target.yml
+  when: nvmeof_setup_mode == 'target'
+
+- name: Configure NVMe-oF host/initiator
+  ansible.builtin.include_tasks: setup-host.yml
+  when: nvmeof_setup_mode == 'host'
+
+- name: Create systemd service for target persistence
+  ansible.builtin.include_tasks: create-service.yml
+  when:
+    - nvmeof_setup_mode == 'target'
+    - nvmeof_setup_create_service

@@ -101,6 +101,22 @@ ROLE_CONFIGS = {
         "needs_vault": True,
         "needs_github_token": False,
     },
+    "nvmeof_setup": {
+        "ubuntu_versions": ["22.04", "24.04"],
+        "free_disk_space": False,
+        "extra_vars": {
+            "nvmeof_setup_create_service": False,
+            "nvmeof_setup_cleanup": False,
+        },
+        "verification_commands": [
+            "nvme version || true",
+            "lsmod | grep nvme || true",
+            "which nvme || true",
+            "ls -la /sys/kernel/config/ || true",
+        ],
+        "needs_vault": False,
+        "needs_github_token": False,
+    },
 }
 
 # Default configuration for roles without specific config

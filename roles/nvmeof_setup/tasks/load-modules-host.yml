@@ -1,0 +1,19 @@
+---
+# Load kernel modules for NVMe-oF host/initiator
+
+- name: Load NVMe-oF host kernel modules
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  become: true
+  loop: "{{ nvmeof_setup_host_modules }}"
+
+- name: Ensure modules load on boot
+  ansible.builtin.lineinfile:
+    path: /etc/modules-load.d/nvmeof-host.conf
+    line: "{{ item }}"
+    create: true
+    mode: "0644"
+  become: true
+  loop: "{{ nvmeof_setup_host_modules }}"
+  when: nvmeof_setup_persist_modules

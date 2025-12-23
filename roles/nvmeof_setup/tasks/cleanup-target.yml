@@ -1,0 +1,83 @@
+---
+# Cleanup NVMe-oF target configuration
+
+- name: Find existing port subsystem links
+  ansible.builtin.find:
+    paths: /sys/kernel/config/nvmet/ports/
+    file_type: link
+    recurse: true
+    patterns: '*'
+  become: true
+  register: port_links
+  failed_when: false
+
+- name: Remove port subsystem links
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  become: true
+  loop: "{{ port_links.files }}"
+  when: port_links.files is defined
+
+- name: Find existing ports
+  ansible.builtin.find:
+    paths: /sys/kernel/config/nvmet/ports/
+    file_type: directory
+    recurse: false
+  become: true
+  register: existing_ports
+  failed_when: false
+
+- name: Remove ports
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  become: true
+  loop: "{{ existing_ports.files }}"
+  when: existing_ports.files is defined
+
+- name: Find existing namespaces
+  ansible.builtin.find:
+    paths: /sys/kernel/config/nvmet/subsystems/
+    file_type: directory
+    recurse: true
+    patterns: '[0-9]*'
+  become: true
+  register: existing_namespaces
+  failed_when: false
+
+- name: Disable namespaces before removal
+  ansible.builtin.copy:
+    content: "0"
+    dest: "{{ item.path }}/enable"
+    mode: "0644"
+  become: true
+  loop: "{{ existing_namespaces.files }}"
+  when: existing_namespaces.files is defined
+  failed_when: false
+
+- name: Remove namespaces
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  become: true
+  loop: "{{ existing_namespaces.files }}"
+  when: existing_namespaces.files is defined
+
+- name: Find existing subsystems
+  ansible.builtin.find:
+    paths: /sys/kernel/config/nvmet/subsystems/
+    file_type: directory
+    recurse: false
+    excludes: ['discovery']
+  become: true
+  register: existing_subsystems
+  failed_when: false
+
+- name: Remove subsystems
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  become: true
+  loop: "{{ existing_subsystems.files }}"
+  when: existing_subsystems.files is defined

@@ -1,0 +1,21 @@
+---
+# Cleanup NVMe-oF host connections
+
+- name: Get list of NVMe-oF connections
+  ansible.builtin.shell:
+    cmd: set -o pipefail && nvme list | grep -i nvme | awk '{print $1}' || true
+  args:
+    executable: /bin/bash
+  become: true
+  register: nvme_devices
+  changed_when: false
+
+- name: Disconnect NVMe-oF devices
+  ansible.builtin.command:
+    cmd: nvme disconnect -n {{ item }}
+  become: true
+  loop: "{{ nvme_devices.stdout_lines }}"
+  when: nvme_devices.stdout_lines | length > 0
+  register: nvme_disconnect
+  changed_when: nvme_disconnect.rc == 0
+  failed_when: false
