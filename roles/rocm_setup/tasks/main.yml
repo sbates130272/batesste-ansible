@@ -172,6 +172,7 @@
   ansible.builtin.shell:
     cmd: update-pciids
   become: true
+  ignore_errors: true
   changed_when: false
 
 - name: Install or upgrade amdgpu-dkms to latest available  # noqa package-latest
