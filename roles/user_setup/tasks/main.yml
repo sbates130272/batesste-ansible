@@ -180,6 +180,7 @@
     state: started
     daemon_reload: true
   become: true
+  ignore_errors: true
   when: user_setup_vm_fstab
 
 - name: Install driverctl for MOTD driver overrides display
