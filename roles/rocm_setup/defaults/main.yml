@@ -2,23 +2,27 @@
 # defaults file for rocm-setup
 
 # The version of ROCm to install. Set to latest to use rocm-latest
-# script to detect lastest.
+# script to detect latest.
 rocm_setup_rocm_version: latest
 rocm_setup_amdgpu_version: latest
-rocm_setup_force_version: false
 
-# Add a new ROCm version alongside existing installations
-# When true, uses version-specific package names and adds a new repo
-# When false, replaces existing ROCm installation
-rocm_setup_add_new: false
+# Map ROCm versions to package names when the meta package changes.
+rocm_setup_versioned_package_map:
+  "7.2": rocm7.2.0
 
-# The user to set ROCm up for. This includes adding to the revelant
+# Single file for ROCm APT sources (deb822 format).
+rocm_setup_sources_file: /etc/apt/sources.list.d/rocm.sources
+
+# The user to set ROCm up for. This includes adding to the relevant
 # user groups etc.
 rocm_setup_user: rocm_user
 
 # The reboot time to wait for. Note we can set this a lot less for a
 # VM than for a bare-metal
 rocm_setup_reboot_timeout: 300
+
+# Skip reboot steps (useful for CI, containers, or manual control).
+rocm_setup_skip_reboot: true
 
 # State if this is a Windows Subsystem for Linux (WSL) install or not.
 rocm_setup_wsl_install: false
@@ -32,7 +36,9 @@ rocm_setup_run_checks: true
 # https://github.com/ROCm/device-metrics-exporter
 rocm_setup_install_metrics_exporter: true
 rocm_setup_metrics_exporter_version: latest
-rocm_setup_metrics_exporter_port: 2021
-rocm_setup_metrics_exporter_bind_address: 0.0.0.0  # Bind to all interfaces for LAN access
-rocm_setup_metrics_exporter_path: /usr/local/bin/amd-metrics-exporter
-rocm_setup_metrics_exporter_open_firewall: true  # Open firewall port for external access
+rocm_setup_metrics_exporter_repo_uri: >-
+  https://repo.radeon.com/device-metrics-exporter/apt/{{
+  rocm_setup_metrics_exporter_version }}
+rocm_setup_metrics_exporter_port: 5000
+rocm_setup_metrics_exporter_config_path: /etc/metrics/config.json
+rocm_setup_metrics_exporter_open_firewall: true

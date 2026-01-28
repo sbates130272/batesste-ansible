@@ -5,13 +5,13 @@
 
 - name: Set a fact containing the current roles' path
   ansible.builtin.set_fact:
-    calling_role_path_fact: "{{ role_path }}"
+    rdma_setup_calling_role_path_fact: "{{ role_path }}"
 
 - name: Test the host platform to see if it can support this role
   ansible.builtin.include_role:
     name: check_platform
   vars:
-    calling_role_path: "{{ calling_role_path_fact }}"
+    calling_role_path: "{{ rdma_setup_calling_role_path_fact }}"
 
 - name: Perform an update, upgrade and autoremove
   ansible.builtin.apt:
@@ -59,10 +59,10 @@
   become: true
 
 - name: Update the PCIe ID tables (for new device support)
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: update-pciids
   become: true
-  ignore_errors: true
+  failed_when: false
   changed_when: false
 
 - name: Perform another reboot to allow modules to load
@@ -81,41 +81,45 @@
   become: true
 
 - name: Run the rdma-detect script
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: "{{ rdma_detect_script_dest }}"
   environment:
     RDMA_DETECT_OUTPUT_FILE: "{{ rdma_detect_output_file }}"
-  register: rdma_detect_output
+  register: rdma_setup_detect_output
   become: true
   changed_when: false
 
 - name: Display RDMA detection results
   ansible.builtin.debug:
-    var: rdma_detect_output.stdout_lines
+    var: rdma_setup_detect_output.stdout_lines
 
 - name: Read the rdma-detect status file
   ansible.builtin.slurp:
     src: "{{ rdma_detect_output_file }}"
-  register: rdma_status_file
+  register: rdma_setup_status_file
   become: true
 
 - name: Set fact with RDMA detection details
   ansible.builtin.set_fact:
-    rdma_detection_report: "{{ rdma_status_file['content'] | b64decode }}"
+    rdma_setup_detection_report: >-
+      {{ rdma_setup_status_file['content'] | b64decode }}
 
 - name: Display location of saved report
   ansible.builtin.debug:
     msg: "RDMA detection report saved to {{ rdma_detect_output_file }} on target host"
 
 - name: Run the rdma dev command and register output
-  ansible.builtin.shell: rdma dev
-  register: rdma_dev
+  ansible.builtin.command:
+    argv:
+      - rdma
+      - dev
+  register: rdma_setup_dev
   become: true
   changed_when: false
 
 - name: Print the output of the rdma dev command
   ansible.builtin.debug:
-    msg: "The rdma dev output was: {{ rdma_dev.stdout }}."
+    msg: "The rdma dev output was: {{ rdma_setup_dev.stdout }}."
 
 - name: Copy RDMA devices MOTD script
   ansible.builtin.copy:

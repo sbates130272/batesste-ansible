@@ -1,9 +1,8 @@
 - name: Check if wslinfo works if rocm_setup_wsl_install is set
-  ansible.builtin.shell:
-    cmd: |
-      wslinfo --version
+  ansible.builtin.command:
+    cmd: wslinfo --version
   register: wslinfo
-  ignore_errors: true
+  failed_when: false
   when: rocm_setup_wsl_install
 
 - name: Check if wslinfo works if rocm_setup_wsl_install is set
@@ -21,44 +20,66 @@
     mode: '0755'
   become: true
 
+- name: Determine if latest lookups are needed
+  ansible.builtin.set_fact:
+    rocm_setup_need_rocm_latest: >-
+      {{ rocm_setup_rocm_version == 'latest' }}
+    rocm_setup_need_amdgpu_latest: >-
+      {{
+        (not rocm_setup_wsl_install)
+        and (rocm_setup_amdgpu_version == 'latest')
+      }}
+
 - name: Run the rocm-latest script and register results
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: rocm-latest
   environment:
     QUIET: "true"
     ONLY_ONE: ROCM
   register: rocm_latest_version
+  when:
+    - rocm_setup_need_rocm_latest
+    - not rocm_setup_wsl_install
 
 - name: Run the rocm-latest script and register results (wsl)
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: rocm-latest
   environment:
     QUIET: "true"
     ONLY_ONE: ROCM
     WSL_INSTALL: "true"
   register: rocm_latest_wsl_version
-  when: rocm_setup_wsl_install
+  when:
+    - rocm_setup_need_rocm_latest
+    - rocm_setup_wsl_install
 
 - name: Run the rocm-latest script and register results
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: rocm-latest
   environment:
     QUIET: "true"
     ONLY_ONE: AMDGPU
   register: amdgpu_latest_version
+  when: rocm_setup_need_amdgpu_latest
 
 - name: Print the rocm package version
   ansible.builtin.debug:
     msg: "rocm latest_version: {{ rocm_latest_version.stdout }}"
+  when:
+    - rocm_setup_need_rocm_latest
+    - not rocm_setup_wsl_install
 
 - name: Print the rocm package version (wsl)
   ansible.builtin.debug:
     msg: "rocm latest_wsl_version: {{ rocm_latest_wsl_version.stdout }}"
-  when: rocm_setup_wsl_install
+  when:
+    - rocm_setup_need_rocm_latest
+    - rocm_setup_wsl_install
 
 - name: Print the amdgpu package version
   ansible.builtin.debug:
     msg: "amdgpu latest version: {{ amdgpu_latest_version.stdout }}"
+  when: rocm_setup_need_amdgpu_latest
 
 - name: Populate rocm_setup_rocm_version variable
   ansible.builtin.set_fact:
@@ -80,20 +101,28 @@
     rocm_setup_amdgpu_version: "{{ amdgpu_latest_wsl_version.stdout }}"
   when: rocm_setup_amdgpu_version == 'latest' and rocm_setup_wsl_install
 
-- name: Fail if rocm_latest_version does not match rocm_setup_version (unless forced)
+- name: Fail if rocm_latest_version does not match rocm_setup_version
   ansible.builtin.fail:
     msg: "You are not requesting the latest rocm version!"
-  when: rocm_latest_version.stdout != rocm_setup_rocm_version and not rocm_setup_wsl_install and not rocm_setup_version_force
+  when:
+    - rocm_setup_need_rocm_latest
+    - not rocm_setup_wsl_install
+    - rocm_latest_version.stdout != rocm_setup_rocm_version
 
-- name: Fail if rocm_latest_wsl_version does not match rocm_setup_version (unless forced) (wsl)
+- name: Fail if rocm_latest_wsl_version does not match rocm_setup_version (wsl)
   ansible.builtin.fail:
     msg: "You are not requesting the latest rocm version!"
-  when: rocm_latest_wsl_version.stdout | default('none') != rocm_setup_rocm_version and rocm_setup_wsl_install and not rocm_setup_version_force
+  when:
+    - rocm_setup_need_rocm_latest
+    - rocm_setup_wsl_install
+    - rocm_latest_wsl_version.stdout | default('none') != rocm_setup_rocm_version
 
-- name: Fail if amdgpu_latest_version does not match rocm_setup_amdgpu_version (unless forced)
+- name: Fail if amdgpu_latest_version does not match rocm_setup_amdgpu_version
   ansible.builtin.fail:
     msg: "You are not requesting the latest amdgpu version!"
-  when: amdgpu_latest_version.stdout != rocm_setup_amdgpu_version and not rocm_setup_version_force
+  when:
+    - rocm_setup_need_amdgpu_latest
+    - amdgpu_latest_version.stdout != rocm_setup_amdgpu_version
 
 - name: Print out the ROCm version being installed
   ansible.builtin.debug:
@@ -114,7 +143,10 @@
   ansible.builtin.reboot:
     reboot_timeout: "{{ rocm_setup_reboot_timeout }}"
   become: true
-  when: ansible_connection != 'local'
+  when:
+    - ansible_connection != 'local'
+    - not rocm_setup_wsl_install
+    - not rocm_setup_skip_reboot
 
 - name: Update ansible_kernel as it may have changed
   ansible.builtin.setup:
