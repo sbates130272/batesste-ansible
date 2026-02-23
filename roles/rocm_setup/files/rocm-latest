@@ -1,9 +1,10 @@
 #!/bin/bash
 #
 # A simple bash script that uses curl to obtain the latest release of
-# ROCm and amdgpu packages via our packaging repo. Use QUIET=true to
-# only display the version tag. Use ONLY_ONE=[ROCM|AMDGPU] to only
-# output the version tag for either ROCm or amdgpu.
+# ROCm, amdgpu, and device-metrics-exporter via our packaging repo.
+# Use QUIET=true to only display the version tag. Use
+# ONLY_ONE=[ROCM|AMDGPU|METRICS_EXPORTER] to only output the version
+# tag for one of those components.
 #
 # Note that setting WSL_INSTALL=true ensures that only the latest
 # version that works with WSL2 is installed. This also will return
@@ -20,6 +21,7 @@ WSL_INSTALL=${WSL_INSTALL:-false}
 
 ROCM_REMOTE=${RADEON_REPO}/rocm/apt/
 AMDGPU_REMOTE=${RADEON_REPO}/amdgpu/
+METRICS_EXPORTER_REMOTE=${RADEON_REPO}/device-metrics-exporter/apt/
 WSL_REMOTE=${RADEON_REPO}/amdgpu/
 
 wsl_version () {
@@ -44,7 +46,7 @@ parse_repo () {
     echo $VERSION
 }
 
-if [ ${ONLY_ONE} != "AMDGPU" ]; then
+if [ ${ONLY_ONE} != "AMDGPU" ] && [ ${ONLY_ONE} != "METRICS_EXPORTER" ]; then
 
     if [ ${WSL_INSTALL} == "true" ]; then
         ROCM_VERSION=$(wsl_version $WSL_REMOTE)
@@ -62,7 +64,7 @@ if [ ${ONLY_ONE} != "AMDGPU" ]; then
     fi
 fi
 
-if [ ${ONLY_ONE} != "ROCM" ]; then
+if [ ${ONLY_ONE} != "ROCM" ] && [ ${ONLY_ONE} != "METRICS_EXPORTER" ]; then
     if [ ${WSL_INSTALL} == "true" ]; then
         AMDGPU_VERSION="none"
     else
@@ -76,5 +78,14 @@ if [ ${ONLY_ONE} != "ROCM" ]; then
         else
             echo "AMDGPU latest: ${AMDGPU_VERSION}."
         fi
+    fi
+fi
+
+if [ ${ONLY_ONE} != "ROCM" ] && [ ${ONLY_ONE} != "AMDGPU" ]; then
+    METRICS_EXPORTER_VERSION=$(parse_repo $METRICS_EXPORTER_REMOTE)
+    if [ ${QUIET} == "true" ]; then
+        echo ${METRICS_EXPORTER_VERSION}
+    else
+        echo "Device Metrics Exporter latest: ${METRICS_EXPORTER_VERSION}."
     fi
 fi

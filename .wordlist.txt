@@ -26,6 +26,9 @@ IPv
 InfiniBand
 Instinct
 JSON
+json
+URI
+URI
 LTS
 MI100
 MI200
@@ -49,6 +52,8 @@ README
 ROCm
 RTX
 Radeon
+radeon
+radeon
 SMI
 SSDs
 UI
@@ -137,6 +142,8 @@ repo
 repos
 rf
 rocm
+uri
+uri
 runner
 runners
 rocminfo

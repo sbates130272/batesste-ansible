@@ -1,9 +1,11 @@
 all:
   children:
+
     local:
       hosts:
         localhost:
           ansible_connection: local
+
     localvms:
       hosts:
         local-vm:
@@ -12,7 +14,8 @@ all:
           user_setup_motd: true
     amd:
       hosts:
-        rocfile10:
+        hipfile-9:
+        hipfile-10:
         ibgda-ctrl:
         snoc-think:
           user_setup_motd: true
@@ -20,10 +23,28 @@ all:
           user_setup_vm_fstab: true
           user_setup_motd: true
         ibgda-brcm:
+        local-vm:
+          user_setup_vm_fstab: true
+          user_setup_motd: true
+        rocm-ernic-vm:
+          ansible_host: rocm-ernic
+          ansible_ssh_port: 2222
+          user_setup_vm_fstab: true
+          user_setup_motd: true
+        rocm-ernic-vm-alola:
+          ansible_host: 10.7.197.12
+          user_setup_vm_fstab: true
+          user_setup_motd: true
+          ansible_user: stebates
+        hipfile-9-vm:
+          ansible_host: hipfile-9
+          ansible_ssh_port: 2222
+          user_setup_vm_fstab: true
+          user_setup_motd: true
       vars:
         username: stebates
         user_setup_create: false
-        rocm_setup_add_new: true
+
     pliops:
       hosts:
         pliops-storage:

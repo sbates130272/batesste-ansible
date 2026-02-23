@@ -180,6 +180,11 @@
     state: started
     daemon_reload: true
   become: true
+  register: user_setup_mount_start_result
+  failed_when:
+    - user_setup_mount_start_result is failed
+    - "'already active' not in (user_setup_mount_start_result.msg | default('') | lower)"
+    - "'not found' not in (user_setup_mount_start_result.msg | default('') | lower)"
   when: user_setup_vm_fstab
 
 - name: Install driverctl for MOTD driver overrides display
