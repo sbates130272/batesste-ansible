@@ -19,10 +19,10 @@ libvirt-enabled VM on that machine using the following steps:
 
 1. ssh into the target.
 2. cd <user>/Projects/qemu-minimal/libvirt
-3. NAME=<vm-name> RELEASE=jammy ./virt-install-ubuntu
+3. NAME=<vm-name> RELEASE=noble ./virt-install-ubuntu
 
 This will create a NAT connected VM with name <vm-name> based on the
-Ubuntu "Jammy" (22.04) release. Alter RELEASE for other versions (not
+Ubuntu "Noble" (24.04) release. Alter RELEASE for other versions (not
 all supported yet). Note you can then use ```virsh --edit <vm-name>```
 to alter the DOM for this VM to change vCPUs, memory, add NVMe SSDs do
 passthru etc. See the virt-install-ubuntu script for other options.

@@ -25,8 +25,8 @@ honest I found the instructions [here][oauth2] the best.
 
 Note that OAuth2 support was only added in [mutt 2.0][mutt2.0] so
 while the script runs on Ubuntu 20.04 (which includes mutt 1.13.2) it
-will not allow you to access email. Instead use Ubuntu 22.04 (or
-later).
+will not allow you to access email. Use Ubuntu 24.04 (noble) or
+later.
 
 ## Role Variables
 

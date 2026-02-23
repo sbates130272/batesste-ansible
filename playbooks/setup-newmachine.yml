@@ -35,13 +35,13 @@
       tags: [cloud_setup]
       when:
         - ansible_facts['distribution'] == "Ubuntu"
-        - ansible_facts['distribution_release'] == "jammy"
+        - ansible_facts['distribution_release'] == "noble"
     - role: consul_setup
       remote_user: "{{ username }}"
       tags: [consul_setup]
       when:
         - ansible_facts['distribution'] == "Ubuntu"
-        - ansible_facts['distribution_release'] == "jammy"
+        - ansible_facts['distribution_release'] == "noble"
     - role: mutt_setup
       remote_user: "{{ username }}"
       tags: [mutt_setup]

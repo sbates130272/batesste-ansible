@@ -3,7 +3,5 @@
 supported_distributions:
   - Ubuntu
 supported_versions:
-  - "22.04"
   - "24.04"
-  - jammy
   - noble
