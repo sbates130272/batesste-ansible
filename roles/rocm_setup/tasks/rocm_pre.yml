@@ -29,6 +29,11 @@
         (not rocm_setup_wsl_install)
         and (rocm_setup_amdgpu_version == 'latest')
       }}
+    rocm_setup_need_metrics_exporter_latest: >-
+      {{
+        (rocm_setup_install_metrics_exporter | default(false))
+        and (rocm_setup_metrics_exporter_version | default('latest') == 'latest')
+      }}
 
 - name: Run the rocm-latest script and register results
   ansible.builtin.command:
@@ -62,6 +67,15 @@
   register: amdgpu_latest_version
   when: rocm_setup_need_amdgpu_latest
 
+- name: Run the rocm-latest script for device-metrics-exporter version
+  ansible.builtin.command:
+    cmd: rocm-latest
+  environment:
+    QUIET: "true"
+    ONLY_ONE: METRICS_EXPORTER
+  register: metrics_exporter_latest_version
+  when: rocm_setup_need_metrics_exporter_latest
+
 - name: Print the rocm package version
   ansible.builtin.debug:
     msg: "rocm latest_version: {{ rocm_latest_version.stdout }}"
@@ -80,6 +94,12 @@
   ansible.builtin.debug:
     msg: "amdgpu latest version: {{ amdgpu_latest_version.stdout }}"
   when: rocm_setup_need_amdgpu_latest
+
+- name: Print the device-metrics-exporter package version
+  ansible.builtin.debug:
+    msg: "device-metrics-exporter latest version: {{
+      metrics_exporter_latest_version.stdout }}"
+  when: rocm_setup_need_metrics_exporter_latest
 
 - name: Populate rocm_setup_rocm_version variable
   ansible.builtin.set_fact:
@@ -100,6 +120,14 @@
   ansible.builtin.set_fact:
     rocm_setup_amdgpu_version: "{{ amdgpu_latest_wsl_version.stdout }}"
   when: rocm_setup_amdgpu_version == 'latest' and rocm_setup_wsl_install
+
+- name: Populate rocm_setup_metrics_exporter_version variable
+  ansible.builtin.set_fact:
+    rocm_setup_metrics_exporter_version: "{{
+      metrics_exporter_latest_version.stdout }}"
+  when: >-
+    rocm_setup_metrics_exporter_version | default('latest') == 'latest'
+    and rocm_setup_need_metrics_exporter_latest
 
 - name: Fail if rocm_latest_version does not match rocm_setup_version
   ansible.builtin.fail:
@@ -124,6 +152,14 @@
     - rocm_setup_need_amdgpu_latest
     - amdgpu_latest_version.stdout != rocm_setup_amdgpu_version
 
+- name: Fail if metrics_exporter_latest_version does not match
+  ansible.builtin.fail:
+    msg: "You are not requesting the latest device-metrics-exporter version!"
+  when:
+    - rocm_setup_need_metrics_exporter_latest
+    - metrics_exporter_latest_version.stdout | default('') !=
+        (rocm_setup_metrics_exporter_version | default('latest'))
+
 - name: Print out the ROCm version being installed
   ansible.builtin.debug:
     msg: "rocm_setup_rocm_version: {{ rocm_setup_rocm_version }}"
@@ -131,6 +167,12 @@
 - name: Print out the AMDGPU version being installed
   ansible.builtin.debug:
     msg: "rocm_setup_amdgpu_version: {{ rocm_setup_amdgpu_version }}"
+
+- name: Print out the device-metrics-exporter version being installed
+  ansible.builtin.debug:
+    msg: "rocm_setup_metrics_exporter_version: {{
+      rocm_setup_metrics_exporter_version }}"
+  when: rocm_setup_install_metrics_exporter | default(false)
 
 - name: Perform an update, upgrade and autoremove
   ansible.builtin.apt:

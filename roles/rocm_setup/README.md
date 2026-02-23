@@ -52,9 +52,14 @@ rocm_setup_metrics_exporter_open_firewall: true
 
 ## Version Management
 
-The `rocm_setup_rocm_version` and `rocm_setup_amdgpu_version` variables can be set to:
-- `latest` - Uses the [rocm-latest](./files/rocm-latest) script to automatically detect the latest version
-- Specific version (e.g., `6.3.0`) - Installs that exact version.
+The `rocm_setup_rocm_version`, `rocm_setup_amdgpu_version`, and
+`rocm_setup_metrics_exporter_version` variables can be set to:
+- `latest` - Uses the [rocm-latest](./files/rocm-latest) script to
+  automatically detect the latest version (use `ONLY_ONE=ROCM`,
+  `ONLY_ONE=AMDGPU`, or `ONLY_ONE=METRICS_EXPORTER` to query one
+  component only)
+- Specific version (e.g., `6.3.0` or `1.4.2`) - Installs that exact
+  version.
 
 ## Replacing ROCm Versions
 
@@ -63,7 +68,13 @@ is the standard behavior for most systems.
 
 ## AMD Device Metrics Exporter
 
-This role can optionally install and configure the [AMD Device Metrics Exporter](https://github.com/ROCm/device-metrics-exporter), which exposes AMD GPU and CPU metrics in Prometheus format. The exporter runs as a systemd service and listens on port 2021 by default.
+This role can optionally install and configure the [AMD Device Metrics
+Exporter](https://github.com/ROCm/device-metrics-exporter), which
+exposes AMD GPU and CPU metrics in Prometheus format. The exporter
+runs as a systemd service and listens on port 2021 by default. When
+`rocm_setup_metrics_exporter_version` is `latest`, the role uses the
+[rocm-latest](./files/rocm-latest) script to detect the latest
+release (same as for ROCm and amdgpu).
 
 Features:
 - Automatic build from source (latest release or specific version)
