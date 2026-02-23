@@ -13,7 +13,6 @@ on:
       - main
     paths:
       - 'playbooks/**'
-      - 'docker/**'
       - '.github/workflows/batesste-ansible-ci.yml'
       - '.ansible-lint'
       - '.spellcheck.yml'
@@ -36,10 +35,7 @@ on:
 jobs:
 
   build-spellcheck-lint-test:
-    strategy:
-      matrix:
-        runs-on: [ubuntu-22.04, ubuntu-24.04]
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -76,7 +72,9 @@ jobs:
             [awsmachines]
             [localvms]
       - name: Run the default playbook against the local runner
-        run: ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} --extra-vars targets=${TARGETS}
+        run: >
+          ansible-playbook ${PLAYBOOK} -v -i ${HOSTS}
+          --extra-vars "targets=${TARGETS} consul_setup_start_service=false"
         working-directory: ./playbooks
         env:
           PLAYBOOK: setup-newmachine.yml

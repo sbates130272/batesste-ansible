@@ -14,13 +14,20 @@
   vars:
     calling_role_path: "{{ calling_role_path_fact }}"
 
-- name: Install packages for AWS and GitHub CLIs
+- name: Install packages for GitHub CLI and pip (for AWS CLI)
   ansible.builtin.package:
     update_cache: true
     state: present
     name:
-      - awscli
       - gh
+      - python3-pip
+  become: true
+
+# awscli was removed from Ubuntu 24.04 (noble) repos; install via pip
+- name: Install AWS CLI via pip
+  ansible.builtin.pip:
+    name: awscli
+    state: present
   become: true
 
 - name: Ensure .aws folder exists

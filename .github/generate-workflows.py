@@ -30,7 +30,7 @@ ROLE_CONFIGS = {
         "needs_vault": True,
     },
     "grafana_setup": {
-        "ubuntu_versions": ["22.04", "24.04"],
+        "ubuntu_versions": ["24.04"],
         "free_disk_space": False,
         "extra_vars": {
             "vault_grafana_setup_password": "test_ci_password_123",
@@ -48,7 +48,7 @@ ROLE_CONFIGS = {
         "needs_vault": True,
     },
     "rdma_setup": {
-        "ubuntu_versions": ["22.04", "24.04"],
+        "ubuntu_versions": ["24.04"],
         "free_disk_space": False,
         "extra_vars": {},
         "verification_commands": [
@@ -58,7 +58,7 @@ ROLE_CONFIGS = {
         "needs_vault": False,
     },
     "git_setup": {
-        "ubuntu_versions": ["22.04", "24.04"],
+        "ubuntu_versions": ["24.04"],
         "free_disk_space": False,
         "extra_vars": {
             "git_setup_enable_gpg_signing": False,
@@ -74,7 +74,7 @@ ROLE_CONFIGS = {
         "needs_github_token": True,
     },
     "github_runner": {
-        "ubuntu_versions": ["22.04", "24.04"],
+        "ubuntu_versions": ["24.04"],
         "free_disk_space": False,
         "extra_vars": {
             "github_runner_url": "https://github.com/sbates130272/batesste-ansible",
@@ -89,7 +89,7 @@ ROLE_CONFIGS = {
         "needs_github_token": False,
     },
     "mutt_setup": {
-        "ubuntu_versions": ["22.04", "24.04"],
+        "ubuntu_versions": ["24.04"],
         "free_disk_space": False,
         "extra_vars": {},
         "verification_commands": [
@@ -105,7 +105,7 @@ ROLE_CONFIGS = {
 
 # Default configuration for roles without specific config
 DEFAULT_CONFIG = {
-    "ubuntu_versions": ["22.04", "24.04"],
+    "ubuntu_versions": ["24.04"],
     "free_disk_space": False,
     "extra_vars": {},
     "verification_commands": [],
@@ -125,7 +125,7 @@ def find_roles_with_tests(roles_dir: Path) -> List[str]:
 def generate_workflow_yaml(role_name: str, config: Dict) -> str:
     """Generate a GitHub Actions workflow YAML string for a role."""
     
-    ubuntu_versions = config.get("ubuntu_versions", ["22.04"])
+    ubuntu_versions = config.get("ubuntu_versions", ["24.04"])
     use_matrix = len(ubuntu_versions) > 1
     
     # Header

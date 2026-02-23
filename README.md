@@ -7,9 +7,8 @@ to setup bare-metal and VM servers the way that I like them. This
 includes setting up ssh and gnupgp keys, installing packages and
 copying in preferred configuration settings.
 
-This repo assumes Ubuntu 22.04 LTS (jammy) or Ubuntu 24.04 LTS (noble)
-and we fail gracefully if we detect any hosts that do not meet this
-criteria.
+This repo assumes Ubuntu 24.04 LTS (noble) and we fail gracefully if
+we detect any hosts that do not meet this criteria.
 
 ## Setup
 
@@ -27,24 +26,18 @@ Use the packaged version:
 sudo apt install ansible
 ```
 
-### Ubuntu 22.04
-
-Note that the Ansible that comes as standard in Ubuntu 22.04 is pretty
-old (2.10.8). You can either us a [ppa][ref-ansible-ppa] to install a
-more recent version or install via pip.
-```
-python3 -m pip install ansible
-```
-or in the top-level folder for this repo
+Or install via pip in the top-level folder for this repo:
 ```
 python3 -m pip install -r requirements.txt
 ```
-We do not support older versions of Ubuntu at this time.
 
 ### Common
 
-Install the necessary collections and roles.
+Install Python dependencies (Ansible, ansible-lint, etc.) and then
+install the necessary collections and roles:
+
 ```
+python3 -m pip install -r requirements.txt
 ansible-galaxy install -r requirements.yml
 ```
 
@@ -58,8 +51,8 @@ ansible-playbook -i hosts <playbook-name>.yml
 ```
 ### AWS Example
 
-Assuming you have setup a basic Ubuntu 22.04 or 24.04 EC2 instance on
-AWS you can create a hosts file like this:
+Assuming you have setup a basic Ubuntu 24.04 EC2 instance on AWS you
+can create a hosts file like this:
 ```
 [awsmachines]
 52.11.127.216
@@ -73,6 +66,17 @@ ansible-playbook -i hosts setup-newmachine.yml --ask-vault-pass
 ```
 You can then enter your ansible-vault password at the prompt and
 things should work from there...
+
+### AMD / ROCm Example
+
+For AMD machines (ROCm, RDMA) use the
+[setup-amd.yml](./playbooks/setup-amd.yml) playbook. It runs
+user_setup, fave_packages, git_setup, rdma_setup, and rocm_setup. Use
+the same inventory and run-ansible pattern:
+
+```
+PLAYBOOK=setup-amd.yml HOSTS=<host-file> TARGETS=<target-group> ./run-ansible
+```
 
 ### run-ansible
 
@@ -102,23 +106,9 @@ to them for more information about a specific role.
 
 ## Playbook and Role Testing
 
-This project contains a [docker](./docker) directory that contains a
-Dockerfile and a bash script that allows simple testing of these
-playbooks and roles. This is based on [this tutorial][ref-docker-tut]
-with some of my own modifications.
-
-You can run a test for any of the roles in this repo by calling the
-following from the top-level directory of a given role.
-```
-MAC_MODE=no CLEAN_UP=yes ../../docker/test-playbook tests/test.yml
-```
-This runs the test playbook in the ```tests/test.yml``` file using a
-docker container based on Ubuntu Noble. You can change to
-```MAC_MODE=yes``` when running on Mac OS X and ```CLEAN_UP=no``` if
-you want to leave the container running for debug purposes.
-
-Note that any arguments after the playbook will be passed in, as is,
-to the call to ansible-playbook inside the script.
+Role and playbook testing is done via GitHub Actions. See
+[.github/README.md](.github/README.md) for how workflows are
+generated and how to run role tests in CI.
 
 ## Useful Ansible Commands
 
@@ -134,5 +124,3 @@ records those facts in a JSON structure in ```/tmp/facts/``` indexed
 by target machine name.
 
 [1]: https://github.com/sbates130272/qemu-minimal/blob/master/scripts/gen-image
-[ref-ansible-ppa]: https://launchpad.net/~ansible/+archive/ubuntu/ansible
-[ref-docker-tut]: https://dev.to/pencillr/test-ansible-playbooks-using-docker-ci0

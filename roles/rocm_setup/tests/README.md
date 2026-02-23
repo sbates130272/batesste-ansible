@@ -9,7 +9,7 @@ The AMD Device Metrics Exporter is hardware-dependent and requires AMD EPYC CPUs
 ### Prerequisites
 
 - AMD EPYC CPU or AMD MI200/MI300 GPU
-- Ubuntu 22.04 or 24.04
+- Ubuntu 24.04
 - ROCm installed (or will be installed by the role)
 
 ### Basic Test

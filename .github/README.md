@@ -36,7 +36,7 @@ Role-specific configurations are defined in `generate-workflows.py` in the `ROLE
 ```python
 ROLE_CONFIGS = {
     "role_name": {
-        "ubuntu_versions": ["22.04", "24.04"],  # Ubuntu versions to test
+        "ubuntu_versions": ["24.04"],  # Ubuntu versions to test
         "free_disk_space": False,                # Whether to free disk space first
         "extra_vars": {},                        # Additional Ansible variables
         "verification_commands": [],             # Commands to verify installation
@@ -69,7 +69,7 @@ ROLE_CONFIGS = {
 ## Role Configurations
 
 ### grafana_setup
-- Tests on: Ubuntu 22.04, 24.04
+- Tests on: Ubuntu 24.04
 - Disables network discovery for CI (no network scanning)
 - Verifies Grafana, Prometheus, and Node Exporter services
 - Checks service health endpoints
@@ -81,7 +81,7 @@ ROLE_CONFIGS = {
 - Verifies ROCm package installation
 
 ### rdma_setup
-- Tests on: Ubuntu 22.04, 24.04
+- Tests on: Ubuntu 24.04
 - Verifies RDMA package installation
 - Checks for InfiniBand tools
 
@@ -124,7 +124,7 @@ Update the `ubuntu_versions` list in the role's config:
 
 ```python
 "role_name": {
-    "ubuntu_versions": ["22.04", "24.04", "25.04"],
+    "ubuntu_versions": ["24.04"],
     ...
 }
 ```
@@ -136,7 +136,7 @@ Then regenerate workflows.
 1. **Keep test playbooks simple**: Use `tests/test.yml` for straightforward role execution
 2. **Add verification commands**: Include commands to verify the role worked correctly
 3. **Skip non-CI features**: Use `extra_vars` to disable features that don't work in CI
-4. **Test on multiple Ubuntu versions**: When possible, test on both LTS versions
+4. **Test on supported Ubuntu version**: This repo tests on Ubuntu 24.04 LTS
 5. **Free disk space when needed**: Large packages (ROCm, etc.) may need disk cleanup
 
 ## Troubleshooting
