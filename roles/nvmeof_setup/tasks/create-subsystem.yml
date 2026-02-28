@@ -1,0 +1,30 @@
+---
+# Create a single NVMe-oF subsystem
+
+- name: Check if subsystem already exists
+  ansible.builtin.stat:
+    path: /sys/kernel/config/nvmet/subsystems/{{ subsystem.name }}
+  register: subsystem_exists
+  become: true
+
+- name: Create subsystem directory for {{ subsystem.name }}
+  ansible.builtin.file:
+    path: /sys/kernel/config/nvmet/subsystems/{{ subsystem.name }}
+    state: directory
+    mode: "0755"
+  become: true
+  when: not subsystem_exists.stat.exists
+
+- name: Enable allow_any_host for {{ subsystem.name }}
+  ansible.builtin.shell: |
+    echo "{{ '1' if subsystem.allow_any_host else '0' }}" > \
+      /sys/kernel/config/nvmet/subsystems/{{ subsystem.name }}/attr_allow_any_host
+  become: true
+
+- name: Create namespaces for {{ subsystem.name }}
+  ansible.builtin.include_tasks: create-namespace.yml
+  loop: "{{ subsystem.namespaces }}"
+  loop_control:
+    loop_var: namespace
+  vars:
+    subsystem_name: "{{ subsystem.name }}"

@@ -1,0 +1,11 @@
+# NVMe-oF RDMA DHCP client (managed by Ansible)
+network:
+  version: 2
+  ethernets:
+{% for iface in nvmeof_rdma_dhcp_host_ifaces_list %}
+    {{ iface }}:
+      dhcp4: true
+      # Prefer other default routes (e.g. main NIC)
+      dhcp4-overrides:
+        route-metric: 200
+{% endfor %}

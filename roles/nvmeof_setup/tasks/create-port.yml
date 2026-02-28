@@ -1,0 +1,68 @@
+---
+# Create a single NVMe-oF port
+
+- name: Check if port exists
+  ansible.builtin.stat:
+    path: /sys/kernel/config/nvmet/ports/{{ port.port_id }}
+  register: port_exists
+  become: true
+
+- name: Create port directory
+  ansible.builtin.file:
+    path: /sys/kernel/config/nvmet/ports/{{ port.port_id }}
+    state: directory
+    mode: "0755"
+  become: true
+  when: not port_exists.stat.exists
+
+# addr_* attributes are one-time writable; only set when port was just created
+- name: Set transport type for port {{ port.port_id }}
+  ansible.builtin.shell: |
+    echo "{{ port.trtype }}" > \
+      /sys/kernel/config/nvmet/ports/{{ port.port_id }}/addr_trtype
+  become: true
+  when: not port_exists.stat.exists
+
+- name: Set address family for port {{ port.port_id }}
+  ansible.builtin.shell: |
+    echo "{{ port.adrfam }}" > \
+      /sys/kernel/config/nvmet/ports/{{ port.port_id }}/addr_adrfam
+  become: true
+  when: not port_exists.stat.exists
+
+- name: Set target address for port {{ port.port_id }}
+  ansible.builtin.shell: |
+    echo "{{ port.traddr }}" > \
+      /sys/kernel/config/nvmet/ports/{{ port.port_id }}/addr_traddr
+  become: true
+  when: not port_exists.stat.exists
+
+- name: Set service ID for port {{ port.port_id }}
+  ansible.builtin.shell: |
+    echo "{{ port.trsvcid }}" > \
+      /sys/kernel/config/nvmet/ports/{{ port.port_id }}/addr_trsvcid
+  become: true
+  when: not port_exists.stat.exists
+
+- name: Link subsystems to port {{ port.port_id }}
+  ansible.builtin.file:
+    src: /sys/kernel/config/nvmet/subsystems/{{ item }}
+    dest: >-
+      /sys/kernel/config/nvmet/ports/{{
+        port.port_id
+      }}/subsystems/{{ item }}
+    state: link
+  become: true
+  loop: "{{ port.subsystems }}"
+  register: nvmeof_port_link_result
+  retries: 6
+  delay: 5
+  until: nvmeof_port_link_result is not failed
+
+- name: Fail if subsystem link to port did not succeed after retries
+  ansible.builtin.fail:
+    msg: >-
+      Linking subsystem to port {{ port.port_id }} failed after retries.
+      {{ (nvmeof_port_link_result.results | selectattr('failed')
+         | map(attribute='msg') | list | first) | default('') }}
+  when: nvmeof_port_link_result is failed

@@ -1,0 +1,9 @@
+# NVMe-oF RDMA DHCP (managed by Ansible) - DHCP only on RDMA interface
+# Bind to target IP only to avoid conflicts with systemd-resolved/default config
+listen-address={{ nvmeof_setup_rdma_dhcp_target_ip | default(nvmeof_setup_target_ip_resolved) }}
+interface={{ nvmeof_setup_target_interface }}
+bind-interfaces
+# Disable DNS; serve DHCP only
+port=0
+# DHCP range for RDMA link (exclude target IP)
+dhcp-range=interface:{{ nvmeof_setup_target_interface }},{{ nvmeof_setup_rdma_dhcp_range }},{{ nvmeof_setup_rdma_dhcp_lease }}

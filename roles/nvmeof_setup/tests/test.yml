@@ -1,0 +1,10 @@
+---
+- name: The test playbook for the nvmeof_setup role
+  hosts: all
+  vars:
+    # Override for CI - don't create service or use real devices
+    nvmeof_setup_create_service: false
+    nvmeof_setup_cleanup: false
+  roles:
+    - role: nvmeof_setup
+      become: true

@@ -1,0 +1,59 @@
+---
+# Create a namespace within a subsystem
+
+- name: "Check if namespace exists for {{ subsystem_name }}"
+  ansible.builtin.stat:
+    path: >-
+      /sys/kernel/config/nvmet/subsystems/{{
+        subsystem_name
+      }}/namespaces/{{ namespace.nsid }}
+  register: namespace_exists
+  become: true
+
+- name: Create namespace directory
+  ansible.builtin.file:
+    path: >-
+      /sys/kernel/config/nvmet/subsystems/{{
+        subsystem_name
+      }}/namespaces/{{ namespace.nsid }}
+    state: directory
+    mode: "0755"
+  become: true
+  when: not namespace_exists.stat.exists
+
+- name: Check block device exists for namespace
+  ansible.builtin.stat:
+    path: "{{ namespace.device_path }}"
+  register: nvmeof_namespace_device
+  become: true
+
+- name: Fail when namespace device_path does not exist
+  ansible.builtin.fail:
+    msg: >-
+      Block device {{ namespace.device_path }} does not exist on the target.
+      Create it (e.g. use a loop device or attach an NVMe/disk) or set
+      device_path in nvmeof_setup_subsystems to an existing block device.
+  when: not nvmeof_namespace_device.stat.exists
+
+- name: Get current namespace device_path
+  ansible.builtin.slurp:
+    src: >-
+      /sys/kernel/config/nvmet/subsystems/{{ subsystem_name }}/namespaces/{{ namespace.nsid }}/device_path
+  register: nvmeof_current_device_path
+  become: true
+  failed_when: false
+  changed_when: false
+
+- name: Set device path for namespace
+  ansible.builtin.shell: |
+    echo -n "{{ namespace.device_path }}" > \
+      /sys/kernel/config/nvmet/subsystems/{{ subsystem_name }}/namespaces/{{ namespace.nsid }}/device_path
+  become: true
+  when: >-
+    (nvmeof_current_device_path.content | default('') | b64decode | default('') | trim) != (namespace.device_path | trim)
+
+- name: Enable namespace
+  ansible.builtin.shell: |
+    echo "{{ '1' if namespace.enable else '0' }}" > \
+      /sys/kernel/config/nvmet/subsystems/{{ subsystem_name }}/namespaces/{{ namespace.nsid }}/enable
+  become: true

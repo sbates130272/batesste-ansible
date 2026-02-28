@@ -1,0 +1,14 @@
+[Unit]
+Description=NVMe-oF Target Service
+After=network-online.target local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/nvmeof-target-setup.sh
+ExecStop=/usr/local/bin/nvmeof-target-cleanup.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

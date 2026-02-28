@@ -1,0 +1,10 @@
+---
+# Cleanup existing NVMe-oF configuration
+
+- name: Cleanup host connections
+  ansible.builtin.include_tasks: cleanup-host.yml
+  when: nvmeof_setup_mode == 'host'
+
+- name: Cleanup target configuration
+  ansible.builtin.include_tasks: cleanup-target.yml
+  when: nvmeof_setup_mode == 'target'

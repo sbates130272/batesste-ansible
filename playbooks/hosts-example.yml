@@ -1,4 +1,5 @@
 all:
+
   children:
 
     local:
@@ -14,6 +15,13 @@ all:
           user_setup_motd: true
     amd:
       hosts:
+        amd-oracle:
+        weka-client:
+          ansible_host: weka-client
+          username: stebates
+        weka-server:
+          ansible_host: weka-server
+          username: stebates
         hipfile-9:
         hipfile-10:
         ibgda-ctrl:
@@ -50,3 +58,48 @@ all:
         pliops-storage:
         pliops-gpu:
           ansible_user: amd
+
+    nvmeof:
+      hosts:
+        nvmeof-hosts:
+          nvmeof_setup_mode: host
+          ansible_host: snoc-think
+          nvmeof_setup_target_host: 192.168.2.1
+          nvmeof_setup_connections:
+            - transport: rdma
+              trsvcid: 4420
+              nqn: nvmet-storage
+        nvmeof_targets:
+          ansible_host: snoc-think-vm
+          nvmeof_setup_mode: target
+          nvmeof_setup_rdma_dhcp_enable: false
+          nvmeof_setup_rdma_dhcp_subnet: "192.168.2.0/24"
+          nvmeof_setup_rdma_dhcp_range: "192.168.2.10,192.168.2.50"
+          nvmeof_setup_rdma_dhcp_target_ip: "192.168.2.1"
+          nvmeof_setup_rdma_dhcp_lease: "1h"
+          nvmeof_setup_target_interface: enp1s0np1
+          nvmeof_setup_subsystems:
+            - name: nvmet-storage
+              allow_any_host: true
+              namespaces:
+                - nsid: 1
+                  device_path: /dev/nvme0n1
+                  enable: true
+                - nsid: 2
+                  device_path: /dev/nvme1n1
+                  enable: true
+                - nsid: 3
+                  device_path: /dev/nvme2n1
+                  enable: true
+                - nsid: 4
+                  device_path: /dev/nvme3n1
+                  enable: true
+          nvmeof_setup_ports:
+            - port_id: 1
+              trtype: rdma
+              adrfam: ipv4
+              trsvcid: 4420
+              subsystems:
+                - nvmet-storage
+      vars:
+        username: stebates

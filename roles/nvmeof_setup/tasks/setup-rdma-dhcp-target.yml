@@ -1,0 +1,108 @@
+---
+# Optional: set target RDMA interface to static IP when role manages it
+- name: Ensure target RDMA interface has static IP (netplan)
+  ansible.builtin.template:
+    src: netplan-rdma-target-static.yaml.j2
+    dest: /etc/netplan/99-nvmeof-rdma-target.yaml
+    mode: "0644"
+    owner: root
+    group: root
+  become: true
+  when:
+    - nvmeof_setup_rdma_dhcp_target_ip | length > 0
+    - nvmeof_setup_target_interface | length > 0
+
+- name: Apply netplan (target RDMA static)
+  ansible.builtin.command: netplan apply
+  become: true
+  when:
+    - nvmeof_setup_rdma_dhcp_target_ip | length > 0
+    - nvmeof_setup_target_interface | length > 0
+
+- name: Check target RDMA interface exists (ip link name)
+  ansible.builtin.stat:
+    path: /sys/class/net/{{ nvmeof_setup_target_interface }}
+  register: nvmeof_target_iface_exists
+  when: nvmeof_setup_target_interface | length > 0
+
+- name: Bring target RDMA interface up
+  ansible.builtin.command:
+    cmd: ip link set {{ nvmeof_setup_target_interface }} up
+  become: true
+  when:
+    - nvmeof_setup_target_interface | length > 0
+    - nvmeof_target_iface_exists.stat.exists | default(false)
+
+- name: Wait for target RDMA interface to have static IP
+  ansible.builtin.shell: |
+    set -o pipefail
+    for i in 1 2 3 4 5 6 7 8 9 10; do
+      ip -4 addr show {{ nvmeof_setup_target_interface }} 2>/dev/null \
+        | grep -q "{{ nvmeof_setup_rdma_dhcp_target_ip }}/" && exit 0
+      sleep 2
+    done
+    exit 1
+  args:
+    executable: /bin/bash
+  register: nvmeof_rdma_wait_target_ip
+  changed_when: false
+  failed_when: nvmeof_rdma_wait_target_ip.rc != 0
+  when:
+    - nvmeof_setup_rdma_dhcp_target_ip | length > 0
+    - nvmeof_setup_target_interface | length > 0
+
+- name: Set target IP resolved to DHCP static when role configured it
+  ansible.builtin.set_fact:
+    nvmeof_setup_target_ip_resolved: "{{ nvmeof_setup_rdma_dhcp_target_ip }}"
+  when:
+    - nvmeof_setup_rdma_dhcp_target_ip | length > 0
+
+- name: Resolve ports with target IP after RDMA DHCP static
+  ansible.builtin.set_fact:
+    nvmeof_setup_ports_resolved: "{{
+      nvmeof_setup_ports
+      | map('combine', {'traddr': nvmeof_setup_target_ip_resolved})
+      | list
+    }}"
+  when: nvmeof_setup_rdma_dhcp_target_ip | length > 0
+
+- name: Install dnsmasq for RDMA DHCP
+  ansible.builtin.package:
+    name: dnsmasq
+    state: present
+    update_cache: true
+  become: true
+
+- name: Deploy dnsmasq snippet for NVMe-oF RDMA
+  ansible.builtin.template:
+    src: dnsmasq-nvmeof-rdma.conf.j2
+    dest: /etc/dnsmasq.d/nvmeof-rdma.conf
+    mode: "0644"
+    owner: root
+    group: root
+  become: true
+  notify: Restart dnsmasq
+
+- name: Start and enable dnsmasq
+  ansible.builtin.systemd:
+    name: dnsmasq
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true
+  register: nvmeof_dnsmasq_start
+  failed_when: false
+
+- name: Show dnsmasq journal when start failed
+  ansible.builtin.command:
+    cmd: journalctl -u dnsmasq -n 30 --no-pager
+  register: nvmeof_dnsmasq_journal
+  changed_when: false
+  when: nvmeof_dnsmasq_start.failed | default(false)
+
+- name: Fail with dnsmasq start error and journal
+  ansible.builtin.fail:
+    msg: >-
+      dnsmasq failed to start. {{ nvmeof_dnsmasq_start.msg | default('') }}
+      Journal: {{ nvmeof_dnsmasq_journal.stdout_lines | default([]) }}
+  when: nvmeof_dnsmasq_start.failed | default(false)

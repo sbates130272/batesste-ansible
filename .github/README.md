@@ -37,13 +37,21 @@ Role-specific configurations are defined in `generate-workflows.py` in the `ROLE
 ROLE_CONFIGS = {
     "role_name": {
         "ubuntu_versions": ["24.04"],  # Ubuntu versions to test
-        "free_disk_space": False,                # Whether to free disk space first
-        "extra_vars": {},                        # Additional Ansible variables
-        "verification_commands": [],             # Commands to verify installation
-        "needs_vault": False,                    # Whether role needs vault password
+        "free_disk_space": False,      # Whether to free disk space first
+        "extra_vars": {},              # Additional Ansible variables
+        "verification_commands": [],   # Commands to verify installation
+        "needs_vault": False,          # Whether role needs vault password
+        "ignore_failure": False,       # If true, workflow still passes when test fails
+        "workflow_dispatch_only": False,  # If true, run only on manual trigger
     }
 }
 ```
+
+**Dispatch-only (blacklist):** To have a workflow run only on manual
+`workflow_dispatch` and not on pull_request or push, either add the role
+name to `WORKFLOW_DISPATCH_ONLY_ROLES` in `generate-workflows.py` (e.g.
+`["nvmeof_setup"]`) or set `workflow_dispatch_only: true` for that role
+in `ROLE_CONFIGS`. Regenerate workflows after changing.
 
 ### Adding CI for a New Role
 
@@ -150,6 +158,9 @@ Then regenerate workflows.
 - Review verification commands in the workflow
 - Check if hardware-specific features need to be disabled
 - Verify required secrets are configured in GitHub repository settings
+- For temporarily flaky or CI-limited tests, set `ignore_failure: true` in the
+  role's config in `ROLE_CONFIGS`. The job still runs and reports failure, but
+  the overall workflow is marked success.
 
 ### Regenerating workflows
 If workflows become out of sync:

@@ -1,0 +1,131 @@
+---
+# Copyright (c) Stephen Bates, 2025
+#
+# NVMe-oF setup for both targets and hosts
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
+- name: Discover RDMA interfaces and IPv4 addresses
+  ansible.builtin.include_tasks: resolve-rdma-addresses.yml
+  when: nvmeof_setup_transport == 'rdma'
+
+- name: Configure host RDMA for DHCP and re-gather facts
+  ansible.builtin.include_tasks: setup-rdma-dhcp-host.yml
+  when:
+    - nvmeof_setup_mode == 'host'
+    - nvmeof_setup_transport == 'rdma'
+    - nvmeof_setup_rdma_dhcp_enable | bool
+
+- name: Resolve target IP from interface or variable (target mode)
+  ansible.builtin.set_fact:
+    nvmeof_setup_target_ip_resolved: "{{
+      (
+        (hostvars[inventory_hostname]['ansible_' ~ nvmeof_setup_target_interface]
+          | default({})).ipv4.address
+        | default((hostvars[inventory_hostname]['ansible_' ~ nvmeof_setup_target_interface]
+          | default({})).ipv4[0].address | default(''))
+        | default(nvmeof_setup_target_ip)
+      )
+      if (nvmeof_setup_target_interface | length > 0)
+        and (hostvars[inventory_hostname]['ansible_' ~ nvmeof_setup_target_interface]
+          | default({})).ipv4 is defined
+      else nvmeof_setup_target_ip
+    }}"
+  when: nvmeof_setup_mode == 'target'
+
+- name: Initialize resolved host connections list
+  ansible.builtin.set_fact:
+    nvmeof_setup_connections_resolved: []
+  when:
+    - nvmeof_setup_mode == 'host'
+    - nvmeof_setup_target_host | length > 0
+
+- name: Resolve host connections traddr from target host
+  ansible.builtin.set_fact:
+    nvmeof_setup_connections_resolved: "{{
+      nvmeof_setup_connections_resolved + [nvmeof_one_conn] }}"
+  loop: "{{ nvmeof_setup_connections }}"
+  when:
+    - nvmeof_setup_mode == 'host'
+    - nvmeof_setup_target_host | length > 0
+  vars:
+    nvmeof_traddr: "{{
+      hostvars[nvmeof_setup_target_host].nvmeof_setup_target_ip_resolved
+      | default(item.traddr)
+      | default(nvmeof_setup_target_ip)
+    }}"
+    nvmeof_one_conn: "{{ item | combine({'traddr': nvmeof_traddr}) }}"
+
+- name: Resolve ports with target IP (target mode)
+  ansible.builtin.set_fact:
+    nvmeof_setup_ports_resolved: "{{
+      nvmeof_setup_ports
+      | map('combine', {'traddr': nvmeof_setup_target_ip_resolved})
+      | list
+    }}"
+  when: nvmeof_setup_mode == 'target'
+
+- name: Install and run RDMA DHCP server on target
+  ansible.builtin.include_tasks: setup-rdma-dhcp-target.yml
+  when:
+    - nvmeof_setup_mode == 'target'
+    - nvmeof_setup_transport == 'rdma'
+    - nvmeof_setup_rdma_dhcp_enable | bool
+    - nvmeof_setup_rdma_dhcp_subnet | length > 0
+    - nvmeof_setup_rdma_dhcp_range | length > 0
+    - nvmeof_setup_target_interface | length > 0
+
+- name: Install NVMe CLI tools
+  ansible.builtin.package:
+    name:
+      - nvme-cli
+    state: present
+    update_cache: true
+  become: true
+  when: nvmeof_setup_install_tools
+
+- name: Install configfs-tools for target configuration
+  ansible.builtin.package:
+    name:
+      - linux-modules-extra-{{ ansible_kernel }}
+    state: present
+  become: true
+  when: nvmeof_setup_mode == 'target'
+
+- name: Cleanup existing NVMe-oF configuration
+  ansible.builtin.include_tasks: cleanup.yml
+  when: nvmeof_setup_cleanup
+
+- name: Load kernel modules for target mode
+  ansible.builtin.include_tasks: load-modules-target.yml
+  when:
+    - nvmeof_setup_mode == 'target'
+    - nvmeof_setup_load_modules
+
+- name: Load kernel modules for host mode
+  ansible.builtin.include_tasks: load-modules-host.yml
+  when:
+    - nvmeof_setup_mode == 'host'
+    - nvmeof_setup_load_modules
+
+- name: Configure NVMe-oF target
+  ansible.builtin.include_tasks: setup-target.yml
+  when: nvmeof_setup_mode == 'target'
+
+- name: Configure NVMe-oF host/initiator
+  ansible.builtin.include_tasks: setup-host.yml
+  when: nvmeof_setup_mode == 'host'
+
+- name: Create systemd service for target persistence
+  ansible.builtin.include_tasks: create-service.yml
+  when:
+    - nvmeof_setup_mode == 'target'
+    - nvmeof_setup_create_service

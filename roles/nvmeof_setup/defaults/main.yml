@@ -1,0 +1,97 @@
+---
+# defaults file for nvmeof_setup
+
+# Role mode: 'target' to configure NVMe-oF target, 'host' for initiator
+nvmeof_setup_mode: target
+
+# Transport type: rdma, tcp, fc, loop
+nvmeof_setup_transport: rdma
+
+# IP address for target (target mode only). Used when
+# nvmeof_setup_target_interface is not set.
+nvmeof_setup_target_ip: 192.168.2.1
+
+# Network interface name (as in ip link) on target host, e.g. the Ethernet
+# backing the RDMA port (enp1s0np1 for RoCE). Use the IP name, not the RDMA
+# netdev name (e.g. rocep195s0f0) if that differs. When set, target address
+# is taken from that interface's IPv4 instead of nvmeof_setup_target_ip.
+nvmeof_setup_target_interface: ""
+
+# Inventory hostname of the NVMe-oF target. When set on host/initiator,
+# traddr is resolved from that host's nvmeof_setup_target_ip_resolved.
+nvmeof_setup_target_host: ""
+
+# Port/service ID for target
+nvmeof_setup_port: 4420
+
+# Address family: ipv4, ipv6
+nvmeof_setup_addr_family: ipv4
+
+# Subsystem configuration (target mode)
+# List of subsystems to create
+nvmeof_setup_subsystems:
+  - name: nvmet-test
+    allow_any_host: true
+    namespaces:
+      - nsid: 1
+        device_path: /dev/nvme0n1
+        enable: true
+
+# Port configuration (target mode)
+nvmeof_setup_ports:
+  - port_id: 1
+    trtype: "{{ nvmeof_setup_transport }}"
+    adrfam: "{{ nvmeof_setup_addr_family }}"
+    traddr: "{{ nvmeof_setup_target_ip }}"
+    trsvcid: "{{ nvmeof_setup_port }}"
+    subsystems:
+      - nvmet-test
+
+# Host/initiator configuration (host mode)
+nvmeof_setup_connections:
+  - transport: "{{ nvmeof_setup_transport }}"
+    traddr: 192.168.2.2
+    trsvcid: 4420
+    nqn: nvmet-test
+
+# Whether to install NVMe CLI tools
+nvmeof_setup_install_tools: true
+
+# Whether to load kernel modules
+nvmeof_setup_load_modules: true
+
+# Modules to load for target mode
+nvmeof_setup_target_modules:
+  - nvmet
+  - nvmet-rdma
+  - nvmet-tcp
+
+# Modules to load for host/initiator mode
+nvmeof_setup_host_modules:
+  - nvme-fabrics
+  - nvme-rdma
+  - nvme-tcp
+
+# Whether to persist module loading across reboots
+nvmeof_setup_persist_modules: true
+
+# Whether to create systemd service for target persistence
+nvmeof_setup_create_service: true
+
+# Cleanup existing configuration before applying new one
+nvmeof_setup_cleanup: false
+
+# Optional RDMA DHCP: target runs DHCP server on RDMA interface, host gets
+# address via DHCP. For direct-connected or segment without DHCP.
+nvmeof_setup_rdma_dhcp_enable: false
+# Subnet for RDMA link (e.g. 192.168.2.0/24)
+nvmeof_setup_rdma_dhcp_subnet: ""
+# DHCP range, exclude target IP (e.g. 192.168.2.10,192.168.2.50)
+nvmeof_setup_rdma_dhcp_range: ""
+# Static IP for target RDMA interface when role configures it (e.g. 192.168.2.1)
+nvmeof_setup_rdma_dhcp_target_ip: ""
+# Host RDMA interface(s) for DHCP client (e.g. ib0). Empty: use first from
+# nvmeof_rdma_interfaces when set.
+nvmeof_setup_rdma_dhcp_interface_host: ""
+# DHCP lease time (e.g. 1h)
+nvmeof_setup_rdma_dhcp_lease: "1h"

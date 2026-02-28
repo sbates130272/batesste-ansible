@@ -1,0 +1,11 @@
+---
+# Copyright (c) Stephen Bates, 2025
+#
+
+- name: Setup NVMe-oF target and host
+  hosts: "{{ targets }}"
+  gather_facts: true
+  roles:
+    - role: nvmeof_setup
+      remote_user: "{{ username }}"
+      tags: [nvmeof_setup]

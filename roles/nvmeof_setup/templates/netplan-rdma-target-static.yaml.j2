@@ -1,0 +1,7 @@
+# NVMe-oF RDMA target static IP (managed by Ansible)
+network:
+  version: 2
+  ethernets:
+    {{ nvmeof_setup_target_interface }}:
+      addresses:
+        - {{ nvmeof_setup_rdma_dhcp_target_ip }}/{{ (nvmeof_setup_rdma_dhcp_subnet.split('/') | list)[-1] }}
