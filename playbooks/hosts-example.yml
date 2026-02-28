@@ -64,7 +64,7 @@ all:
         nvmeof-hosts:
           nvmeof_setup_mode: host
           ansible_host: snoc-think
-          nvmeof_setup_target_host: 192.168.2.1
+          nvmeof_setup_target_host: 
           nvmeof_setup_connections:
             - transport: rdma
               trsvcid: 4420
@@ -103,3 +103,13 @@ all:
                 - nvmet-storage
       vars:
         username: stebates
+    
+    rdma:
+      hosts:
+        snoc-think:
+          ansible_host: snoc-think
+        snoc-think-vm:
+          ansible_host: snoc-think-vm
+      vars:
+        rdma_setup_install_rdma_exporter: true
+        rdma_setup_motd: true

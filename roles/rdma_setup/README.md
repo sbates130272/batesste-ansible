@@ -2,7 +2,9 @@
 
 ## Overview
 
-This Ansible role configures RDMA/InfiniBand support on Ubuntu systems. It installs the necessary kernel modules, RDMA packages, and provides comprehensive detection and reporting of RDMA-capable devices.
+This Ansible role configures RDMA/InfiniBand support on Ubuntu systems.
+It installs the necessary kernel modules, RDMA packages, and provides
+comprehensive detection and reporting of RDMA-capable devices.
 
 ## Features
 
@@ -21,7 +23,7 @@ This Ansible role configures RDMA/InfiniBand support on Ubuntu systems. It insta
 
 ## Role Variables
 
-Available variables are listed below, along with default values (see `defaults/main.yml`):
+Available variables are listed below (defaults in `defaults/main.yml`):
 
 ```yaml
 # Timeout for system reboot (in seconds)
@@ -61,6 +63,32 @@ Device:  mlx5_0
 ==========================================
 ```
 
+## Optional: Prometheus rdma_exporter
+
+When enabled, the role can install the [rdma_exporter](https://github.com/yuuki/rdma_exporter)
+Prometheus exporter, which exposes RDMA/InfiniBand/RoCE NIC statistics
+as metrics.
+
+Variables (defaults in `defaults/main.yml`):
+
+- `rdma_setup_install_rdma_exporter` – enable installer (default: false)
+- `rdma_exporter_version` – release version, e.g. `"0.3.0"`
+- `rdma_exporter_install_dir` – binary directory (default: `/usr/local/bin`)
+- `rdma_exporter_listen_address` – listen address (default: `:9879`)
+- `rdma_exporter_metrics_path` – metrics path (default: `/metrics`)
+- `rdma_exporter_health_path` – health path (default: `/healthz`)
+- `rdma_exporter_exclude_devices` – comma-separated devices to exclude
+  (e.g. `mlx5_0,mlx5_1` on DGX/GB200)
+
+Example with exporter and device exclusion:
+
+```yaml
+- role: rdma_setup
+  vars:
+    rdma_setup_install_rdma_exporter: true
+    rdma_exporter_exclude_devices: "mlx5_0,mlx5_1"
+```
+
 ## Dependencies
 
 - Role: `check_platform` - Validates platform compatibility
@@ -89,7 +117,8 @@ After the role runs, you can access the RDMA detection information:
     var: rdma_detection_report
 ```
 
-The report is also saved on the target host at the location specified by `rdma_detect_output_file`.
+The report is also saved on the target host at the location specified
+by `rdma_detect_output_file`.
 
 ## Testing
 
@@ -99,7 +128,8 @@ Run the following from the folder this README resides in:
 ANSIBLE_ROLES_PATH=../ ansible-playbook -i <host_file> ./tests/test.yml
 ```
 
-There is an [example hosts file](./hosts-rdma-setup) that users can use as a template for their testing.
+There is an [example hosts file](./hosts-rdma-setup) that users can use
+as a template for their testing.
 
 ## Installed Packages
 
@@ -115,4 +145,5 @@ The role installs the following packages:
 
 ## Author and License Information
 
-See the [meta file](./meta/main.yml) for more information on the author, licensing and other details.
+See the [meta file](./meta/main.yml) for author, licensing and other
+details.
