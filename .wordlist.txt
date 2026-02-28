@@ -8,6 +8,7 @@ Compatability
 ConnectX
 Customizable
 DFD
+DGX
 DHCP
 DOM
 DOMs
@@ -28,6 +29,7 @@ InfiniBand
 Instinct
 JSON
 json
+NIC
 URI
 URI
 LTS

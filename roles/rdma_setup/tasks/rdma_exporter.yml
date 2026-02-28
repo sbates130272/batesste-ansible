@@ -1,0 +1,159 @@
+---
+# Optional install of Prometheus rdma_exporter (yuuki/rdma_exporter).
+
+- name: Set rdma_exporter architecture for GitHub asset
+  ansible.builtin.set_fact:
+    rdma_exporter_arch: >-
+      {{ 'amd64' if ansible_architecture == 'x86_64'
+         else 'arm64' if ansible_architecture == 'aarch64'
+         else '' }}
+
+- name: Fail on unsupported architecture for rdma_exporter
+  ansible.builtin.fail:
+    msg: "rdma_exporter not available for arch {{ ansible_architecture }}"
+  when: rdma_exporter_arch == ''
+
+- name: Get latest rdma_exporter version from GitHub API
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/yuuki/rdma_exporter/releases/latest
+    return_content: true
+  register: rdma_exporter_latest_release
+  when: rdma_exporter_version == "latest"
+  changed_when: false
+
+- name: Set rdma_exporter resolved version
+  ansible.builtin.set_fact:
+    rdma_exporter_resolved_version: >-
+      {{ (rdma_exporter_latest_release.json.tag_name | regex_replace('^v', ''))
+         if rdma_exporter_version == 'latest'
+         else rdma_exporter_version }}
+
+- name: Check if rdma_exporter binary is present
+  ansible.builtin.stat:
+    path: "{{ rdma_exporter_install_dir }}/rdma_exporter"
+  register: rdma_exporter_binary_stat
+
+- name: Check if rdma_exporter version file is present
+  ansible.builtin.stat:
+    path: "{{ rdma_exporter_install_dir }}/.rdma_exporter_version"
+  register: rdma_exporter_version_file_stat
+
+- name: Read installed rdma_exporter version
+  ansible.builtin.slurp:
+    src: "{{ rdma_exporter_install_dir }}/.rdma_exporter_version"
+  register: rdma_exporter_version_content
+  when: rdma_exporter_version_file_stat.stat.exists
+  become: true
+
+- name: Set current rdma_exporter version fact
+  ansible.builtin.set_fact:
+    rdma_exporter_current_version: >-
+      {{ rdma_exporter_version_content.content | b64decode | trim }}
+  when: >-
+    rdma_exporter_version_file_stat.stat.exists and
+    not (rdma_exporter_version_content.failed | default(false))
+
+- name: Set rdma_exporter download URL
+  ansible.builtin.set_fact:
+    rdma_exporter_download_url: >-
+      {{ 'https://github.com/yuuki/rdma_exporter/releases/download/v'
+         ~ rdma_exporter_resolved_version
+         ~ '/rdma_exporter_' ~ rdma_exporter_resolved_version
+         ~ '_linux_' ~ rdma_exporter_arch ~ '.tar.gz' }}
+
+- name: Download and install rdma_exporter binary
+  when: >-
+    not rdma_exporter_binary_stat.stat.exists or
+    not rdma_exporter_version_file_stat.stat.exists or
+    (rdma_exporter_current_version | default('')) != rdma_exporter_resolved_version
+  block:
+    - name: Create temporary directory for download
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: rdma_exporter
+      register: rdma_exporter_temp_dir
+
+    - name: Download rdma_exporter release tarball
+      ansible.builtin.get_url:
+        url: "{{ rdma_exporter_download_url }}"
+        dest: "{{ rdma_exporter_temp_dir.path }}/rdma_exporter.tar.gz"
+        mode: '0644'
+
+    - name: Unarchive rdma_exporter tarball
+      ansible.builtin.unarchive:
+        src: "{{ rdma_exporter_temp_dir.path }}/rdma_exporter.tar.gz"
+        dest: "{{ rdma_exporter_temp_dir.path }}"
+        remote_src: true
+      become: true
+
+    - name: Ensure rdma_exporter install directory exists
+      ansible.builtin.file:
+        path: "{{ rdma_exporter_install_dir }}"
+        state: directory
+        mode: '0755'
+      become: true
+
+    - name: Copy rdma_exporter binary to install directory
+      ansible.builtin.copy:
+        src: "{{ rdma_exporter_temp_dir.path }}/rdma_exporter"
+        dest: "{{ rdma_exporter_install_dir }}/rdma_exporter"
+        mode: '0755'
+        owner: root
+        group: root
+        remote_src: true
+      become: true
+
+    - name: Write rdma_exporter version file
+      ansible.builtin.copy:
+        content: "{{ rdma_exporter_resolved_version }}\n"
+        dest: "{{ rdma_exporter_install_dir }}/.rdma_exporter_version"
+        mode: '0644'
+        owner: root
+        group: root
+      become: true
+
+    - name: Remove temporary directory
+      ansible.builtin.file:
+        path: "{{ rdma_exporter_temp_dir.path }}"
+        state: absent
+      become: true
+
+- name: Deploy rdma_exporter environment file
+  ansible.builtin.template:
+    src: rdma_exporter.env.j2
+    dest: /etc/rdma_exporter.env
+    owner: root
+    group: root
+    mode: '0640'
+  become: true
+
+- name: Stop and remove old rdma_exporter unit if present
+  ansible.builtin.systemd:
+    name: rdma_exporter
+    state: stopped
+    enabled: false
+  become: true
+  failed_when: false
+
+- name: Remove old rdma_exporter unit file
+  ansible.builtin.file:
+    path: /etc/systemd/system/rdma_exporter.service
+    state: absent
+  become: true
+
+- name: Deploy rdma-exporter systemd unit
+  ansible.builtin.template:
+    src: rdma_exporter.service.j2
+    dest: /etc/systemd/system/rdma-exporter.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Reload systemd and enable rdma-exporter
+  ansible.builtin.systemd:
+    name: rdma-exporter
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true

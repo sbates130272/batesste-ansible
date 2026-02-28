@@ -20,6 +20,7 @@
     autoremove: true
   become: true
 
+# Reboot after apt upgrade so new kernel (if any) is loaded.
 - name: Perform a reboot to allow kernel updates
   ansible.builtin.reboot:
     reboot_timeout: "{{ rdma_setup_reboot_timeout }}"
@@ -65,6 +66,7 @@
   failed_when: false
   changed_when: false
 
+# Reboot again so RDMA kernel modules can load.
 - name: Perform another reboot to allow modules to load
   ansible.builtin.reboot:
     reboot_timeout: "{{ rdma_setup_reboot_timeout }}"
@@ -106,7 +108,7 @@
 
 - name: Display location of saved report
   ansible.builtin.debug:
-    msg: "RDMA detection report saved to {{ rdma_detect_output_file }} on target host"
+    msg: "RDMA detection report saved to {{ rdma_detect_output_file }}"
 
 - name: Run the rdma dev command and register output
   ansible.builtin.command:
@@ -130,3 +132,7 @@
     mode: '0755'
   become: true
   when: rdma_setup_motd
+
+- name: Install and configure rdma_exporter (optional)
+  ansible.builtin.include_tasks: rdma_exporter.yml
+  when: rdma_setup_install_rdma_exporter | default(false) | bool
