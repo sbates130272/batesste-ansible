@@ -46,13 +46,26 @@
     state: present
   become: true
 
-- name: Install my favourite packages on noble
-  ansible.builtin.package:
-    update_cache: true
-    name:
+- name: Set noble extra package list (skip git-email if git >= 2.43)
+  ansible.builtin.set_fact:
+    noble_extra_packages: "{{ _base_noble + (_git_email_if_ok | default([])) }}"
+  vars:
+    _base_noble:
       - elpa-cmake-mode
       - elpa-rust-mode
       - virtiofsd
+    _git_ver: "{{ (ansible_facts.packages['git'] | default([]) | first
+      | default({})).version | default('99') }}"
+    _install_git_email: "{{ _git_ver is version('2.43', '<') }}"
+    _git_email_if_ok: "{{ ['git-email'] if _install_git_email else [] }}"
+  when:
+    - ansible_facts['distribution'] == "Ubuntu"
+    - ansible_facts['distribution_release'] == "noble"
+
+- name: Install my favourite packages on noble
+  ansible.builtin.package:
+    update_cache: true
+    name: "{{ noble_extra_packages }}"
   become: true
   when:
     - ansible_facts['distribution'] == "Ubuntu"
