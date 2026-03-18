@@ -17,7 +17,7 @@ The test playbook (`test.yml`) verifies:
 ### Prerequisites
 
 - Ansible installed
-- Ubuntu 24.04
+- Ubuntu 24.04, 26.04
 - GitHub token (optional, for authentication tests)
 
 ### Basic Test (without GitHub authentication)

@@ -16,6 +16,11 @@ all:
     amd:
       hosts:
         amd-oracle:
+          ansible_host: amd-oracle
+          user_setup_create: false
+          ansible_ssh_common_args: >-
+            -o RequestTTY=no
+            -o RemoteCommand=none
         weka-client:
           ansible_host: weka-client
           username: stebates
@@ -64,7 +69,7 @@ all:
         nvmeof-hosts:
           nvmeof_setup_mode: host
           ansible_host: snoc-think
-          nvmeof_setup_target_host: 
+          nvmeof_setup_target_host: 192.168.2.1
           nvmeof_setup_connections:
             - transport: rdma
               trsvcid: 4420
@@ -94,6 +99,18 @@ all:
                 - nsid: 4
                   device_path: /dev/nvme3n1
                   enable: true
+                - nsid: 5
+                  device_path: /dev/nvme4n1
+                  enable: true
+                - nsid: 6
+                  device_path: /dev/nvme4n1
+                  enable: true
+                - nsid: 7
+                  device_path: /dev/nvme6n1
+                  enable: true
+                - nsid: 8
+                  device_path: /dev/nvme7n1
+                  enable: true
           nvmeof_setup_ports:
             - port_id: 1
               trtype: rdma
@@ -103,7 +120,40 @@ all:
                 - nvmet-storage
       vars:
         username: stebates
-    
+
+    weka_oci:
+      hosts:
+        weka-server-vm-10:
+          ansible_host: useocpm2m-097-114
+          ansible_port: 2230
+          ansible_ssh_common_args: '-o ProxyJump=useocpslog-002'
+      vars:
+        username: stebates
+        user_setup_vm_fstab: true
+        user_setup_motd: true
+        rocm_setup_user: stebates
+        rocm_setup_run_checks: false
+        rdma_setup_install_rdma_exporter: true
+        rdma_setup_motd: true
+
+    weka_local:
+      hosts:
+        weka-server-vm-1:
+          ansible_host: snoc-think
+          ansible_port: 2230
+        weka-server-vm-2:
+          ansible_host: snoc-think
+          ansible_port: 2231
+      vars:
+        username: stebates
+        user_setup_vm_fstab: true
+        user_setup_motd: true
+        rocm_setup_user: stebates
+        rocm_setup_run_checks: false
+        rdma_setup_install_rdma_exporter: true
+        rdma_setup_motd: true
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+
     rdma:
       hosts:
         snoc-think:
@@ -113,3 +163,13 @@ all:
       vars:
         rdma_setup_install_rdma_exporter: true
         rdma_setup_motd: true
+
+    pensando:
+      hosts:
+        pensando-01:
+          ansible_host: pens-01
+          ansible_user: stebates
+          user_setup_vm_fstab: false
+      vars:
+        username: stebates
+        user_setup_motd: true

@@ -60,7 +60,7 @@
     _git_email_if_ok: "{{ ['git-email'] if _install_git_email else [] }}"
   when:
     - ansible_facts['distribution'] == "Ubuntu"
-    - ansible_facts['distribution_release'] == "noble"
+    - ansible_facts['distribution_release'] in ['noble', 'resolute']
 
 - name: Install my favourite packages on noble
   ansible.builtin.package:
@@ -69,4 +69,4 @@
   become: true
   when:
     - ansible_facts['distribution'] == "Ubuntu"
-    - ansible_facts['distribution_release'] == "noble"
+    - ansible_facts['distribution_release'] in ['noble', 'resolute']

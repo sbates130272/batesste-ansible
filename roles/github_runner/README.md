@@ -15,7 +15,7 @@ Install and configure GitHub self-hosted runners on Linux systems. This role aut
 
 ## Requirements
 
-- Ubuntu 24.04 (Noble)
+- Ubuntu 24.04 (noble), 26.04 (resolute)
 - `ansible-galaxy collection install community.general`
 - GitHub Personal Access Token or GitHub App token with appropriate permissions
 
