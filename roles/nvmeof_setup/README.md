@@ -29,7 +29,7 @@ hosts/initiators on Ubuntu systems. It supports multiple transport types
 
 ## Requirements
 
-- Ubuntu 24.04 (Noble)
+- Ubuntu 24.04 (noble), 26.04 (resolute)
 - Kernel with NVMe-oF support (linux-modules-extra)
 - For RDMA: Working RDMA network stack (see rdma_setup role)
 - nvme-cli package

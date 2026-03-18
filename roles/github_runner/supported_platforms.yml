@@ -5,3 +5,5 @@ supported_distributions:
 supported_versions:
   - "24.04"
   - noble
+  - "26.04"
+  - resolute

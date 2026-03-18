@@ -7,8 +7,9 @@ to setup bare-metal and VM servers the way that I like them. This
 includes setting up ssh and gnupgp keys, installing packages and
 copying in preferred configuration settings.
 
-This repo assumes Ubuntu 24.04 LTS (noble) and we fail gracefully if
-we detect any hosts that do not meet this criteria.
+This repo supports Ubuntu 24.04 LTS (noble) and 26.04 LTS (resolute),
+and we fail gracefully if we detect any hosts that do not meet this
+criteria.
 
 ## Setup
 
@@ -19,7 +20,7 @@ Use Homebrew you fools!
 brew install ansible
 ```
 
-### Ubuntu 24.04
+### Ubuntu 24.04 / 26.04
 
 Use the packaged version:
 ```
@@ -51,8 +52,8 @@ ansible-playbook -i hosts <playbook-name>.yml
 ```
 ### AWS Example
 
-Assuming you have setup a basic Ubuntu 24.04 EC2 instance on AWS you
-can create a hosts file like this:
+Assuming you have setup a basic Ubuntu 24.04 or 26.04 EC2 instance on
+AWS you can create a hosts file like this:
 ```
 [awsmachines]
 52.11.127.216
