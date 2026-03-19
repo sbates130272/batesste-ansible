@@ -1,8 +1,12 @@
+---
 galaxy_info:
   author: Stephen Bates
-  description: Stephen Bates
   company: Raithlin Semiconductors
-  license: BSD-3-Clause
+  role_name: user_setup
+  description: >-
+    Create user accounts, SSH keys, and system
+    configuration
+  license: Apache-2.0
   min_ansible_version: "8.2.0"
   platforms:
     - name: Ubuntu
@@ -10,3 +14,9 @@ galaxy_info:
         - noble
         - resolute
         - jammy
+  galaxy_tags:
+    - user
+    - ssh
+    - system
+
+dependencies: []

@@ -1,0 +1,116 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# Install and configure Docker CE on Ubuntu. Replaces the
+# geerlingguy.docker standalone role with a simpler
+# Ubuntu-only implementation.
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path | default('') }}"
+
+- name: Test the host platform
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+  when: calling_role_path_fact | length > 0
+
+- name: Remove obsolete Docker packages
+  ansible.builtin.apt:
+    name:
+      - docker
+      - docker.io
+      - docker-engine
+      - docker-doc
+      - docker-compose
+      - podman-docker
+      - containerd
+      - runc
+    state: absent
+    purge: true
+  become: true
+
+- name: Install prerequisite packages
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+    update_cache: true
+  become: true
+
+- name: Create keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Download Docker GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+  become: true
+
+- name: Dearmor Docker GPG key
+  ansible.builtin.command:
+    cmd: >-
+      gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+      /etc/apt/keyrings/docker.asc
+    creates: /etc/apt/keyrings/docker.gpg
+  become: true
+
+- name: Ensure Docker GPG keyring is world-readable
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/docker.gpg
+    mode: "0644"
+  become: true
+
+- name: Determine dpkg architecture
+  ansible.builtin.command:
+    cmd: dpkg --print-architecture
+  register: dpkg_arch
+  changed_when: false
+
+- name: Add Docker apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch={{ dpkg_arch.stdout }}
+      signed-by=/etc/apt/keyrings/docker.gpg]
+      https://download.docker.com/linux/ubuntu
+      {{ ansible_distribution_release }} stable
+    filename: docker
+    state: present
+  become: true
+
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name:
+      - "docker-{{ docker_setup_edition }}"
+      - "docker-{{ docker_setup_edition }}-cli"
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+  become: true
+  notify: Restart docker
+
+- name: Ensure Docker service is enabled and started
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+  become: true
+
+- name: Add users to the docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  become: true
+  loop: "{{ docker_setup_users }}"
+  when: docker_setup_users | length > 0

@@ -1,0 +1,44 @@
+---
+namespace: sbates130272
+name: batesste
+version: 1.0.0
+readme: README.md
+
+authors:
+  - Stephen Bates <stephen@raithlin.com>
+
+description: >-
+  Ansible roles for configuring Ubuntu bare-metal and VM
+  servers including Docker, Grafana, QEMU/KVM, ROCm, RDMA,
+  NVMe-oF, and more.
+
+license_file: LICENSE
+
+tags:
+  - linux
+  - infrastructure
+  - tools
+  - monitoring
+  - storage
+
+dependencies:
+  ansible.posix: ">=1.6.2"
+  community.general: ">=10.0.1"
+  community.libvirt: ">=1.3.0"
+
+repository: https://github.com/sbates130272/batesste-ansible
+documentation: https://github.com/sbates130272/batesste-ansible
+homepage: https://github.com/sbates130272/batesste-ansible
+issues: https://github.com/sbates130272/batesste-ansible/issues
+
+build_ignore:
+  - .github
+  - .ansible-lint
+  - .gitignore
+  - .python-version
+  - .spellcheck.yml
+  - .wordlist.txt
+  - playbooks
+  - requirements.txt
+  - requirements.yml
+  - "*.tar.gz"

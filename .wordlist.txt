@@ -15,6 +15,7 @@ DOMs
 Datacenter
 Dockerfile
 EPYC
+FQCN
 GPG
 GPUs
 Gb

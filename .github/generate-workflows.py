@@ -18,8 +18,8 @@ ROLE_CONFIGS = {
         "free_disk_space": True,
         "extra_vars": {
             "rocm_setup_wsl_install": False,
-            "rocm_setup_rocm_version": "latest",
-            "rocm_setup_amdgpu_version": "latest",
+            "rocm_setup_rocm_version": "7.2",
+            "rocm_setup_amdgpu_version": "7.2",
             "rocm_setup_run_checks": False,
             "rocm_setup_install_metrics_exporter": False,
         },
@@ -206,8 +206,13 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         "      - name: Install pip packages",
         "        run: python3 -m pip install -r requirements.txt",
         "",
-        "      - name: Run ansible-galaxy to install collections and roles",
-        "        run: ansible-galaxy install -r requirements.yml",
+        "      - name: Run ansible-galaxy to install collections",
+        "        run: ansible-galaxy collection install -r requirements.yml",
+        "",
+        "      - name: Build and install the collection locally",
+        "        run: |",
+        "          ansible-galaxy collection build --force",
+        "          ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force",
         "",
         "      - name: Create an SSH keypair",
         '        run: mkdir -p .ssh && ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""',
@@ -330,8 +335,8 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
             "run": "python3 -m pip install -r requirements.txt"
         },
         {
-            "name": "Run ansible-galaxy to install collections and roles",
-            "run": "ansible-galaxy install -r requirements.yml"
+            "name": "Run ansible-galaxy to install collections",
+            "run": "ansible-galaxy collection install -r requirements.yml"
         },
         {
             "name": "Create an SSH keypair",

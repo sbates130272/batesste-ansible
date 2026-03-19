@@ -1,0 +1,7 @@
+network:
+  version: 2
+  bridges:
+    {{ qemu_setup_bridge_name }}:
+      dhcp4: false
+      addresses: [{{ qemu_setup_bridge_address }}]
+      interfaces: [{{ qemu_setup_bridge_iface }}]

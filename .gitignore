@@ -7,3 +7,6 @@ playbooks/hosts
 # Ansible password files
 playbooks/vault-password
 playbooks/sudo-password
+
+# Ansible Galaxy collection build artifacts
+*.tar.gz

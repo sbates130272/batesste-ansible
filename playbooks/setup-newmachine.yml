@@ -18,57 +18,56 @@
     fio_devel_fio_force: "{{ force }}"
     fio_devel_fio_stuff_force: "{{ force }}"
   roles:
-    - role: user_setup
+    - role: sbates130272.batesste.user_setup
       remote_user: "{{ root_user }}"
       tags: [user_setup]
-    - role: fave_packages
+    - role: sbates130272.batesste.fave_packages
       remote_user: "{{ username }}"
       tags: [fave_packages]
-    - role: git_setup
+    - role: sbates130272.batesste.git_setup
       remote_user: "{{ username }}"
       tags: [git_setup]
-    - role: tmux_scripts
+    - role: sbates130272.batesste.tmux_scripts
       remote_user: "{{ username }}"
       tags: [tmux_scripts]
-    - role: cloud_setup
+    - role: sbates130272.batesste.cloud_setup
       remote_user: "{{ username }}"
       tags: [cloud_setup]
       when:
         - ansible_facts['distribution'] == "Ubuntu"
         - ansible_facts['distribution_release'] in ['noble', 'resolute']
-    - role: consul_setup
+    - role: sbates130272.batesste.consul_setup
       remote_user: "{{ username }}"
       tags: [consul_setup]
       when:
         - ansible_facts['distribution'] == "Ubuntu"
         - ansible_facts['distribution_release'] in ['noble', 'resolute']
-    - role: mutt_setup
+    - role: sbates130272.batesste.mutt_setup
       remote_user: "{{ username }}"
       tags: [mutt_setup]
-    - role: kernel_setup
+    - role: sbates130272.batesste.kernel_setup
       remote_user: "{{ username }}"
       tags: [kernel_setup]
-    - role: fio_devel
+    - role: sbates130272.batesste.fio_devel
       remote_user: "{{ username }}"
       tags: [fio_devel]
-    - role: geerlingguy.docker
-      docker_edition: 'ce'
-      docker_users:
+    - role: sbates130272.batesste.docker_setup
+      docker_setup_users:
         - "{{ username }}"
       become: true
       tags: [docker_setup]
-    - role: aws_grub
+    - role: sbates130272.batesste.aws_grub
       remote_user: "{{ username }}"
       tags: [aws_grub]
       when:
         - inventory_hostname in groups['awsmachines']
-    - role: qemu_setup
+    - role: sbates130272.batesste.qemu_setup
       remote_user: "{{ username }}"
       tags: [qemu_setup]
       when:
         - inventory_hostname not in groups['localvms'] and
           inventory_hostname not in groups['runners']
-    - role: vm_create
+    - role: sbates130272.batesste.vm_create
       remote_user: "{{ username }}"
       tags: [vm_create]
       when:

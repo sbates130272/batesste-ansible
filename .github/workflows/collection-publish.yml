@@ -1,0 +1,58 @@
+---
+name: Collection Build and Publish
+
+"on":
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+      - main
+    paths:
+      - galaxy.yml
+      - roles/**
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build collection artifact
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Install pip packages
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Build the collection
+        run: ansible-galaxy collection build --force
+
+      - name: Upload collection artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: collection-artifact
+          path: "*.tar.gz"
+          retention-days: 7
+
+  publish:
+    name: Publish to Ansible Galaxy
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Install pip packages
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Download collection artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: collection-artifact
+
+      - name: Publish to Galaxy
+        run: >-
+          ansible-galaxy collection publish
+          --api-key "${{ secrets.GALAXY_API_KEY }}"
+          *.tar.gz
