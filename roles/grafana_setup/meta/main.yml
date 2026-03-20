@@ -1,16 +1,13 @@
 ---
-# meta file for grafana_setup
-
 galaxy_info:
   author: Stephen Bates
   company: Raithlin Semiconductors
   role_name: grafana_setup
-  namespace: sbates130272
   description: >-
-    A role to install and configure Grafana, Prometheus,
+    Install and configure Grafana, Prometheus,
     and Node Exporter
-  license: BSD-3-Clause
-  min_ansible_version: "8.2.0"
+  license: Apache-2.0
+  min_ansible_version: "2.15.0"
   platforms:
     - name: Ubuntu
       versions:

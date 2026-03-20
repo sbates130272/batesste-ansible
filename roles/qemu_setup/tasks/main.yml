@@ -15,7 +15,7 @@
 
 - name: Test the host platform to see if it can support this role
   ansible.builtin.include_role:
-    name: check_platform
+    name: sbates130272.batesste.check_platform
   vars:
     calling_role_path: "{{ calling_role_path_fact }}"
 
@@ -95,21 +95,14 @@
     - repo_clone.failed
     - not 'Local modifications exist in the destination' in repo_clone.msg
 
-- name: Install network bridge if needed
-  ansible.builtin.include_role:
-    name:
-      mrlesmithjr.netplan
-  vars:
-    netplan_enabled: true
-    netplan_remove_existing: false
-    netplan_config_file: /etc/netplan/13-batesste-ansible-libvirt-netplan.yaml
-    netplan_configuration:
-      network:
-        version: 2
-        bridges:
-          "{{ qemu_setup_bridge_name }}":
-          dhcp4: false
-          addresses: '[ "{{ qemu_setup_bridge_address }}" ]'
-          interfaces: '[ "{{ qemu_setup_bridge_iface }}" ]'
-    ansible_become: true
+- name: Write netplan bridge configuration
+  ansible.builtin.template:
+    src: libvirt-bridge-netplan.yaml.j2
+    dest: >-
+      /etc/netplan/13-batesste-ansible-libvirt-netplan.yaml
+    owner: root
+    group: root
+    mode: "0600"
+  become: true
   when: qemu_setup_bridge
+  notify: Apply netplan

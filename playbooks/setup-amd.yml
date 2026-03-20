@@ -6,20 +6,20 @@
   hosts: "{{ targets }}"
   gather_facts: true
   roles:
-    - role: user_setup
+    - role: sbates130272.batesste.user_setup
       remote_user: "{{ username }}"
       tags: [user_setup]
-    - role: fave_packages
+    - role: sbates130272.batesste.fave_packages
       remote_user: "{{ username }}"
       tags: [fave_packages]
-    - role: git_setup
+    - role: sbates130272.batesste.git_setup
       remote_user: "{{ username }}"
       tags: [git_setup]
-    - role: rdma_setup
+    - role: sbates130272.batesste.rdma_setup
       remote_user: "{{ username }}"
       rocm_setup_user: "{{ username }}"
       tags: [rdma_setup]
-    - role: rocm_setup
+    - role: sbates130272.batesste.rocm_setup
       remote_user: "{{ username }}"
       rocm_setup_user: "{{ username }}"
       tags: [rocm_setup]

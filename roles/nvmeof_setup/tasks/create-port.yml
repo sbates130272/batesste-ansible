@@ -21,6 +21,7 @@
     echo "{{ port.trtype }}" > \
       /sys/kernel/config/nvmet/ports/{{ port.port_id }}/addr_trtype
   become: true
+  changed_when: true
   when: not port_exists.stat.exists
 
 - name: Set address family for port {{ port.port_id }}
@@ -28,6 +29,7 @@
     echo "{{ port.adrfam }}" > \
       /sys/kernel/config/nvmet/ports/{{ port.port_id }}/addr_adrfam
   become: true
+  changed_when: true
   when: not port_exists.stat.exists
 
 - name: Set target address for port {{ port.port_id }}
@@ -35,6 +37,7 @@
     echo "{{ port.traddr }}" > \
       /sys/kernel/config/nvmet/ports/{{ port.port_id }}/addr_traddr
   become: true
+  changed_when: true
   when: not port_exists.stat.exists
 
 - name: Set service ID for port {{ port.port_id }}
@@ -42,6 +45,7 @@
     echo "{{ port.trsvcid }}" > \
       /sys/kernel/config/nvmet/ports/{{ port.port_id }}/addr_trsvcid
   become: true
+  changed_when: true
   when: not port_exists.stat.exists
 
 - name: Link subsystems to port {{ port.port_id }}

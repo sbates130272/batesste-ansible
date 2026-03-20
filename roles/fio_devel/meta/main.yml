@@ -1,11 +1,20 @@
+---
 galaxy_info:
   author: Stephen Bates
-  description: Stephen Bates
   company: Raithlin Semiconductors
-  license: BSD-3-Clause
-  min_ansible_version: "8.2.0"
+  role_name: fio_devel
+  description: >-
+    Build and install fio from source
+  license: Apache-2.0
+  min_ansible_version: "2.15.0"
   platforms:
     - name: Ubuntu
       versions:
         - noble
         - resolute
+  galaxy_tags:
+    - fio
+    - storage
+    - benchmarking
+
+dependencies: []

@@ -1,0 +1,7 @@
+---
+notesdir: fragments
+changes_file: changelog.yaml
+changes_format: combined
+title: sbates130272.batesste
+flatmap: true
+keep_fragments: false

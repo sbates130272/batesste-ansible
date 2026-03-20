@@ -7,10 +7,9 @@ and generates individual workflow files for each one.
 """
 
 import argparse
-import os
 import yaml
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 # Configuration for role-specific settings
 ROLE_CONFIGS = {
@@ -18,8 +17,8 @@ ROLE_CONFIGS = {
         "free_disk_space": True,
         "extra_vars": {
             "rocm_setup_wsl_install": False,
-            "rocm_setup_rocm_version": "latest",
-            "rocm_setup_amdgpu_version": "latest",
+            "rocm_setup_rocm_version": "7.2",
+            "rocm_setup_amdgpu_version": "7.2",
             "rocm_setup_run_checks": False,
             "rocm_setup_install_metrics_exporter": False,
         },
@@ -130,6 +129,7 @@ DEFAULT_CONFIG = {
     "workflow_dispatch_only": False,
 }
 
+
 def find_roles_with_tests(roles_dir: Path) -> List[str]:
     """Find all roles that have a tests directory."""
     roles = []
@@ -141,7 +141,7 @@ def find_roles_with_tests(roles_dir: Path) -> List[str]:
 
 def generate_workflow_yaml(role_name: str, config: Dict) -> str:
     """Generate a GitHub Actions workflow YAML string for a role."""
-    
+
     ubuntu_versions = config.get("ubuntu_versions", ["24.04"])
     use_matrix = len(ubuntu_versions) > 1
     dispatch_only = (
@@ -188,16 +188,16 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
             )
     else:
         lines.append(f"    runs-on: ubuntu-{ubuntu_versions[0]}")
-    
+
     lines.append("    steps:")
-    
+
     # Add free disk space step if needed
     if config.get("free_disk_space", False):
         lines.extend([
             "      - name: Free Disk Space (Ubuntu)",
             "        uses: jlumbroso/free-disk-space@v1.3.1",
         ])
-    
+
     # Standard setup steps
     lines.extend([
         "      - name: Checkout code",
@@ -206,8 +206,13 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         "      - name: Install pip packages",
         "        run: python3 -m pip install -r requirements.txt",
         "",
-        "      - name: Run ansible-galaxy to install collections and roles",
-        "        run: ansible-galaxy install -r requirements.yml",
+        "      - name: Run ansible-galaxy to install collections",
+        "        run: ansible-galaxy collection install -r requirements.yml",
+        "",
+        "      - name: Build and install the collection locally",
+        "        run: |",
+        "          ansible-galaxy collection build --force",
+        "          ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force",
         "",
         "      - name: Create an SSH keypair",
         '        run: mkdir -p .ssh && ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""',
@@ -216,7 +221,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         "        run: mkdir -p .gnupg",
         "",
     ])
-    
+
     # Create hosts file
     hosts_content = {
         "all": {
@@ -230,7 +235,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
     }
     hosts_content["all"]["hosts"]["localhost"].update(config.get("extra_vars", {}))
     hosts_yaml = yaml.dump(hosts_content, default_flow_style=False, sort_keys=False)
-    
+
     lines.extend([
         "      - name: Write hosts-ci file",
         "        uses: DamianReeves/write-file-action@v1.3",
@@ -239,13 +244,13 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         "          write-mode: overwrite",
         "          contents: |",
     ])
-    
+
     # Add hosts content with proper indentation
     for line in hosts_yaml.splitlines():
         lines.append(f"            {line}")
-    
+
     lines.append("")
-    
+
     # Run test playbook
     lines.extend([
         "      - name: Run the test playbook against the local runner",
@@ -254,18 +259,18 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         "        env:",
         "          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles",
     ])
-    
+
     # Add vault password if needed
     if config.get("needs_vault", False):
         lines.extend([
             "          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env",
             "          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}",
         ])
-    
+
     # Add GitHub token if needed
     if config.get("needs_github_token", False):
         lines.append("          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}")
-    
+
     # Add verification commands if any
     if config.get("verification_commands"):
         lines.extend([
@@ -275,13 +280,13 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         ])
         for cmd in config["verification_commands"]:
             lines.append(f"          {cmd}")
-    
+
     return "\n".join(lines) + "\n"
 
 
 def generate_workflow(role_name: str, config: Dict) -> Dict:
     """Generate a GitHub Actions workflow configuration for a role."""
-    
+
     workflow = {
         "name": f"{role_name} CI",
         "on": {
@@ -309,16 +314,16 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
             }
         }
     }
-    
+
     steps = workflow["jobs"][f"{role_name}-test"]["steps"]
-    
+
     # Add free disk space step if needed
     if config.get("free_disk_space", False):
         steps.append({
             "name": "Free Disk Space (Ubuntu)",
             "uses": "jlumbroso/free-disk-space@v1.3.1"
         })
-    
+
     # Standard setup steps
     steps.extend([
         {
@@ -330,8 +335,8 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
             "run": "python3 -m pip install -r requirements.txt"
         },
         {
-            "name": "Run ansible-galaxy to install collections and roles",
-            "run": "ansible-galaxy install -r requirements.yml"
+            "name": "Run ansible-galaxy to install collections",
+            "run": "ansible-galaxy collection install -r requirements.yml"
         },
         {
             "name": "Create an SSH keypair",
@@ -342,7 +347,7 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
             "run": "mkdir -p .gnupg"
         },
     ])
-    
+
     # Create hosts file
     hosts_content = {
         "all": {
@@ -354,10 +359,10 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
             }
         }
     }
-    
+
     # Add extra vars to localhost
     hosts_content["all"]["hosts"]["localhost"].update(config.get("extra_vars", {}))
-    
+
     steps.append({
         "name": "Write hosts-ci file",
         "uses": "DamianReeves/write-file-action@v1.3",
@@ -367,7 +372,7 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
             "contents": yaml.dump(hosts_content, default_flow_style=False)
         }
     })
-    
+
     # Run test playbook
     run_test_step = {
         "name": "Run the test playbook against the local runner",
@@ -377,21 +382,21 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
             "ANSIBLE_ROLES_PATH": "${{ github.workspace }}/roles"
         }
     }
-    
+
     # Add vault password if needed
     if config.get("needs_vault", False):
         run_test_step["env"]["ANSIBLE_VAULT_PASSWORD_FILE"] = "${{ github.workspace }}/playbooks/vault-env"
         run_test_step["env"]["ANSIBLE_VAULT_PASSWORD"] = "${{ secrets.ANSIBLE_VAULT_PASSWORD }}"
-    
+
     steps.append(run_test_step)
-    
+
     # Add verification commands if any
     if config.get("verification_commands"):
         steps.append({
             "name": f"Verify {role_name} installation",
             "run": "\\n".join(config["verification_commands"])
         })
-    
+
     # Add matrix strategy if multiple Ubuntu versions
     if len(config.get("ubuntu_versions", [])) > 1:
         workflow["jobs"][f"{role_name}-test"]["strategy"] = {
@@ -400,7 +405,7 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
             }
         }
         workflow["jobs"][f"{role_name}-test"]["runs-on"] = "${{ matrix.runs-on }}"
-    
+
     return workflow
 
 
@@ -508,4 +513,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

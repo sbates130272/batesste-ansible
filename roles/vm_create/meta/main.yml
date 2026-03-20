@@ -1,11 +1,20 @@
+---
 galaxy_info:
   author: Stephen Bates
-  description: Stephen Bates
   company: Raithlin Semiconductors
-  license: BSD-3-Clause
-  min_ansible_version: "8.2.0"
+  role_name: vm_create
+  description: >-
+    Create and manage libvirt virtual machines
+  license: Apache-2.0
+  min_ansible_version: "2.15.0"
   platforms:
     - name: Ubuntu
       versions:
         - noble
         - resolute
+  galaxy_tags:
+    - libvirt
+    - virtualization
+    - vm
+
+dependencies: []

@@ -9,7 +9,7 @@
 
 - name: Test the host platform to see if it can support this role
   ansible.builtin.include_role:
-    name: check_platform
+    name: sbates130272.batesste.check_platform
   vars:
     calling_role_path: "{{ calling_role_path_fact }}"
 

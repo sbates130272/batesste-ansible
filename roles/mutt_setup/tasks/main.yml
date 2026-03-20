@@ -17,7 +17,7 @@
 
 - name: Test the host platform to see if it can support this role
   ansible.builtin.include_role:
-    name: check_platform
+    name: sbates130272.batesste.check_platform
   vars:
     calling_role_path: "{{ calling_role_path_fact }}"
 
@@ -105,17 +105,33 @@
     dest: ~/.mutt/muttrc
     mode: "0644"
 
+- name: Check for Raithlin OAuth token on controller
+  ansible.builtin.stat:
+    path: "{{ role_path }}/files/sbates@raithlin.com.token"
+  delegate_to: localhost
+  become: false
+  register: mutt_setup_raithlin_token
+
 - name: Copy the mutt token file for Raithlin
   ansible.builtin.copy:
     src: sbates@raithlin.com.token
     dest: ~/.mutt/tokens
     mode: "0600"
+  when: mutt_setup_raithlin_token.stat.exists
+
+- name: Check for Gmail OAuth token on controller
+  ansible.builtin.stat:
+    path: "{{ role_path }}/files/sbates130272@gmail.com.token"
+  delegate_to: localhost
+  become: false
+  register: mutt_setup_gmail_token
 
 - name: Copy the mutt token file for Gmail
   ansible.builtin.copy:
     src: sbates130272@gmail.com.token
     dest: ~/.mutt/tokens
     mode: "0600"
+  when: mutt_setup_gmail_token.stat.exists
 
 - name: Copy the mutt_oauth2.py file
   ansible.builtin.copy:
