@@ -111,6 +111,7 @@ eideticom
 elpa
 emacs
 enp
+env
 ephemeral
 exporter
 exporters
