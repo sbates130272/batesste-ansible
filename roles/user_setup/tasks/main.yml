@@ -33,6 +33,11 @@
     state: present
     shell: /bin/bash
   become: true
+  register: user_setup_user_result
+
+- name: Set target user home directory fact
+  ansible.builtin.set_fact:
+    user_setup_home: "{{ user_setup_user_result.home }}"
 
 - name: Set authorized key for the user from local file
   ansible.posix.authorized_key:
@@ -58,7 +63,7 @@
   ansible.builtin.copy:
     force: true
     src: "{{ user_setup_ssh_key_src_dir }}/{{ user_setup_ssh_key_name }}"
-    dest: "{{ ansible_user_dir }}/.ssh/{{ user_setup_ssh_key_name }}"
+    dest: "{{ user_setup_home }}/.ssh/{{ user_setup_ssh_key_name }}"
     owner: "{{ username }}"
     mode: "0600"
   become: true
@@ -67,7 +72,7 @@
   ansible.builtin.copy:
     force: true
     src: "{{ user_setup_ssh_key_src_dir }}/{{ user_setup_ssh_key_name }}.pub"
-    dest: "{{ ansible_user_dir }}/.ssh/{{ user_setup_ssh_key_name }}.pub"
+    dest: "{{ user_setup_home }}/.ssh/{{ user_setup_ssh_key_name }}.pub"
     owner: "{{ username }}"
     mode: "0644"
   become: true
@@ -104,7 +109,7 @@
 
 - name: Ensure package install is non-interactive
   ansible.builtin.blockinfile:
-    path: ~/.bashrc
+    path: "{{ user_setup_home }}/.bashrc"
     state: present
     marker_begin: BEGIN (user_setup)
     marker_end: END (user_setup)
@@ -119,7 +124,7 @@
 
 - name: Ensure SSH config file exists for user and create a Host * when absent
   ansible.builtin.lineinfile:
-    path: "{{ ansible_user_dir }}/.ssh/config"
+    path: "{{ user_setup_home }}/.ssh/config"
     line: Host *
     state: present
     create: true
@@ -129,7 +134,7 @@
 
 - name: Set important values in user's ssh config file
   ansible.builtin.lineinfile:
-    path: "{{ ansible_user_dir }}/.ssh/config"
+    path: "{{ user_setup_home }}/.ssh/config"
     line: "{{ item }}"
     insertafter: Host *
     state: present
@@ -142,7 +147,7 @@
 
 - name: Ensure .emacs.d folder exists
   ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/.emacs.d"
+    path: "{{ user_setup_home }}/.emacs.d"
     state: directory
     owner: "{{ username }}"
     mode: "0755"
@@ -152,7 +157,7 @@
   ansible.builtin.copy:
     force: true
     src: init.el
-    dest: "{{ ansible_user_dir }}/.emacs.d/init.el"
+    dest: "{{ user_setup_home }}/.emacs.d/init.el"
     owner: "{{ username }}"
     mode: "0644"
   become: true
@@ -161,14 +166,14 @@
   ansible.builtin.copy:
     force: true
     src: .emacs
-    dest: "{{ ansible_user_dir }}/.emacs"
+    dest: "{{ user_setup_home }}/.emacs"
     owner: "{{ username }}"
     mode: "0644"
   become: true
 
 - name: Create Projects folder if it does not exist
   ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/Projects"
+    path: "{{ user_setup_home }}/Projects"
     state: directory
     owner: "{{ username }}"
     mode: "0755"
@@ -178,7 +183,7 @@
 - name: Add an entry in fstab for VM virtio-fs
   ansible.builtin.lineinfile:
     path: /etc/fstab
-    line: "hostfs {{ ansible_user_dir }}/Projects 9p trans=virtio,version=9p2000.L,nofail 0 1"
+    line: "hostfs {{ user_setup_home }}/Projects 9p trans=virtio,version=9p2000.L,nofail 0 1"
     state: present
   become: true
   when: user_setup_vm_fstab
