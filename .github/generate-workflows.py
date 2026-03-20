@@ -17,8 +17,8 @@ ROLE_CONFIGS = {
         "free_disk_space": True,
         "extra_vars": {
             "rocm_setup_wsl_install": False,
-            "rocm_setup_rocm_version": "7.2",
-            "rocm_setup_amdgpu_version": "7.2",
+            "rocm_setup_rocm_version": "latest",
+            "rocm_setup_amdgpu_version": "latest",
             "rocm_setup_run_checks": False,
             "rocm_setup_install_metrics_exporter": False,
         },
@@ -53,6 +53,7 @@ ROLE_CONFIGS = {
             "ls -la /usr/bin/*ibv* || true",
         ],
         "needs_vault": False,
+        "hold_snap_packages": True,
     },
     "git_setup": {
         "free_disk_space": False,
@@ -112,6 +113,19 @@ ROLE_CONFIGS = {
         "ignore_failure": True,
         "workflow_dispatch_only": True,
     },
+    "uprof_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "uprof_setup_skip_amd_check": True,
+        },
+        "verification_commands": [
+            "dpkg -l | grep amduprof || true",
+            "AMDuProfCLI --version || true",
+        ],
+        "needs_vault": False,
+        "needs_github_token": False,
+        "workflow_dispatch_only": True,
+    },
 }
 
 # Roles in this list only run on workflow_dispatch (manual); they do not
@@ -120,7 +134,7 @@ WORKFLOW_DISPATCH_ONLY_ROLES: List[str] = []  # e.g. ["nvmeof_setup"]
 
 # Default configuration for roles without specific config
 DEFAULT_CONFIG = {
-    "ubuntu_versions": ["24.04", "26.04"],
+    "ubuntu_versions": ["24.04"],
     "free_disk_space": False,
     "extra_vars": {},
     "verification_commands": [],
@@ -221,6 +235,17 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         "        run: mkdir -p .gnupg",
         "",
     ])
+
+    # Hold snap-transitional packages to avoid flaky snap store
+    # failures during apt dist-upgrade in CI.
+    if config.get("hold_snap_packages", False):
+        lines.extend([
+            "      - name: Hold snap-transitional packages",
+            "        run: |",
+            "          sudo apt-mark hold firefox || true",
+            "          sudo apt-mark showhold",
+            "",
+        ])
 
     # Create hosts file
     hosts_content = {

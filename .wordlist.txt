@@ -1,5 +1,7 @@
 AE
 AES
+AMDuProf
+AMDuProfCLI
 Ansible
 CFA
 CLI
@@ -193,6 +195,7 @@ plaintext
 playbook
 playbooks
 ppa
+profiling
 prometheus
 qemu
 radeon
@@ -232,9 +235,11 @@ trsvcid
 trtype
 tulpn
 txt
+uProf
 ubuntu
 ufw
 unregister
+uprof
 uri
 url
 userdel

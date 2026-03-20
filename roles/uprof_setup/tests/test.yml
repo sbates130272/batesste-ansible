@@ -1,0 +1,55 @@
+---
+- name: The test playbook for the uprof_setup role
+  hosts: all
+  pre_tasks:
+
+    - name: Create a temporary directory for the dummy .deb
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: uprof_test_
+      register: uprof_test_tmpdir
+
+    - name: Create the DEBIAN control directory
+      ansible.builtin.file:
+        path: "{{ uprof_test_tmpdir.path }}/pkg/DEBIAN"
+        state: directory
+        mode: '0755'
+
+    - name: Write a minimal control file
+      ansible.builtin.copy:
+        content: |
+          Package: amduprof
+          Version: 0.0.0-1
+          Architecture: amd64
+          Maintainer: test
+          Description: Dummy amduprof for CI testing
+        dest: "{{ uprof_test_tmpdir.path }}/pkg/DEBIAN/control"
+        mode: '0644'
+
+    - name: Build the dummy .deb
+      ansible.builtin.command:
+        cmd: >-
+          dpkg-deb --build
+          {{ uprof_test_tmpdir.path }}/pkg
+          {{ uprof_test_tmpdir.path }}/amduprof_0.0.0-1_amd64.deb
+      changed_when: true
+
+    - name: Create a stub AMDuProfCLI script
+      ansible.builtin.copy:
+        content: |
+          #!/bin/sh
+          echo "AMDuProfCLI 0.0.0 (dummy)"
+        dest: /usr/local/bin/AMDuProfCLI
+        mode: '0755'
+      become: true
+
+    - name: Set uprof_setup_deb_path for the role
+      ansible.builtin.set_fact:
+        uprof_setup_deb_path: >-
+          {{ uprof_test_tmpdir.path }}/amduprof_0.0.0-1_amd64.deb
+
+  roles:
+    - role: uprof_setup
+      become: false
+      vars:
+        uprof_setup_skip_amd_check: true

@@ -23,3 +23,6 @@
       remote_user: "{{ username }}"
       rocm_setup_user: "{{ username }}"
       tags: [rocm_setup]
+    - role: sbates130272.batesste.uprof_setup
+      remote_user: "{{ username }}"
+      tags: [uprof_setup]
