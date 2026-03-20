@@ -38,7 +38,7 @@
   ansible.posix.authorized_key:
     user: "{{ username }}"
     state: present
-    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    key: "{{ lookup('file', user_setup_ssh_key_src_dir ~ '/' ~ user_setup_ssh_key_name ~ '.pub') }}"
   become: true
 
 - name: Set user as passwordless sudoer
@@ -57,8 +57,8 @@
 - name: Copy SSH private key
   ansible.builtin.copy:
     force: true
-    src: ~/.ssh/id_rsa
-    dest: "{{ ansible_user_dir }}/.ssh/id_rsa"
+    src: "{{ user_setup_ssh_key_src_dir }}/{{ user_setup_ssh_key_name }}"
+    dest: "{{ ansible_user_dir }}/.ssh/{{ user_setup_ssh_key_name }}"
     owner: "{{ username }}"
     mode: "0600"
   become: true
@@ -66,8 +66,8 @@
 - name: Copy SSH public key
   ansible.builtin.copy:
     force: true
-    src: ~/.ssh/id_rsa.pub
-    dest: "{{ ansible_user_dir }}/.ssh/id_rsa.pub"
+    src: "{{ user_setup_ssh_key_src_dir }}/{{ user_setup_ssh_key_name }}.pub"
+    dest: "{{ ansible_user_dir }}/.ssh/{{ user_setup_ssh_key_name }}.pub"
     owner: "{{ username }}"
     mode: "0644"
   become: true

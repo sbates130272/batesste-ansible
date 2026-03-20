@@ -32,6 +32,12 @@ user_setup_vm_fstab: false
 
 # Enable MOTD showing driver overrides (Ubuntu 24.04+)
 user_setup_motd: false
+
+# SSH key filename stem (e.g. id_rsa, id_ed25519)
+user_setup_ssh_key_name: id_rsa
+
+# Controller-side directory containing the SSH keys
+user_setup_ssh_key_src_dir: "{{ lookup('env', 'HOME') }}/.ssh"
 ```
 
 ### Driver Overrides MOTD
@@ -62,9 +68,16 @@ Device:  0000:02:00.0
 
 ## Usage
 
-This role assumes your public SSH key is in ~/.ssh/id_rsa.pub and your
-private SSH key is in ~/.ssh/id_rsa. There is an [open issue][oi] to make
-this more robust.
+By default the role reads SSH keys from `$HOME/.ssh/id_rsa`
+(and `.pub`) on the Ansible controller. Override the variables
+`user_setup_ssh_key_name` and `user_setup_ssh_key_src_dir` to
+use a different key or source directory. For example, to use an
+Ed25519 key stored in a custom location:
+
+```yaml
+user_setup_ssh_key_name: id_ed25519
+user_setup_ssh_key_src_dir: /opt/keys
+```
 
 ## Example Playbook
 
@@ -82,4 +95,3 @@ this more robust.
 [ansible]: https://www.ansible.com/
 [defaultsfile]: ./defaults/main.yml
 [github]: https://github.com/
-[oi]: https://github.com/sbates130272/batesste-ansible/issues/18
