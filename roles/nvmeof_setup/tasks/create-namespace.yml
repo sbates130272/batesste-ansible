@@ -49,6 +49,7 @@
     echo -n "{{ namespace.device_path }}" > \
       /sys/kernel/config/nvmet/subsystems/{{ subsystem_name }}/namespaces/{{ namespace.nsid }}/device_path
   become: true
+  changed_when: true
   when: >-
     (nvmeof_current_device_path.content | default('') | b64decode | default('') | trim) != (namespace.device_path | trim)
 
@@ -57,3 +58,4 @@
     echo "{{ '1' if namespace.enable else '0' }}" > \
       /sys/kernel/config/nvmet/subsystems/{{ subsystem_name }}/namespaces/{{ namespace.nsid }}/enable
   become: true
+  changed_when: true

@@ -8,5 +8,11 @@ playbooks/hosts
 playbooks/vault-password
 playbooks/sudo-password
 
+# OAuth token files
+roles/mutt_setup/files/*.token
+
+# TLS private keys
+roles/consul_setup/files/*-key.pem
+
 # Ansible Galaxy collection build artifacts
 *.tar.gz

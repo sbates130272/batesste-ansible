@@ -4,16 +4,13 @@
 
 exclude_paths:
   - .github
-  - playbooks/hosts-example.yml
+  - playbooks
 
 warn_list:
   - command-instead-of-module
   - command-instead-of-shell
-  - meta-no-info
   - name[template]
-  - no-changed-when
-  - role-name
-  - schema[meta]  # Ubuntu noble not yet in ansible-lint schema
+  - schema[meta]  # Ubuntu resolute not yet in schema
   - var-naming[no-role-prefix]
 
 extra_vars:

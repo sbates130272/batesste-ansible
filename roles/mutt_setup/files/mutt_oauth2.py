@@ -183,7 +183,7 @@ if args.authorize:
             s.bind(('127.0.0.1', 0))
             listen_port = s.getsockname()[1]
             s.close()
-            redirect_uri = 'http://localhost:'+str(listen_port)+'/'
+            redirect_uri = 'http://localhost:' + str(listen_port) + '/'
             # Probably should edit the port number into the actual redirect URL.
 
         p.update({'login_hint': token['email'],

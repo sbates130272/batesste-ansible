@@ -1,6 +1,7 @@
 - name: Check that rocminfo works
   ansible.builtin.shell:
     cmd: rocminfo
+  changed_when: false
   when: not rocm_setup_wsl_install
 
 - name: Copy test HIP program to target
@@ -15,3 +16,4 @@
 - name: Check that we can compile a very simple program
   ansible.builtin.shell:
     cmd: hipcc -o /tmp/hip-hello-world /tmp/hip-hello-world.cpp
+  changed_when: false

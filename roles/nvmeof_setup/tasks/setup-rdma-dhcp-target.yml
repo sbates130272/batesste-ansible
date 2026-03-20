@@ -15,6 +15,7 @@
 - name: Apply netplan (target RDMA static)
   ansible.builtin.command: netplan apply
   become: true
+  changed_when: true
   when:
     - nvmeof_setup_rdma_dhcp_target_ip | length > 0
     - nvmeof_setup_target_interface | length > 0
@@ -29,6 +30,7 @@
   ansible.builtin.command:
     cmd: ip link set {{ nvmeof_setup_target_interface }} up
   become: true
+  changed_when: true
   when:
     - nvmeof_setup_target_interface | length > 0
     - nvmeof_target_iface_exists.stat.exists | default(false)

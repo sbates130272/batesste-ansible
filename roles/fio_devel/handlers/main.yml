@@ -5,14 +5,17 @@
     cmd: ./configure --prefix='{{ fio_devel_fio_install_dir }}'
   listen: Configure, build and install fio
   notify: Make fio
+  changed_when: true
 
 - name: Make fio
   ansible.builtin.shell:
     chdir: ~/Projects/fio
     cmd: make -j $(nproc)
   notify: Install fio
+  changed_when: true
 
 - name: Install fio
   ansible.builtin.command:
     cmd: make -C /home/{{ username }}/Projects/fio install
   become: true
+  changed_when: true

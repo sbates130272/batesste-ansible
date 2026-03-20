@@ -20,6 +20,7 @@
     echo "{{ '1' if subsystem.allow_any_host else '0' }}" > \
       /sys/kernel/config/nvmet/subsystems/{{ subsystem.name }}/attr_allow_any_host
   become: true
+  changed_when: true
 
 - name: Create namespaces for {{ subsystem.name }}
   ansible.builtin.include_tasks: create-namespace.yml

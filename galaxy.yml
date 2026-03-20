@@ -12,7 +12,8 @@ description: >-
   servers including Docker, Grafana, QEMU/KVM, ROCm, RDMA,
   NVMe-oF, and more.
 
-license_file: LICENSE
+license:
+  - Apache-2.0
 
 tags:
   - linux
@@ -42,3 +43,7 @@ build_ignore:
   - requirements.txt
   - requirements.yml
   - "*.tar.gz"
+  - "roles/*/hosts-*"
+  - "roles/*/tests"
+  - "roles/*/files/*.token"
+  - "roles/*/files/*-key.pem"

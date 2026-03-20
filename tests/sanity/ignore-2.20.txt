@@ -1,0 +1,8 @@
+.github/generate-workflows.py shebang
+playbooks/run-ansible shebang
+playbooks/vault-env shebang
+roles/mutt_setup/files/mutt_oauth2.py shebang
+roles/nvmeof_setup/templates/nvmeof-target-cleanup.sh.j2 shebang
+roles/nvmeof_setup/templates/nvmeof-target-setup.sh.j2 shebang
+roles/rdma_setup/files/rdma-detect shebang
+roles/rocm_setup/files/rocm-latest shebang

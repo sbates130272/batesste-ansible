@@ -2,6 +2,7 @@
   ansible.builtin.command:
     cmd: wslinfo --version
   register: wslinfo
+  changed_when: false
   failed_when: false
   when: rocm_setup_wsl_install
 
@@ -42,6 +43,7 @@
     QUIET: "true"
     ONLY_ONE: ROCM
   register: rocm_latest_version
+  changed_when: false
   when:
     - rocm_setup_need_rocm_latest
     - not rocm_setup_wsl_install
@@ -54,6 +56,7 @@
     ONLY_ONE: ROCM
     WSL_INSTALL: "true"
   register: rocm_latest_wsl_version
+  changed_when: false
   when:
     - rocm_setup_need_rocm_latest
     - rocm_setup_wsl_install
@@ -65,6 +68,7 @@
     QUIET: "true"
     ONLY_ONE: AMDGPU
   register: amdgpu_latest_version
+  changed_when: false
   when: rocm_setup_need_amdgpu_latest
 
 - name: Run the rocm-latest script for device-metrics-exporter version
@@ -74,6 +78,7 @@
     QUIET: "true"
     ONLY_ONE: METRICS_EXPORTER
   register: metrics_exporter_latest_version
+  changed_when: false
   when: rocm_setup_need_metrics_exporter_latest
 
 - name: Print the rocm package version
