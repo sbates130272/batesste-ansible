@@ -19,6 +19,10 @@
     upgrade: full
     autoremove: true
   become: true
+  register: rdma_setup_apt_result
+  retries: 3
+  delay: 10
+  until: rdma_setup_apt_result is success
 
 # Reboot after apt upgrade so new kernel (if any) is loaded.
 - name: Perform a reboot to allow kernel updates

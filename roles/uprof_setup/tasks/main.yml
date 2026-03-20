@@ -1,0 +1,96 @@
+# Copyright (c) Stephen Bates, 2025
+#
+# SPDX-License-Identifier: Apache-2.0
+---
+# AMD uProf performance analysis tool install and setup.
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    uprof_setup_calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.check_platform
+  vars:
+    calling_role_path: "{{ uprof_setup_calling_role_path_fact }}"  # noqa var-naming
+
+- name: Check for AMD CPU on the target host
+  ansible.builtin.import_tasks:
+    file: check_amd_cpu.yml
+  when: not uprof_setup_skip_amd_check
+
+- name: Check if amduprof is already installed
+  ansible.builtin.command:
+    cmd: dpkg-query -W -f '${Status}' amduprof
+  register: uprof_setup_dpkg_check
+  changed_when: false
+  failed_when: false
+
+- name: Set a fact for whether uProf needs installing
+  ansible.builtin.set_fact:
+    uprof_setup_needs_install: >-
+      {{ uprof_setup_dpkg_check.rc != 0
+         or 'install ok installed' not in
+            uprof_setup_dpkg_check.stdout }}
+
+- name: Validate and install AMD uProf
+  when: uprof_setup_needs_install
+  block:
+
+    - name: Fail if uprof_setup_deb_path is not defined
+      ansible.builtin.fail:
+        msg: >-
+          uprof_setup_deb_path is not defined. Download the
+          AMD uProf .deb from
+          https://www.amd.com/en/developer/uprof.html and
+          set uprof_setup_deb_path to the local path of the
+          .deb file.
+      when: uprof_setup_deb_path is not defined
+
+    - name: Verify the .deb file exists on the controller
+      ansible.builtin.stat:
+        path: "{{ uprof_setup_deb_path }}"
+      delegate_to: localhost
+      become: false
+      register: uprof_setup_deb_stat
+
+    - name: Fail if the .deb file does not exist
+      ansible.builtin.fail:
+        msg: >-
+          The file {{ uprof_setup_deb_path }} does not exist
+          on the Ansible controller.
+      when: not uprof_setup_deb_stat.stat.exists
+
+    - name: Copy the .deb file to the target host
+      ansible.builtin.copy:
+        src: "{{ uprof_setup_deb_path }}"
+        dest: >-
+          {{ uprof_setup_install_dir }}/{{
+             uprof_setup_deb_path | basename }}
+        mode: '0644'
+      become: true
+
+    - name: Install the AMD uProf .deb package
+      ansible.builtin.apt:
+        deb: >-
+          {{ uprof_setup_install_dir }}/{{
+             uprof_setup_deb_path | basename }}
+      become: true
+
+    - name: Remove the staged .deb file
+      ansible.builtin.file:
+        path: >-
+          {{ uprof_setup_install_dir }}/{{
+             uprof_setup_deb_path | basename }}
+        state: absent
+      become: true
+
+- name: Verify AMD uProf installation
+  ansible.builtin.command:
+    cmd: AMDuProfCLI --version
+  register: uprof_setup_version_check
+  changed_when: false
+
+- name: Display installed AMD uProf version
+  ansible.builtin.debug:
+    msg: "AMD uProf version: {{ uprof_setup_version_check.stdout }}"

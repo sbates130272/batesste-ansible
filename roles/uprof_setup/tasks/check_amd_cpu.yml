@@ -1,0 +1,21 @@
+# Copyright (c) Stephen Bates, 2025
+#
+# SPDX-License-Identifier: Apache-2.0
+---
+# Verify the target host has an AMD CPU by checking for
+# AuthenticAMD in the ansible_processor fact list.
+
+- name: Check for AMD CPU on this host and end_host if not found
+  when: "'AuthenticAMD' not in ansible_processor"
+  block:
+
+    - name: Print a debug message when CPU is not AMD
+      ansible.builtin.debug:
+        msg: >-
+          Host CPU vendor is not AMD (AuthenticAMD not found
+          in ansible_processor). Ending this host for the
+          play (uprof_setup and any subsequent roles will
+          not run).
+
+    - name: End the play on this host because CPU is not AMD
+      ansible.builtin.meta: end_host

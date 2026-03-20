@@ -119,10 +119,15 @@ work from there.
 
 ### AMD / ROCm Example
 
-For AMD machines (ROCm, RDMA) use the [setup-amd.yml](./playbooks/setup-amd.yml)
-playbook. It runs the `user_setup`, `fave_packages`, `git_setup`,
-`rdma_setup`, and `rocm_setup` roles. Use the same inventory and `run-ansible`
-pattern:
+For AMD machines (ROCm, RDMA, uProf) use the
+[setup-amd.yml](./playbooks/setup-amd.yml) playbook. It runs the
+`user_setup`, `fave_packages`, `git_setup`, `rdma_setup`,
+`rocm_setup`, and `uprof_setup` roles. The `uprof_setup` role
+requires the user to download the AMD uProf `.deb` from
+[amd.com](https://www.amd.com/en/developer/uprof.html) after
+accepting the EULA, and pass its path via the
+`uprof_setup_deb_path` variable. Use the same inventory and
+`run-ansible` pattern:
 
 ```
 PLAYBOOK=setup-amd.yml HOSTS=<host-file> TARGETS=<target-group> playbooks/run-ansible

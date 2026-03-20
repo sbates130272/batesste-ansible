@@ -1,0 +1,18 @@
+# Copyright (c) Stephen Bates, 2025
+#
+# SPDX-License-Identifier: Apache-2.0
+---
+# defaults file for uprof_setup
+
+# Path to the AMD uProf .deb file on the Ansible controller.
+# The user must pre-download this from:
+#   https://www.amd.com/en/developer/uprof.html
+# after accepting the EULA. This variable is required.
+# uprof_setup_deb_path:
+
+# Remote directory used to stage the .deb before install.
+uprof_setup_install_dir: /tmp
+
+# Skip the AMD CPU vendor check. Useful for CI runners or
+# environments where ansible_processor is unavailable.
+uprof_setup_skip_amd_check: false
