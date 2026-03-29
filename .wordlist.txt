@@ -45,6 +45,7 @@ NICs
 NQNs
 NUMA
 NVMe
+OCP
 OAuth
 PATs
 PCI
@@ -75,6 +76,7 @@ amd
 amdgpu
 ansible
 api
+args
 aspell
 auth
 aws
@@ -135,6 +137,7 @@ hardcode
 hardcoded
 hardcoding
 homelab
+hostfwd
 hostname
 http
 https
@@ -212,10 +215,13 @@ rsa
 runner
 runners
 sbates
+scrapable
 scrape
+scraping
 sha
 signingkey
 signup
+SLIRP
 smi
 src
 stebates
@@ -253,6 +259,8 @@ virtiofsd
 vm
 workflow
 workflows
+WiFi
+wifi
 wsl
 xfsprogs
 yaml

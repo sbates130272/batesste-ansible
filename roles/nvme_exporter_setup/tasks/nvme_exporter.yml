@@ -1,0 +1,152 @@
+---
+# Install the Prometheus NVMe exporter
+# (https://github.com/E4-Computer-Engineering/nvme-exporter).
+
+- name: Ensure nvme-cli is installed
+  ansible.builtin.package:
+    name: nvme-cli
+    state: present
+  become: true
+
+- name: Set nvme_exporter architecture for GitHub asset
+  ansible.builtin.set_fact:
+    nvme_exporter_arch: >-
+      {{ 'amd64' if ansible_architecture == 'x86_64'
+         else 'arm64' if ansible_architecture == 'aarch64'
+         else '' }}
+
+- name: Fail on unsupported architecture for nvme_exporter
+  ansible.builtin.fail:
+    msg: "nvme_exporter not available for arch {{ ansible_architecture }}"
+  when: nvme_exporter_arch == ''
+
+- name: Get latest nvme_exporter version from GitHub API
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/E4-Computer-Engineering/nvme-exporter/releases/latest
+    return_content: true
+  register: nvme_exporter_latest_release
+  when: nvme_exporter_version == "latest"
+  changed_when: false
+
+- name: Set nvme_exporter resolved version
+  ansible.builtin.set_fact:
+    nvme_exporter_resolved_version: >-
+      {{ (nvme_exporter_latest_release.json.tag_name | regex_replace('^v', ''))
+         if nvme_exporter_version == 'latest'
+         else nvme_exporter_version }}
+
+- name: Check if nvme_exporter binary is present
+  ansible.builtin.stat:
+    path: "{{ nvme_exporter_install_dir }}/nvme_exporter"
+  register: nvme_exporter_binary_stat
+
+- name: Check if nvme_exporter version file is present
+  ansible.builtin.stat:
+    path: "{{ nvme_exporter_install_dir }}/.nvme_exporter_version"
+  register: nvme_exporter_version_file_stat
+
+- name: Read installed nvme_exporter version
+  ansible.builtin.slurp:
+    src: "{{ nvme_exporter_install_dir }}/.nvme_exporter_version"
+  register: nvme_exporter_version_content
+  when: nvme_exporter_version_file_stat.stat.exists
+  become: true
+
+- name: Set current nvme_exporter version fact
+  ansible.builtin.set_fact:
+    nvme_exporter_current_version: >-
+      {{ nvme_exporter_version_content.content | b64decode | trim }}
+  when: >-
+    nvme_exporter_version_file_stat.stat.exists and
+    not (nvme_exporter_version_content.failed | default(false))
+
+- name: Set nvme_exporter download URL
+  ansible.builtin.set_fact:
+    nvme_exporter_download_url: >-
+      {{ 'https://github.com/E4-Computer-Engineering/nvme-exporter/releases/download/v'
+         ~ nvme_exporter_resolved_version
+         ~ '/nvme_exporter_' ~ nvme_exporter_resolved_version
+         ~ '_linux_' ~ nvme_exporter_arch ~ '.tar.gz' }}
+
+- name: Download and install nvme_exporter binary
+  when: >-
+    not nvme_exporter_binary_stat.stat.exists or
+    not nvme_exporter_version_file_stat.stat.exists or
+    (nvme_exporter_current_version | default('')) != nvme_exporter_resolved_version
+  block:
+    - name: Create temporary directory for download
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: nvme_exporter
+      register: nvme_exporter_temp_dir
+
+    - name: Download nvme_exporter release tarball
+      ansible.builtin.get_url:
+        url: "{{ nvme_exporter_download_url }}"
+        dest: "{{ nvme_exporter_temp_dir.path }}/nvme_exporter.tar.gz"
+        mode: '0644'
+
+    - name: Unarchive nvme_exporter tarball
+      ansible.builtin.unarchive:
+        src: "{{ nvme_exporter_temp_dir.path }}/nvme_exporter.tar.gz"
+        dest: "{{ nvme_exporter_temp_dir.path }}"
+        remote_src: true
+      become: true
+
+    - name: Ensure nvme_exporter install directory exists
+      ansible.builtin.file:
+        path: "{{ nvme_exporter_install_dir }}"
+        state: directory
+        mode: '0755'
+      become: true
+
+    - name: Copy nvme_exporter binary to install directory
+      ansible.builtin.copy:
+        src: "{{ nvme_exporter_temp_dir.path }}/nvme_exporter"
+        dest: "{{ nvme_exporter_install_dir }}/nvme_exporter"
+        mode: '0755'
+        owner: root
+        group: root
+        remote_src: true
+      become: true
+
+    - name: Write nvme_exporter version file
+      ansible.builtin.copy:
+        content: "{{ nvme_exporter_resolved_version }}\n"
+        dest: "{{ nvme_exporter_install_dir }}/.nvme_exporter_version"
+        mode: '0644'
+        owner: root
+        group: root
+      become: true
+
+    - name: Remove temporary directory
+      ansible.builtin.file:
+        path: "{{ nvme_exporter_temp_dir.path }}"
+        state: absent
+      become: true
+
+- name: Deploy nvme_exporter environment file
+  ansible.builtin.template:
+    src: nvme_exporter.env.j2
+    dest: /etc/nvme_exporter.env
+    owner: root
+    group: root
+    mode: '0640'
+  become: true
+
+- name: Deploy nvme-exporter systemd unit
+  ansible.builtin.template:
+    src: nvme_exporter.service.j2
+    dest: /etc/systemd/system/nvme-exporter.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Reload systemd and enable nvme-exporter
+  ansible.builtin.systemd:
+    name: nvme-exporter
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true

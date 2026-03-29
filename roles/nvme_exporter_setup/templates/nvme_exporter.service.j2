@@ -1,0 +1,16 @@
+[Unit]
+Description=Prometheus NVMe Exporter
+Documentation=https://github.com/E4-Computer-Engineering/nvme-exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+EnvironmentFile=-/etc/nvme_exporter.env
+ExecStart={{ nvme_exporter_install_dir }}/nvme_exporter \
+  --web.listen-address={{ nvme_exporter_listen_address }} \
+  --web.telemetry-path={{ nvme_exporter_metrics_path }}
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

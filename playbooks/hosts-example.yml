@@ -30,6 +30,12 @@ all:
         hipfile-9:
         hipfile-10:
         ibgda-ctrl:
+        snoc-strix:
+          username: batesste
+          user_setup_motd: true
+          rdma_setup_install_rdma_exporter: true
+          rdma_setup_motd: true
+          nvme_exporter_setup_install: true
         snoc-think:
           user_setup_motd: true
         snoc-think-vm:
@@ -44,6 +50,14 @@ all:
           ansible_ssh_port: 2222
           user_setup_vm_fstab: true
           user_setup_motd: true
+          rocm_setup_user: stebates
+          rocm_setup_run_checks: false
+          rdma_setup_install_rdma_exporter: true
+          rdma_setup_motd: true
+          nvme_exporter_setup_install: true
+          # Forwarded exporter ports (QEMU hostfwd on host rocm-ernic)
+          # node_exporter_port: 9100
+          # nvme_exporter_port: 9998
         rocm-ernic-vm-alola:
           ansible_host: 10.7.197.12
           user_setup_vm_fstab: true

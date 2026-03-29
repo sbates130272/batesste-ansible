@@ -43,6 +43,15 @@ scrape_configs:
           discovered: 'true'
 {% endfor %}
 {% endif %}
+{% if grafana_setup_extra_node_exporter_targets | default([]) | length > 0 %}
+      # Explicit extra node exporter targets (e.g. port-forwarded VMs)
+{% for target in grafana_setup_extra_node_exporter_targets %}
+      - targets: ['{{ target.address }}:{{ target.port }}']
+        labels:
+          instance: '{{ target.name }}'
+          group: 'nodes'
+{% endfor %}
+{% endif %}
 
   # Grafana metrics
   - job_name: 'grafana'
@@ -62,5 +71,17 @@ scrape_configs:
           instance: '{{ target }}'
           group: 'gpus'
           discovered: 'true'
+{% endfor %}
+{% endif %}
+
+{% if grafana_setup_extra_nvme_exporter_targets | default([]) | length > 0 %}
+  # NVMe exporters (https://github.com/E4-Computer-Engineering/nvme-exporter)
+  - job_name: 'nvme_exporter'
+    static_configs:
+{% for target in grafana_setup_extra_nvme_exporter_targets %}
+      - targets: ['{{ target.address }}:{{ target.port }}']
+        labels:
+          instance: '{{ target.name }}'
+          group: 'nvme'
 {% endfor %}
 {% endif %}

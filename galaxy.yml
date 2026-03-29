@@ -1,7 +1,7 @@
 ---
 namespace: sbates130272
 name: batesste
-version: 1.0.0
+version: 1.1.0
 readme: README.md
 
 authors:
@@ -10,7 +10,7 @@ authors:
 description: >-
   Ansible roles for configuring Ubuntu bare-metal and VM
   servers including Docker, Grafana, QEMU/KVM, ROCm, RDMA,
-  NVMe-oF, and more.
+  NVMe-oF, NVMe exporter, and more.
 
 license:
   - Apache-2.0

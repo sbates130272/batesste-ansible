@@ -70,3 +70,13 @@
   when:
     - ansible_facts['distribution'] == "Ubuntu"
     - ansible_facts['distribution_release'] in ['noble', 'resolute']
+
+- name: Configure node exporter extra collectors
+  ansible.builtin.template:
+    src: prometheus-node-exporter.j2
+    dest: /etc/default/prometheus-node-exporter
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify: Restart prometheus-node-exporter

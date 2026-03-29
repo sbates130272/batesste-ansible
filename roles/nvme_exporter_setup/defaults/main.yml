@@ -1,0 +1,17 @@
+---
+# defaults file for nvme_exporter_setup
+
+# Set to true to install the NVMe exporter
+nvme_exporter_setup_install: false
+
+# Version to install ("latest" queries the GitHub API)
+nvme_exporter_version: "latest"
+
+# Install location for the binary
+nvme_exporter_install_dir: "/usr/local/bin"
+
+# Listen address and port (host:port format, empty host = all interfaces)
+nvme_exporter_listen_address: ":9998"
+
+# HTTP path for metrics endpoint
+nvme_exporter_metrics_path: "/metrics"

@@ -96,6 +96,16 @@ ROLE_CONFIGS = {
         "needs_vault": True,
         "needs_github_token": False,
     },
+    "nvme_exporter_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "nvme_exporter_setup_install": False,
+        },
+        "verification_commands": [
+            "which nvme || true",
+        ],
+        "needs_vault": False,
+    },
     "nvmeof_setup": {
         "free_disk_space": False,
         "extra_vars": {

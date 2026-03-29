@@ -1,0 +1,7 @@
+---
+# defaults file for fave_packages
+
+# Extra arguments passed to prometheus-node-exporter via
+# /etc/default/prometheus-node-exporter.  The WiFi collector
+# is disabled upstream by default; this enables it.
+fave_packages_node_exporter_extra_args: "--collector.wifi"
