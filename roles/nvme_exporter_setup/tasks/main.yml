@@ -1,0 +1,18 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# NVMe exporter setup
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    nvme_exporter_calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.check_platform
+  vars:
+    calling_role_path: "{{ nvme_exporter_calling_role_path_fact }}"
+
+- name: Install and configure nvme_exporter (optional)
+  ansible.builtin.include_tasks: nvme_exporter.yml
+  when: nvme_exporter_setup_install | default(false) | bool

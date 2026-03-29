@@ -24,6 +24,9 @@
     - role: sbates130272.batesste.fave_packages
       remote_user: "{{ username }}"
       tags: [fave_packages]
+    - role: sbates130272.batesste.nvme_exporter_setup
+      remote_user: "{{ username }}"
+      tags: [nvme_exporter_setup]
     - role: sbates130272.batesste.git_setup
       remote_user: "{{ username }}"
       tags: [git_setup]

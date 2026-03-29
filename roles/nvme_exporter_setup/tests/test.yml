@@ -1,0 +1,6 @@
+---
+- name: The test playbook for the nvme_exporter_setup role
+  hosts: all
+  roles:
+    - role: nvme_exporter_setup
+      become: false

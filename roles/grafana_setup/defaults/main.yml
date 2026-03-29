@@ -57,6 +57,16 @@ grafana_setup_node_exporter_dashboard_id: 1860
 grafana_setup_provision_amd_gpu_dashboard: true
 grafana_setup_amd_gpu_dashboard_id: 23434
 
+# NVMe exporter configuration
+# https://github.com/E4-Computer-Engineering/nvme-exporter
+grafana_setup_nvme_exporter_port: 9998
+
+# Extra scrape targets defined in inventory (for VM port-forwarded
+# exporters or hosts not discoverable via nmap).  Each entry is a
+# dict with keys: address, port, name.
+grafana_setup_extra_node_exporter_targets: []
+grafana_setup_extra_nvme_exporter_targets: []
+
 # Enable/disable components
 grafana_setup_install_prometheus: true
 grafana_setup_install_node_exporter: true
