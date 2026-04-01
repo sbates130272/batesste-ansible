@@ -73,6 +73,7 @@ WSL
 addr
 adrfam
 amd
+amduprof
 amdgpu
 ansible
 api
