@@ -182,7 +182,7 @@
 - name: Perform an update, upgrade and autoremove
   ansible.builtin.apt:
     update_cache: true
-    upgrade: full
+    upgrade: safe
     autoremove: true
   become: true
 
