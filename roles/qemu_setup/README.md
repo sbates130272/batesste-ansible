@@ -7,10 +7,9 @@ emulation and hypervisor accelerated system and user emulation. It
 adds the target user to the necessary groups for permission to run
 QEMU and libvirt.
 
-This role also checks out the HEAD of [qemu-minimal][ref-qm] which is
-a lightweight tool for running VMs and creating libvirt DOMs. To
-create a VM you can either use the instructions below or use the
-[vm_create][vm_create] role.
+This role also checks out the HEAD of [qemu-minimal][ref-qm], a lightweight
+tool for running VMs and creating libvirt DOMs. To create a VM, you can
+either use the instructions below or use the [vm_create][vm-create] role.
 
 ## Creating a libvirt VM
 
@@ -19,14 +18,17 @@ libvirt-enabled VM on that machine using the following steps:
 
 1. ssh into the target.
 2. cd <user>/Projects/qemu-minimal/libvirt
-3. NAME=<vm-name> RELEASE=noble ./virt-install-ubuntu
+3. NAME=<vm-name> RELEASE=<noble|resolute> ./virt-install-ubuntu
 
-This will create a NAT connected VM with name <vm-name> based on the
-Ubuntu "Noble" (24.04) or "Resolute" (26.04) release. Alter RELEASE
-for other versions (not
-all supported yet). Note you can then use ```virsh --edit <vm-name>```
-to alter the DOM for this VM to change vCPUs, memory, add NVMe SSDs do
-passthru etc. See the virt-install-ubuntu script for other options.
+This creates a NAT-connected VM named <vm-name> based on either Ubuntu
+"Noble" (24.04) or "Resolute" (26.04). Use RELEASE=noble for Ubuntu
+24.04 and RELEASE=resolute for Ubuntu 26.04. Alter RELEASE for other
+versions (not all supported yet). You can then run
+```virsh --edit <vm-name>``` to alter the domain for this VM, such as
+changing vCPUs, memory, or adding NVMe passthrough devices. See the
+virt-install-ubuntu script for additional options.
+
+<!-- References -->
 
 [ref-qm]: https://github.com/sbates130272/qemu-minimal
-[vm_create]: ../roles/vm_create
+[vm-create]: ../roles/vm_create
