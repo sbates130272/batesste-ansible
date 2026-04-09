@@ -9,7 +9,12 @@ name: nvmeof_setup CI
 jobs:
   nvmeof_setup-test:
     continue-on-error: true
-    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        runs-on:
+          - ubuntu-24.04
+          - ubuntu-26.04
+    runs-on: ${{ matrix.runs-on }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
