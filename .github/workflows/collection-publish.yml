@@ -16,11 +16,16 @@ name: Collection Build and Publish
 jobs:
   sanity:
     name: Sanity tests
-    runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
+        runs-on:
+          - ubuntu-24.04
+          - ubuntu-26.04
         python-version:
           - "3.12"
+    runs-on: ${{ matrix.runs-on }}
+    continue-on-error: ${{ matrix.runs-on == 'ubuntu-26.04' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2

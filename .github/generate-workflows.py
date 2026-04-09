@@ -144,7 +144,7 @@ WORKFLOW_DISPATCH_ONLY_ROLES: List[str] = []  # e.g. ["nvmeof_setup"]
 
 # Default configuration for roles without specific config
 DEFAULT_CONFIG = {
-    "ubuntu_versions": ["24.04"],
+    "ubuntu_versions": ["24.04", "26.04"],
     "free_disk_space": False,
     "extra_vars": {},
     "verification_commands": [],
@@ -433,13 +433,19 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
         })
 
     # Add matrix strategy if multiple Ubuntu versions
-    if len(config.get("ubuntu_versions", [])) > 1:
-        workflow["jobs"][f"{role_name}-test"]["strategy"] = {
+    ubuntu_versions = config.get("ubuntu_versions", [])
+    if len(ubuntu_versions) > 1:
+        job = workflow["jobs"][f"{role_name}-test"]
+        job["strategy"] = {
             "matrix": {
-                "runs-on": [f"ubuntu-{v}" for v in config["ubuntu_versions"]]
+                "runs-on": [f"ubuntu-{v}" for v in ubuntu_versions]
             }
         }
-        workflow["jobs"][f"{role_name}-test"]["runs-on"] = "${{ matrix.runs-on }}"
+        job["runs-on"] = "${{ matrix.runs-on }}"
+        if "26.04" in ubuntu_versions:
+            job["continue-on-error"] = (
+                "${{ matrix.runs-on == 'ubuntu-26.04' }}"
+            )
 
     return workflow
 
