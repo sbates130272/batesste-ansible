@@ -144,7 +144,7 @@ WORKFLOW_DISPATCH_ONLY_ROLES: List[str] = []  # e.g. ["nvmeof_setup"]
 
 # Default configuration for roles without specific config
 DEFAULT_CONFIG = {
-    "ubuntu_versions": ["24.04"],
+    "ubuntu_versions": ["24.04", "26.04"],
     "free_disk_space": False,
     "extra_vars": {},
     "verification_commands": [],
@@ -166,7 +166,7 @@ def find_roles_with_tests(roles_dir: Path) -> List[str]:
 def generate_workflow_yaml(role_name: str, config: Dict) -> str:
     """Generate a GitHub Actions workflow YAML string for a role."""
 
-    ubuntu_versions = config.get("ubuntu_versions", ["24.04"])
+    ubuntu_versions = config.get("ubuntu_versions", ["24.04", "26.04"])
     use_matrix = len(ubuntu_versions) > 1
     dispatch_only = (
         role_name in WORKFLOW_DISPATCH_ONLY_ROLES
@@ -195,8 +195,6 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         "jobs:",
         f"  {role_name}-test:",
     ])
-    if config.get("ignore_failure", False):
-        lines.append("    continue-on-error: true")
 
     # Add matrix or single runner
     if use_matrix:
@@ -206,12 +204,16 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         for version in ubuntu_versions:
             lines.append(f"          - ubuntu-{version}")
         lines.append("    runs-on: ${{ matrix.runs-on }}")
-        if "26.04" in ubuntu_versions:
+        if config.get("ignore_failure", False):
+            lines.append("    continue-on-error: true")
+        elif "26.04" in ubuntu_versions:
             lines.append(
                 "    continue-on-error: ${{ matrix.runs-on == 'ubuntu-26.04' }}"
             )
     else:
         lines.append(f"    runs-on: ubuntu-{ubuntu_versions[0]}")
+        if config.get("ignore_failure", False):
+            lines.append("    continue-on-error: true")
 
     lines.append("    steps:")
 
