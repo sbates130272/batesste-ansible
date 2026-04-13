@@ -16,7 +16,15 @@ name: rocm_setup CI
 
 jobs:
   rocm_setup-test:
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on:
+          - ubuntu-24.04
+          - ubuntu-26.04
+    runs-on: ${{ matrix.runs-on }}
+    if: ${{ matrix.runs-on != 'ubuntu-26.04' || vars.ENABLE_UBUNTU_2604 == 'true' }}
+    continue-on-error: ${{ matrix.runs-on == 'ubuntu-26.04' }}
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1

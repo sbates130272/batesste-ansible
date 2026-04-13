@@ -144,7 +144,7 @@ WORKFLOW_DISPATCH_ONLY_ROLES: List[str] = []  # e.g. ["nvmeof_setup"]
 
 # Default configuration for roles without specific config
 DEFAULT_CONFIG = {
-    "ubuntu_versions": ["24.04"],
+    "ubuntu_versions": ["24.04", "26.04"],
     "free_disk_space": False,
     "extra_vars": {},
     "verification_commands": [],
@@ -201,12 +201,17 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
     # Add matrix or single runner
     if use_matrix:
         lines.append("    strategy:")
+        lines.append("      fail-fast: false")
         lines.append("      matrix:")
         lines.append("        runs-on:")
         for version in ubuntu_versions:
             lines.append(f"          - ubuntu-{version}")
         lines.append("    runs-on: ${{ matrix.runs-on }}")
         if "26.04" in ubuntu_versions:
+            lines.append(
+                "    if: ${{ matrix.runs-on != 'ubuntu-26.04' || vars.ENABLE_UBUNTU_2604 == 'true' }}"
+            )
+        if "26.04" in ubuntu_versions and not config.get("ignore_failure", False):
             lines.append(
                 "    continue-on-error: ${{ matrix.runs-on == 'ubuntu-26.04' }}"
             )
