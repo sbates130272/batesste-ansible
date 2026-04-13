@@ -207,6 +207,10 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         for version in ubuntu_versions:
             lines.append(f"          - ubuntu-{version}")
         lines.append("    runs-on: ${{ matrix.runs-on }}")
+        if "26.04" in ubuntu_versions:
+            lines.append(
+                "    if: ${{ matrix.runs-on != 'ubuntu-26.04' || vars.ENABLE_UBUNTU_2604 == 'true' }}"
+            )
         if "26.04" in ubuntu_versions and not config.get("ignore_failure", False):
             lines.append(
                 "    continue-on-error: ${{ matrix.runs-on == 'ubuntu-26.04' }}"

@@ -16,6 +16,7 @@ jobs:
           - ubuntu-24.04
           - ubuntu-26.04
     runs-on: ${{ matrix.runs-on }}
+    if: ${{ matrix.runs-on != 'ubuntu-26.04' || vars.ENABLE_UBUNTU_2604 == 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
