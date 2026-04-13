@@ -17,6 +17,7 @@ name: github_runner CI
 jobs:
   github_runner-test:
     strategy:
+      fail-fast: false
       matrix:
         runs-on:
           - ubuntu-24.04

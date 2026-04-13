@@ -9,6 +9,7 @@ name: uprof_setup CI
 jobs:
   uprof_setup-test:
     strategy:
+      fail-fast: false
       matrix:
         runs-on:
           - ubuntu-24.04

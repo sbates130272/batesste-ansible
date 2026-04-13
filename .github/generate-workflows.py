@@ -201,6 +201,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
     # Add matrix or single runner
     if use_matrix:
         lines.append("    strategy:")
+        lines.append("      fail-fast: false")
         lines.append("      matrix:")
         lines.append("        runs-on:")
         for version in ubuntu_versions:

@@ -17,6 +17,7 @@ name: git_setup CI
 jobs:
   git_setup-test:
     strategy:
+      fail-fast: false
       matrix:
         runs-on:
           - ubuntu-24.04

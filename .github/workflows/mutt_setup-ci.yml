@@ -17,6 +17,7 @@ name: mutt_setup CI
 jobs:
   mutt_setup-test:
     strategy:
+      fail-fast: false
       matrix:
         runs-on:
           - ubuntu-24.04

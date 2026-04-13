@@ -17,6 +17,7 @@ name: nvme_exporter_setup CI
 jobs:
   nvme_exporter_setup-test:
     strategy:
+      fail-fast: false
       matrix:
         runs-on:
           - ubuntu-24.04
