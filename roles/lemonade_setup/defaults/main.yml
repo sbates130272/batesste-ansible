@@ -1,0 +1,46 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Installation method: "deb", "source", or "snap"
+lemonade_setup_install_method: "deb"
+
+# Lemonade server configuration
+lemonade_setup_host: "0.0.0.0"
+lemonade_setup_port: 8000
+lemonade_setup_log_level: "info"
+lemonade_setup_max_loaded_models: 3
+lemonade_setup_ctx_size: 131072
+lemonade_setup_api_key: "{{ vault_lemonade_setup_api_key }}"
+
+# llama.cpp backend: "rocm", "vulkan", "cpu", or "metal"
+lemonade_setup_llamacpp_backend: "rocm"
+
+# Run the rocm_setup role before installing lemonade when the
+# llama.cpp backend is set to "rocm".
+lemonade_setup_run_rocm_setup: true
+
+# Service user/group (defaults to the ansible remote user)
+lemonade_setup_user: "{{ ansible_user }}"
+lemonade_setup_group: "{{ ansible_user }}"
+
+# Whether to enable and start the lemonade-server service
+lemonade_setup_start_service: true
+
+# Source-build specific settings
+lemonade_setup_source_repo: "https://github.com/lemonade-sdk/lemonade.git"
+lemonade_setup_source_version: "v10.2.0"
+lemonade_setup_source_dir: "~/Projects/lemonade"
+lemonade_setup_source_force: false
+
+# Model preload configuration
+lemonade_setup_preload_enabled: true
+lemonade_setup_preload_timeout: 600
+lemonade_setup_preload_models:
+  - "Qwen3.5-35B-A3B-GGUF"
+  - "Qwen3-Coder-30B-A3B-Instruct-GGUF"
+
+# Prometheus exporter configuration
+lemonade_setup_exporter_enabled: true
+lemonade_setup_exporter_port: 9091

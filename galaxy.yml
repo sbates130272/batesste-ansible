@@ -1,7 +1,7 @@
 ---
 namespace: sbates130272
 name: batesste
-version: 1.1.2
+version: 1.2.0
 readme: README.md
 
 authors:
@@ -21,6 +21,8 @@ tags:
   - tools
   - monitoring
   - storage
+  - llm
+  - lemonade
 
 dependencies:
   ansible.posix: ">=1.6.2"

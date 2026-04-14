@@ -1,0 +1,19 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Install lemonade-server from the official PPA.
+
+- name: Add lemonade-team PPA repository
+  ansible.builtin.apt_repository:
+    repo: ppa:lemonade-team/stable
+    state: present
+  become: true
+
+- name: Install lemonade-server package
+  ansible.builtin.package:
+    name: lemonade-server
+    state: present
+    update_cache: true
+  become: true

@@ -1,0 +1,141 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Install and configure Lemonade LLM server with systemd
+# services and an optional Prometheus exporter.
+#
+# See this Role's README.md for more information.
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    lemonade_setup_calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.check_platform
+  vars:
+    calling_role_path: "{{ lemonade_setup_calling_role_path_fact }}"
+
+- name: Validate install method
+  ansible.builtin.assert:
+    that:
+      - lemonade_setup_install_method in ['deb', 'source', 'snap']
+    fail_msg: >-
+      lemonade_setup_install_method must be one of:
+      deb, source, snap (got '{{ lemonade_setup_install_method }}')
+
+- name: Run rocm_setup role for ROCm backend support
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.rocm_setup
+  when:
+    - lemonade_setup_llamacpp_backend == 'rocm'
+    - lemonade_setup_run_rocm_setup
+
+- name: Install lemonade-server via deb package
+  ansible.builtin.include_tasks: install-deb.yml
+  when: lemonade_setup_install_method == 'deb'
+
+- name: Install lemonade-server from source
+  ansible.builtin.include_tasks: install-source.yml
+  when: lemonade_setup_install_method == 'source'
+
+- name: Install lemonade-server via snap
+  ansible.builtin.include_tasks: install-snap.yml
+  when: lemonade_setup_install_method == 'snap'
+
+- name: Create lemonade configuration directory
+  ansible.builtin.file:
+    path: /etc/lemonade
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Template lemonade environment configuration
+  ansible.builtin.template:
+    src: lemonade.conf.j2
+    dest: /etc/lemonade/lemonade.conf
+    owner: root
+    group: root
+    mode: "0600"
+  become: true
+  notify: Restart lemonade-server
+
+- name: Template lemonade secrets configuration
+  ansible.builtin.template:
+    src: secrets.conf.j2
+    dest: /etc/lemonade/secrets.conf
+    owner: root
+    group: root
+    mode: "0600"
+  become: true
+  notify: Restart lemonade-server
+
+- name: Install lemonade-server systemd service
+  ansible.builtin.template:
+    src: lemonade-server.service.j2
+    dest: /etc/systemd/system/lemonade-server.service
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify:
+    - Reload systemd
+    - Restart lemonade-server
+
+- name: Install lemonade-preload systemd service
+  ansible.builtin.template:
+    src: lemonade-preload.service.j2
+    dest: /etc/systemd/system/lemonade-preload.service
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  when: lemonade_setup_preload_enabled
+  notify:
+    - Reload systemd
+    - Restart lemonade-preload
+
+- name: Install lemonade-preload script
+  ansible.builtin.template:
+    src: lemonade-preload.sh.j2
+    dest: /usr/local/bin/lemonade-preload.sh
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  when: lemonade_setup_preload_enabled
+  notify: Restart lemonade-preload
+
+- name: Install and configure lemonade Prometheus exporter
+  ansible.builtin.include_tasks: exporter.yml
+  when: lemonade_setup_exporter_enabled
+
+- name: Flush handlers to reload systemd
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start lemonade-server service
+  ansible.builtin.systemd:
+    name: lemonade-server
+    enabled: "{{ lemonade_setup_start_service }}"
+    state: "{{ 'started' if lemonade_setup_start_service else 'stopped' }}"
+  become: true
+
+- name: Enable and start lemonade-preload service
+  ansible.builtin.systemd:
+    name: lemonade-preload
+    enabled: "{{ lemonade_setup_start_service }}"
+    state: "{{ 'started' if lemonade_setup_start_service else 'stopped' }}"
+  become: true
+  when: lemonade_setup_preload_enabled
+
+- name: Enable and start lemonade-exporter service
+  ansible.builtin.systemd:
+    name: lemonade-exporter
+    enabled: "{{ lemonade_setup_start_service }}"
+    state: "{{ 'started' if lemonade_setup_start_service else 'stopped' }}"
+  become: true
+  when: lemonade_setup_exporter_enabled

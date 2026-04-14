@@ -1,0 +1,22 @@
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Managed by Ansible — do not edit manually.
+
+[Unit]
+Description=Preload Lemonade Models
+After=lemonade-server.service
+Requires=lemonade-server.service
+
+[Service]
+Type=oneshot
+User={{ lemonade_setup_user }}
+EnvironmentFile=/etc/lemonade/lemonade.conf
+EnvironmentFile=-/etc/lemonade/secrets.conf
+ExecStart=/usr/local/bin/lemonade-preload.sh
+RemainAfterExit=yes
+TimeoutStartSec={{ lemonade_setup_preload_timeout }}
+
+[Install]
+WantedBy=multi-user.target

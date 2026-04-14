@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  author: Stephen Bates
+  company: Raithlin Semiconductors
+  role_name: lemonade_setup
+  description: >-
+    Install and configure Lemonade LLM server
+    with systemd services and Prometheus exporter
+  license: Apache-2.0
+  min_ansible_version: "2.15.0"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+        - resolute
+  galaxy_tags:
+    - llm
+    - ai
+    - lemonade
+    - inference
+
+dependencies: []

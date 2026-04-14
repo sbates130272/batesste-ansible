@@ -1,0 +1,27 @@
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Managed by Ansible — do not edit manually.
+
+[Unit]
+Description=Lemonade Server Prometheus Exporter
+After=network.target lemonade-server.service
+
+[Service]
+Type=simple
+User={{ lemonade_setup_user }}
+WorkingDirectory=/opt/lemonade-exporter
+EnvironmentFile=/etc/lemonade/lemonade.conf
+EnvironmentFile=-/etc/lemonade/secrets.conf
+ExecStart=/opt/lemonade-exporter/.venv/bin/python3 \
+  /opt/lemonade-exporter/lemonade-exporter.py \
+  --lemonade-url http://localhost:{{ lemonade_setup_port }} \
+  --port {{ lemonade_setup_exporter_port }}
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

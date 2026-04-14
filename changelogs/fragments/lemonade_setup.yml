@@ -1,0 +1,7 @@
+---
+minor_changes:
+  - >-
+    lemonade_setup - new role to install and configure
+    Lemonade LLM server with systemd services (server,
+    model preload, Prometheus exporter). Supports deb,
+    source, and snap installation methods.
