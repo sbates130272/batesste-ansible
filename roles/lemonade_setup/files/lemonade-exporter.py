@@ -119,13 +119,13 @@ class LemonadeExporter:
 
         self.cached_tokens_last = Gauge(
             "lemonade_cached_tokens_last",
-            "Cached tokens from last request " "(prompt_tokens - input_tokens)",
+            "Cached tokens from last request (prompt_tokens - input_tokens)",
             ["node"],
         ).labels(node=inst)
 
         self.cache_hit_rate = Gauge(
             "lemonade_cache_hit_rate",
-            "Cache hit rate for last request " "(cached_tokens / prompt_tokens, 0-1)",
+            "Cache hit rate for last request (cached_tokens / prompt_tokens, 0-1)",
             ["node"],
         ).labels(node=inst)
 
@@ -183,20 +183,20 @@ class LemonadeExporter:
         ).labels(node=inst)
 
         self.last_update_time = Gauge(
-            "lemonade_exporter_last_update_timestamp" "_seconds",
+            "lemonade_exporter_last_update_timestamp_seconds",
             "Timestamp of last successful update",
             ["node"],
         ).labels(node=inst)
 
         self.concurrent_users = Gauge(
             "lemonade_concurrent_users",
-            "Estimated concurrent users " "(based on request patterns)",
+            "Estimated concurrent users (based on request patterns)",
             ["node"],
         ).labels(node=inst)
 
         self.total_sessions = Counter(
             "lemonade_total_sessions",
-            "Total sessions (estimated from unique " "request patterns)",
+            "Total sessions (estimated from unique request patterns)",
             ["node"],
         ).labels(node=inst)
 
@@ -209,31 +209,31 @@ class LemonadeExporter:
         # llama.cpp backend metrics (per model)
         self.llamacpp_prompt_tokens_total = Counter(
             "lemonade_llamacpp_prompt_tokens_total",
-            "Total prompt tokens processed by " "llama.cpp backend",
+            "Total prompt tokens processed by llama.cpp backend",
             ["node", "model_name", "backend_url"],
         )
 
         self.llamacpp_tokens_predicted_total = Counter(
             "lemonade_llamacpp_tokens_predicted_total",
-            "Total generation tokens from " "llama.cpp backend",
+            "Total generation tokens from llama.cpp backend",
             ["node", "model_name", "backend_url"],
         )
 
         self.llamacpp_prompt_throughput = Gauge(
-            "lemonade_llamacpp_prompt_tokens" "_per_second",
-            "Prompt processing throughput from " "llama.cpp backend",
+            "lemonade_llamacpp_prompt_tokens_per_second",
+            "Prompt processing throughput from llama.cpp backend",
             ["node", "model_name", "backend_url"],
         )
 
         self.llamacpp_predicted_throughput = Gauge(
-            "lemonade_llamacpp_predicted_tokens" "_per_second",
-            "Generation throughput from " "llama.cpp backend",
+            "lemonade_llamacpp_predicted_tokens_per_second",
+            "Generation throughput from llama.cpp backend",
             ["node", "model_name", "backend_url"],
         )
 
         self.llamacpp_requests_processing = Gauge(
             "lemonade_llamacpp_requests_processing",
-            "Requests currently processing in " "llama.cpp backend",
+            "Requests currently processing in llama.cpp backend",
             ["node", "model_name", "backend_url"],
         )
 
@@ -245,13 +245,13 @@ class LemonadeExporter:
 
         self.llamacpp_n_decode_total = Counter(
             "lemonade_llamacpp_n_decode_total",
-            "Total llama_decode() calls in " "llama.cpp backend",
+            "Total llama_decode() calls in llama.cpp backend",
             ["node", "model_name", "backend_url"],
         )
 
         self.llamacpp_tokens_predicted_seconds_total = Counter(
-            "lemonade_llamacpp_tokens_predicted" "_seconds_total",
-            "Total generation processing time " "in seconds from llama.cpp backend",
+            "lemonade_llamacpp_tokens_predicted_seconds_total",
+            "Total generation processing time in seconds from llama.cpp backend",
             [
                 "node",
                 "model_name",
@@ -281,6 +281,7 @@ class LemonadeExporter:
                 capture_output=True,
                 text=True,
                 timeout=10,
+                check=False,
             )
             if result.returncode == 0:
                 return json.loads(result.stdout)
@@ -306,6 +307,7 @@ class LemonadeExporter:
                 capture_output=True,
                 text=True,
                 timeout=10,
+                check=False,
             )
             if result.returncode == 0:
                 return json.loads(result.stdout)
@@ -501,7 +503,7 @@ class LemonadeExporter:
                         # Each token took approximately 1/tps seconds
                         estimated_decode_time = 1.0 / tps
                         # Record this estimated time for each output token
-                        for _ in range(output_tokens):
+                        for _tok in range(output_tokens):
                             self.decode_token_time.observe(estimated_decode_time)
 
             if health:
@@ -694,7 +696,7 @@ def main():
         "--api-key",
         default=os.environ.get("LEMONADE_API_KEY", ""),
         help=(
-            "API key for Bearer authentication " "(default: LEMONADE_API_KEY env var)"
+            "API key for Bearer authentication (default: LEMONADE_API_KEY env var)"
         ),
     )
 

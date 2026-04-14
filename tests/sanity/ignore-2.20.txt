@@ -5,4 +5,6 @@ roles/mutt_setup/files/mutt_oauth2.py shebang
 roles/nvmeof_setup/templates/nvmeof-target-cleanup.sh.j2 shebang
 roles/nvmeof_setup/templates/nvmeof-target-setup.sh.j2 shebang
 roles/rdma_setup/files/rdma-detect shebang
+roles/lemonade_setup/files/lemonade-exporter.py shebang
+roles/lemonade_setup/templates/lemonade-preload.sh.j2 shebang
 roles/rocm_setup/files/rocm-latest shebang
