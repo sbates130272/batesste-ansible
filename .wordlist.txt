@@ -5,6 +5,7 @@ AMDuProfCLI
 Ansible
 CFA
 CLI
+CMake
 CPUs
 Compatability
 ConnectX
@@ -19,6 +20,7 @@ Dockerfile
 EPYC
 Eideticom
 FQCN
+GGUF
 GPG
 GPUs
 Gb
@@ -32,7 +34,11 @@ IPv
 InfiniBand
 Instinct
 JSON
+LLM
+LLMs
 LTS
+Lemonade
+Lemonade's
 MI100
 MI200
 MI300
@@ -45,14 +51,17 @@ NICs
 NQNs
 NUMA
 NVMe
+NPU
 OCP
 OAuth
+OpenAI
 PATs
 PCI
 PROC
 PRs
 Passthrough
 Pre
+Qwen
 Prometheus
 RDMA
 README
@@ -81,6 +90,7 @@ args
 aspell
 auth
 aws
+backend
 batesste
 bindings
 bmon
@@ -96,7 +106,9 @@ config
 configfs
 configs
 containerd
+cpp
 cpus
+ctx
 cuda
 datasource
 decrypt
@@ -158,6 +170,9 @@ libpci
 libssl
 liburing
 libvirt
+lemonade
+llamacpp
+llm
 linus
 linux
 localhost
@@ -180,6 +195,8 @@ netstat
 nmap
 nox
 np
+oneshot
+npu
 nqn
 nsid
 num
@@ -200,6 +217,8 @@ plaintext
 playbook
 playbooks
 ppa
+pre
+preload
 profiling
 prometheus
 qemu
@@ -238,6 +257,7 @@ tcp
 tmp
 tmux
 torvalds
+tray
 traddr
 trsvcid
 trtype
@@ -256,6 +276,7 @@ vCPUs
 venv
 vfio
 virt
+vulkan
 virtiofsd
 vm
 workflow

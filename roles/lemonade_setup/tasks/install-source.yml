@@ -1,0 +1,47 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Build and install lemonade-server from source.
+
+- name: Install build dependencies for lemonade
+  ansible.builtin.package:
+    name:
+      - build-essential
+      - cmake
+      - git
+      - libcurl4-openssl-dev
+      - libssl-dev
+      - ninja-build
+      - pkg-config
+      - zlib1g-dev
+    state: present
+    update_cache: true
+  become: true
+
+- name: Ensure Projects folder exists
+  ansible.builtin.file:
+    path: "{{ lemonade_setup_source_dir | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Clone lemonade repository
+  ansible.builtin.git:
+    repo: "{{ lemonade_setup_source_repo }}"
+    dest: "{{ lemonade_setup_source_dir }}"
+    version: "{{ lemonade_setup_source_version }}"
+    force: "{{ lemonade_setup_source_force }}"
+    accept_newhostkey: true
+  register: lemonade_setup_repo_clone
+  failed_when:
+    - lemonade_setup_repo_clone.failed
+    - >-
+      'Local modifications exist in the destination'
+      not in lemonade_setup_repo_clone.msg
+  notify:
+    - Run lemonade setup script
+    - Build lemonade from source
+
+- name: Flush handlers to complete source build
+  ansible.builtin.meta: flush_handlers

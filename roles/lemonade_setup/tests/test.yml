@@ -1,0 +1,9 @@
+---
+# Test playbook for lemonade_setup role
+- name: Test lemonade_setup role
+  hosts: all
+
+  tasks:
+    - name: Include lemonade_setup role
+      ansible.builtin.include_role:
+        name: lemonade_setup

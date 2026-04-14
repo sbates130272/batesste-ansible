@@ -1,10 +1,10 @@
 #!/bin/bash
 #
 # A simple bash script that uses curl to obtain the latest release of
-# ROCm, amdgpu, and device-metrics-exporter via our packaging repo.
-# Use QUIET=true to only display the version tag. Use
-# ONLY_ONE=[ROCM|AMDGPU|METRICS_EXPORTER] to only output the version
-# tag for one of those components.
+# ROCm, amdgpu, graphics, and device-metrics-exporter via our
+# packaging repo. Use QUIET=true to only display the version tag. Use
+# ONLY_ONE=[ROCM|AMDGPU|GRAPHICS|METRICS_EXPORTER] to only output
+# the version tag for one of those components.
 #
 # Note that setting WSL_INSTALL=true ensures that only the latest
 # version that works with WSL2 is installed. This also will return
@@ -21,6 +21,7 @@ WSL_INSTALL=${WSL_INSTALL:-false}
 
 ROCM_REMOTE=${RADEON_REPO}/rocm/apt/
 AMDGPU_REMOTE=${RADEON_REPO}/amdgpu/
+GRAPHICS_REMOTE=${RADEON_REPO}/graphics/
 METRICS_EXPORTER_REMOTE=${RADEON_REPO}/device-metrics-exporter/apt/
 WSL_REMOTE=${RADEON_REPO}/amdgpu/
 
@@ -46,7 +47,7 @@ parse_repo () {
     echo $VERSION
 }
 
-if [ ${ONLY_ONE} != "AMDGPU" ] && [ ${ONLY_ONE} != "METRICS_EXPORTER" ]; then
+if [ ${ONLY_ONE} == "ROCM" ] || [ ${ONLY_ONE} == "false" ]; then
 
     if [ ${WSL_INSTALL} == "true" ]; then
         ROCM_VERSION=$(wsl_version $WSL_REMOTE)
@@ -64,7 +65,7 @@ if [ ${ONLY_ONE} != "AMDGPU" ] && [ ${ONLY_ONE} != "METRICS_EXPORTER" ]; then
     fi
 fi
 
-if [ ${ONLY_ONE} != "ROCM" ] && [ ${ONLY_ONE} != "METRICS_EXPORTER" ]; then
+if [ ${ONLY_ONE} == "AMDGPU" ] || [ ${ONLY_ONE} == "false" ]; then
     if [ ${WSL_INSTALL} == "true" ]; then
         AMDGPU_VERSION="none"
     else
@@ -81,7 +82,20 @@ if [ ${ONLY_ONE} != "ROCM" ] && [ ${ONLY_ONE} != "METRICS_EXPORTER" ]; then
     fi
 fi
 
-if [ ${ONLY_ONE} != "ROCM" ] && [ ${ONLY_ONE} != "AMDGPU" ]; then
+if [ ${ONLY_ONE} == "GRAPHICS" ] || [ ${ONLY_ONE} == "false" ]; then
+    if [ ${WSL_INSTALL} == "true" ]; then
+        GRAPHICS_VERSION="none"
+    else
+        GRAPHICS_VERSION=$(parse_repo $GRAPHICS_REMOTE)
+    fi
+    if [ ${QUIET} == "true" ]; then
+        echo ${GRAPHICS_VERSION}
+    else
+        echo "Graphics latest: ${GRAPHICS_VERSION}."
+    fi
+fi
+
+if [ ${ONLY_ONE} == "METRICS_EXPORTER" ] || [ ${ONLY_ONE} == "false" ]; then
     METRICS_EXPORTER_VERSION=$(parse_repo $METRICS_EXPORTER_REMOTE)
     if [ ${QUIET} == "true" ]; then
         echo ${METRICS_EXPORTER_VERSION}

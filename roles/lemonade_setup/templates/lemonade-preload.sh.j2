@@ -1,0 +1,36 @@
+#!/bin/bash
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Managed by Ansible — do not edit manually.
+
+PORT="${LEMONADE_PORT:-8000}"
+HOST="localhost"
+AUTH_HEADER="Authorization: Bearer ${LEMONADE_API_KEY}"
+CONTENT_TYPE="Content-Type: application/json"
+BASE_URL="http://${HOST}:${PORT}/api/v1"
+
+for i in $(seq 1 60); do
+    curl -sf -H "${AUTH_HEADER}" "${BASE_URL}/health" > /dev/null 2>&1 && break
+    sleep 2
+done
+
+if ! curl -sf -H "${AUTH_HEADER}" "${BASE_URL}/health" > /dev/null 2>&1; then
+    echo "ERROR: lemonade server not healthy after 120s" >&2
+    exit 1
+fi
+
+echo "Server healthy. Loading models..."
+
+{% for model in lemonade_setup_preload_models %}
+echo "Loading {{ model }}..."
+curl -s \
+    -H "${AUTH_HEADER}" \
+    -H "${CONTENT_TYPE}" \
+    -X POST "${BASE_URL}/load" \
+    -d '{"model_name": "{{ model }}"}'
+echo
+
+{% endfor %}
+echo "Preload complete."

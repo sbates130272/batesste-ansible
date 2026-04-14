@@ -8,7 +8,7 @@ Signed-By: /etc/apt/keyrings/rocm.gpg
 
 {% if not rocm_setup_wsl_install %}
 Types: deb
-URIs: https://repo.radeon.com/graphics/{{ rocm_setup_rocm_version }}/ubuntu
+URIs: https://repo.radeon.com/graphics/{{ rocm_setup_graphics_version }}/ubuntu
 Suites: {{ ansible_distribution_release }}
 Components: main
 Architectures: amd64

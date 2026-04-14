@@ -25,6 +25,9 @@ This Ansible role installs and configures Grafana, Prometheus, and Node Exporter
 Available variables are listed below, along with default values (see `defaults/main.yml`):
 
 ```yaml
+# Grafana package version (apt). Pin to avoid surprise upgrades.
+grafana_setup_version: "13.0.0"
+
 # Grafana configuration
 # Note: Grafana's default admin username is always 'admin'
 # The password is automatically synchronized after installation
@@ -195,8 +198,8 @@ After the role runs:
 
 Grafana's admin password is automatically synchronized with your configuration:
 - On **first install**: Grafana creates the admin user with the configured password
-- On **subsequent runs**: The role uses `grafana-cli` to reset the password to match
-  your configuration, ensuring consistency
+- On **subsequent runs**: The role uses `grafana cli` to reset the password
+  to match your configuration, ensuring consistency
 
 This means you can update `vault_grafana_setup_password` and re-run the playbook
 to change the admin password without manual intervention.

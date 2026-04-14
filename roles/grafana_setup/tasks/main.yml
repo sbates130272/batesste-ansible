@@ -45,8 +45,8 @@
   become: true
 
 - name: Install Grafana
-  ansible.builtin.package:
-    name: grafana
+  ansible.builtin.apt:
+    name: "grafana={{ grafana_setup_version }}"
     state: present
     update_cache: true
   become: true
@@ -101,7 +101,7 @@
 - name: Reset admin password to match configuration
   ansible.builtin.command:
     cmd: >-
-      grafana-cli admin reset-admin-password
+      grafana cli admin reset-admin-password
       {{ grafana_setup_password }}
   become: true
   when: grafana_db_stat.stat.exists

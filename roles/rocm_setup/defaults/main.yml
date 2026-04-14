@@ -5,6 +5,7 @@
 # script to detect latest.
 rocm_setup_rocm_version: latest
 rocm_setup_amdgpu_version: latest
+rocm_setup_graphics_version: latest
 
 # Map ROCm versions to package names when the meta package changes.
 rocm_setup_versioned_package_map:

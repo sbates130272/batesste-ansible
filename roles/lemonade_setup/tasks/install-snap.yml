@@ -1,0 +1,18 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Install lemonade-server via snap.
+
+- name: Ensure snapd is installed
+  ansible.builtin.package:
+    name: snapd
+    state: present
+  become: true
+
+- name: Install lemonade-server snap
+  community.general.snap:
+    name: lemonade-server
+    state: present
+  become: true

@@ -1,0 +1,57 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Install and configure the Lemonade Prometheus exporter.
+
+- name: Install python3-venv for exporter virtual environment
+  ansible.builtin.package:
+    name: python3-venv
+    state: present
+  become: true
+
+- name: Create exporter installation directory
+  ansible.builtin.file:
+    path: /opt/lemonade-exporter
+    state: directory
+    owner: "{{ lemonade_setup_user }}"
+    group: "{{ lemonade_setup_group }}"
+    mode: "0755"
+  become: true
+
+- name: Create Python virtual environment for exporter
+  ansible.builtin.command:
+    cmd: python3 -m venv /opt/lemonade-exporter/.venv
+    creates: /opt/lemonade-exporter/.venv/bin/python3
+  become: true
+
+- name: Install exporter Python dependencies
+  ansible.builtin.pip:
+    name:
+      - "prometheus-client>=0.24.1"
+      - "requests>=2.32.5"
+    virtualenv: /opt/lemonade-exporter/.venv
+  become: true
+
+- name: Copy lemonade-exporter.py to installation directory
+  ansible.builtin.copy:
+    src: lemonade-exporter.py
+    dest: /opt/lemonade-exporter/lemonade-exporter.py
+    owner: "{{ lemonade_setup_user }}"
+    group: "{{ lemonade_setup_group }}"
+    mode: "0755"
+  become: true
+  notify: Restart lemonade-exporter
+
+- name: Install lemonade-exporter systemd service
+  ansible.builtin.template:
+    src: lemonade-exporter.service.j2
+    dest: /etc/systemd/system/lemonade-exporter.service
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify:
+    - Reload systemd
+    - Restart lemonade-exporter

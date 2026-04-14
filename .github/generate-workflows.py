@@ -28,6 +28,26 @@ ROLE_CONFIGS = {
         ],
         "needs_vault": True,
     },
+    "lemonade_setup": {
+        "free_disk_space": True,
+        "extra_vars": {
+            "lemonade_setup_start_service": False,
+            "lemonade_setup_preload_enabled": False,
+            "lemonade_setup_exporter_enabled": False,
+            "vault_lemonade_setup_api_key": "test_ci_api_key_placeholder",
+            "rocm_setup_run_checks": False,
+            "rocm_setup_install_metrics_exporter": False,
+            "rocm_setup_skip_reboot": True,
+        },
+        "verification_commands": [
+            "which lemonade-server || true",
+            "dpkg -l | grep lemonade || true",
+            "dpkg -l | grep rocm || true",
+            "cat /etc/lemonade/lemonade.conf || true",
+            "systemctl status lemonade-server || true",
+        ],
+        "needs_vault": False,
+    },
     "grafana_setup": {
         "free_disk_space": False,
         "extra_vars": {

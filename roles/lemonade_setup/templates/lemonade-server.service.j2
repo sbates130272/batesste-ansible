@@ -1,0 +1,33 @@
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Managed by Ansible — do not edit manually.
+
+[Unit]
+Description=Lemonade Server
+After=network-online.target
+
+[Service]
+Type=simple
+User={{ lemonade_setup_user }}
+Group={{ lemonade_setup_group }}
+{% if lemonade_setup_install_method == 'source' %}
+WorkingDirectory={{ lemonade_setup_source_dir }}/build
+{% endif %}
+EnvironmentFile=/etc/lemonade/lemonade.conf
+EnvironmentFile=-/etc/lemonade/secrets.conf
+{% if lemonade_setup_install_method == 'deb' %}
+ExecStart=/usr/bin/lemonade-server serve --no-tray
+{% elif lemonade_setup_install_method == 'source' %}
+ExecStart={{ lemonade_setup_source_dir }}/build/lemonade-server serve --no-tray
+{% elif lemonade_setup_install_method == 'snap' %}
+ExecStart=/snap/bin/lemonade-server serve --no-tray
+{% endif %}
+Restart=always
+RestartSec=5s
+KillSignal=SIGINT
+LimitMEMLOCK=infinity
+
+[Install]
+WantedBy=multi-user.target
