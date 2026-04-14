@@ -5,6 +5,7 @@ AMDuProfCLI
 Ansible
 CFA
 CLI
+CMake
 CPUs
 Compatability
 ConnectX
@@ -89,6 +90,7 @@ args
 aspell
 auth
 aws
+backend
 batesste
 bindings
 bmon
@@ -193,6 +195,7 @@ netstat
 nmap
 nox
 np
+oneshot
 npu
 nqn
 nsid
@@ -214,6 +217,7 @@ plaintext
 playbook
 playbooks
 ppa
+pre
 preload
 profiling
 prometheus
