@@ -171,6 +171,14 @@
     mode: "0644"
   become: true
 
+- name: Check if Projects is already a mount point
+  ansible.builtin.command:
+    cmd: mountpoint -q {{ user_setup_home }}/Projects
+  register: user_setup_projects_mountpoint
+  changed_when: false
+  failed_when: false
+  when: user_setup_vm_fstab
+
 - name: Create Projects folder if it does not exist
   ansible.builtin.file:
     path: "{{ user_setup_home }}/Projects"
@@ -178,7 +186,9 @@
     owner: "{{ username }}"
     mode: "0755"
   become: true
-  when: user_setup_vm_fstab
+  when:
+    - user_setup_vm_fstab
+    - user_setup_projects_mountpoint.rc != 0
 
 - name: Add an entry in fstab for VM virtio-fs
   ansible.builtin.lineinfile:
