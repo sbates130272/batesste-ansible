@@ -86,7 +86,7 @@ ROLE_CONFIGS = {
             "vault_grafana_setup_password": "test_ci_password_123",
             "grafana_setup_discover_node_exporters": False,
             "grafana_setup_discover_amd_gpu_exporters": False,
-            "grafana_setup_version": "latest",
+            "grafana_setup_version": "13.0.1",
         },
         "verification_commands": [
             "systemctl status grafana-server || true",
