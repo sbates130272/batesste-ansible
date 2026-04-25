@@ -1,0 +1,17 @@
+all:
+  children:
+    aws_g4:
+      hosts:
+        rocm-xio-g4ad:
+          ansible_host: REPLACE_WITH_PUBLIC_IP_OR_DNS
+          ansible_user: ubuntu
+          rocm_setup_user: ubuntu
+          rocm_setup_skip_reboot: false
+          rocm_setup_run_checks: true
+          rocm_setup_install_metrics_exporter: false
+          rocm_xio_setup_source_dir: /home/ubuntu/Projects/rocm-xio
+          rocm_xio_setup_run_perf_tests: true
+          rocm_xio_setup_perf_endpoint: nvme-ep
+          rocm_xio_setup_perf_nvme_controller: /dev/nvme0
+      vars:
+        username: ubuntu

@@ -95,31 +95,35 @@ hosts.
 
 ## Suggested Flow with AWS G4
 
-The following flow option is suitable for quick functional validation
-on AWS:
+This repository now includes two AWS helper templates:
 
-1. Launch an EC2 `g4ad.xlarge` (or larger) instance.
-2. Use Ubuntu 24.04 LTS (noble) AMI.
-3. Ensure security group allows SSH from your source IP.
-4. Add the host to inventory with user `ubuntu`.
-5. Run `rocm_setup` first (automatically via dependency), then this role.
-6. Use `test-ep` and `nvme-ep` checks for baseline validation.
+- [EC2 launch template][ref-aws-g4-template]
+- [Ansible inventory template][ref-aws-hosts-template]
 
-Example inventory host vars for AWS:
+Recommended flow:
 
-```yaml
-all:
-  children:
-    aws_g4:
-      hosts:
-        g4ad-test-01:
-          ansible_host: 203.0.113.10
-          ansible_user: ubuntu
-          rocm_setup_user: ubuntu
-          rocm_setup_run_checks: true
-          rocm_xio_setup_perf_endpoint: nvme-ep
-          rocm_xio_setup_perf_nvme_controller: /dev/nvme0
+1. Edit `playbooks/aws/g4ad-rocm-xio-instance.yaml` and replace all
+   `REPLACE_WITH_*` placeholders.
+2. Launch the instance with AWS CLI:
+
+```bash
+aws ec2 run-instances \
+  --cli-input-yaml file://playbooks/aws/g4ad-rocm-xio-instance.yaml
 ```
+
+3. After the instance is up, update
+   `playbooks/aws/hosts-rocm-xio-aws.yml` with its public IP or DNS.
+4. Run the ROCm XIO playbook against the `aws_g4` target group:
+
+```bash
+PLAYBOOK=setup-rocm-xio.yml \
+HOSTS=playbooks/aws/hosts-rocm-xio-aws.yml \
+TARGETS=aws_g4 \
+playbooks/run-ansible
+```
+
+5. The role dependency chain runs `rocm_setup` first, then
+   `rocm_xio_setup`.
 
 ## Testing
 
@@ -146,3 +150,5 @@ ANSIBLE_ROLES_PATH=../ ansible-playbook \
 <!-- References -->
 
 [ref-rocm-xio]: https://github.com/ROCm/rocm-xio
+[ref-aws-g4-template]: ../../playbooks/aws/g4ad-rocm-xio-instance.yaml
+[ref-aws-hosts-template]: ../../playbooks/aws/hosts-rocm-xio-aws.yml
