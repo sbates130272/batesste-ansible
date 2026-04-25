@@ -153,6 +153,10 @@ hardcoding
 homelab
 hostfwd
 hostname
+hipFile
+hipfile
+ais
+rocs
 http
 https
 ib
