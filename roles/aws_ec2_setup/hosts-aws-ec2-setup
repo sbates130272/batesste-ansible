@@ -10,3 +10,13 @@ aws_template_generator:
           inventory_group: aws_g4
           ansible_user: ubuntu
           username: ubuntu
+          gpu_count: 1
+          nvme_count: 1
+        - name: g4ad-hipfile
+          instance_type: g4ad.xlarge
+          project_tag: hipfile
+          inventory_group: aws_hipfile
+          ansible_user: ubuntu
+          username: ubuntu
+          gpu_count: 1
+          nvme_count: 1

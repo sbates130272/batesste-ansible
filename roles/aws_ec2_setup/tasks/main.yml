@@ -30,9 +30,12 @@
       - profile.inventory_group is defined
       - profile.ansible_user is defined
       - profile.username is defined
+      - (profile.gpu_count | default(aws_ec2_setup_default_gpu_count)) | int >= 0
+      - (profile.nvme_count | default(aws_ec2_setup_default_nvme_count)) | int >= 1
     fail_msg: >-
       Each aws_ec2_setup_instance_profiles entry must define:
       name, instance_type, inventory_group, ansible_user, and username.
+      gpu_count must be >= 0 and nvme_count must be >= 1.
   loop: "{{ aws_ec2_setup_instance_profiles }}"
   loop_control:
     loop_var: profile
@@ -42,6 +45,53 @@
     src: ec2-launch.yaml.j2
     dest: "{{ aws_ec2_setup_output_dir }}/{{ profile.name }}-instance.yaml"
     mode: "0644"
+  vars:
+    aws_ec2_setup_profile_name: "{{ profile.name }}"
+    aws_ec2_setup_profile_region: >-
+      {{ profile.region | default(aws_ec2_setup_default_region) }}
+    aws_ec2_setup_profile_ami_id: >-
+      {{ profile.ami_id | default(aws_ec2_setup_default_ami_id) }}
+    aws_ec2_setup_profile_instance_type: "{{ profile.instance_type }}"
+    aws_ec2_setup_profile_key_name: >-
+      {{ profile.key_name | default(aws_ec2_setup_default_key_name) }}
+    aws_ec2_setup_profile_security_group_ids: >-
+      {{
+        profile.security_group_ids
+        | default(aws_ec2_setup_default_security_group_ids)
+      }}
+    aws_ec2_setup_profile_subnet_id: >-
+      {{ profile.subnet_id | default(aws_ec2_setup_default_subnet_id) }}
+    aws_ec2_setup_profile_iam_instance_profile_name: >-
+      {{
+        profile.iam_instance_profile_name
+        | default(aws_ec2_setup_default_iam_instance_profile_name)
+      }}
+    aws_ec2_setup_profile_root_volume_size: >-
+      {{
+        profile.root_volume_size
+        | default(aws_ec2_setup_default_root_volume_size)
+      }}
+    aws_ec2_setup_profile_root_volume_type: >-
+      {{
+        profile.root_volume_type
+        | default(aws_ec2_setup_default_root_volume_type)
+      }}
+    aws_ec2_setup_profile_owner_tag: >-
+      {{ profile.owner_tag | default(aws_ec2_setup_default_owner_tag) }}
+    aws_ec2_setup_profile_project_tag: "{{ profile.project_tag }}"
+    aws_ec2_setup_profile_availability_zone: >-
+      {{
+        profile.availability_zone
+        | default(aws_ec2_setup_default_availability_zone)
+      }}
+    aws_ec2_setup_profile_launch_file: >-
+      {{ aws_ec2_setup_output_dir }}/{{ profile.name }}-instance.yaml
+    aws_ec2_setup_profile_gpu_count: >-
+      {{ profile.gpu_count | default(aws_ec2_setup_default_gpu_count) | int }}
+    aws_ec2_setup_profile_nvme_count: >-
+      {{ profile.nvme_count | default(aws_ec2_setup_default_nvme_count) | int }}
+    aws_ec2_setup_profile_extra_block_device_mappings: >-
+      {{ profile.extra_block_device_mappings | default([]) }}
   loop: "{{ aws_ec2_setup_instance_profiles }}"
   loop_control:
     loop_var: profile
@@ -51,6 +101,15 @@
     src: inventory.yml.j2
     dest: "{{ aws_ec2_setup_output_dir }}/hosts-{{ profile.name }}.yml"
     mode: "0644"
+  vars:
+    aws_ec2_setup_profile_name: "{{ profile.name }}"
+    aws_ec2_setup_profile_inventory_group: "{{ profile.inventory_group }}"
+    aws_ec2_setup_profile_ansible_user: "{{ profile.ansible_user }}"
+    aws_ec2_setup_profile_username: "{{ profile.username }}"
+    aws_ec2_setup_profile_gpu_count: >-
+      {{ profile.gpu_count | default(aws_ec2_setup_default_gpu_count) | int }}
+    aws_ec2_setup_profile_nvme_count: >-
+      {{ profile.nvme_count | default(aws_ec2_setup_default_nvme_count) | int }}
   loop: "{{ aws_ec2_setup_instance_profiles }}"
   loop_control:
     loop_var: profile

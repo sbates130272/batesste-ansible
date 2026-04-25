@@ -60,7 +60,11 @@ rocm_xio_setup_perf_provider: "bnxt"      # bnxt | mlx5 | ionic | ernic
 rocm_xio_setup_perf_rdma_device: ""       # defaults to rocm-rdma-<provider>0
 rocm_xio_setup_perf_iterations: 128        # used by rdma-ep
 rocm_xio_setup_perf_transfer_size: 4096    # used by rdma-ep
-rocm_xio_setup_perf_nvme_controller: "/dev/nvme0"  # used by nvme-ep
+rocm_xio_setup_gpu_count: 1                # baseline target: 1 GPU
+rocm_xio_setup_perf_nvme_controllers:      # baseline target: 1 NVMe
+  - "/dev/nvme0"
+  # Add more entries to test additional NVMe controllers
+  # - "/dev/nvme1"
 rocm_xio_setup_perf_read_io: 128           # used by nvme-ep
 rocm_xio_setup_perf_batch_size: 1          # used by nvme-ep
 rocm_xio_setup_perf_extra_args: ""
@@ -90,7 +94,8 @@ hosts.
         rocm_setup_user: "{{ username }}"
         rocm_xio_setup_source_dir: "~/Projects/rocm-xio"
         rocm_xio_setup_perf_endpoint: nvme-ep
-        rocm_xio_setup_perf_nvme_controller: /dev/nvme0
+        rocm_xio_setup_perf_nvme_controllers:
+          - /dev/nvme0
 ```
 
 ## Suggested Flow with AWS G4
@@ -134,6 +139,10 @@ playbooks/run-ansible
 
 6. The role dependency chain runs `rocm_setup` first, then
    `rocm_xio_setup`.
+7. For the standard target shape, keep one GPU and one NVMe:
+   `rocm_xio_setup_gpu_count: 1` and one NVMe controller path.
+   Add extra NVMe paths in `rocm_xio_setup_perf_nvme_controllers`
+   when needed.
 
 ## Testing
 

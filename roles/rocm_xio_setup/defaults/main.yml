@@ -33,7 +33,10 @@ rocm_xio_setup_perf_provider: "bnxt"
 rocm_xio_setup_perf_rdma_device: ""
 rocm_xio_setup_perf_iterations: 128
 rocm_xio_setup_perf_transfer_size: 4096
-rocm_xio_setup_perf_nvme_controller: "/dev/nvme0"
+# Baseline target is one GPU and one NVMe for xio-tester runs.
+rocm_xio_setup_gpu_count: 1
+rocm_xio_setup_perf_nvme_controllers:
+  - "/dev/nvme0"
 rocm_xio_setup_perf_read_io: 128
 rocm_xio_setup_perf_batch_size: 1
 rocm_xio_setup_perf_extra_args: ""

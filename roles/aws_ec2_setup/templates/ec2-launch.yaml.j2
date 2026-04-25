@@ -30,6 +30,15 @@ BlockDeviceMappings:
       VolumeType: {{ aws_ec2_setup_profile_root_volume_type }}
       DeleteOnTermination: true
       Encrypted: true
+{% for extra in aws_ec2_setup_profile_extra_block_device_mappings %}
+  - DeviceName: {{ extra.device_name }}
+    Ebs:
+      VolumeSize: {{ extra.volume_size }}
+      VolumeType: {{ extra.volume_type | default('gp3') }}
+      DeleteOnTermination: {{
+        extra.delete_on_termination | default(true) | bool | lower }}
+      Encrypted: {{ extra.encrypted | default(true) | bool | lower }}
+{% endfor %}
 TagSpecifications:
   - ResourceType: instance
     Tags:
@@ -39,6 +48,10 @@ TagSpecifications:
         Value: {{ aws_ec2_setup_profile_project_tag }}
       - Key: Owner
         Value: {{ aws_ec2_setup_profile_owner_tag }}
+      - Key: ExpectedGpuCount
+        Value: "{{ aws_ec2_setup_profile_gpu_count }}"
+      - Key: ExpectedNvmeCount
+        Value: "{{ aws_ec2_setup_profile_nvme_count }}"
 MetadataOptions:
   HttpTokens: required
   HttpEndpoint: enabled

@@ -8,6 +8,9 @@ inventory templates for multiple instance profiles.
 This role renders per-profile files so you can quickly launch a chosen
 instance type with AWS CLI and then run Ansible against that host.
 
+The default hardware policy for ROCm-oriented profiles is one GPU and
+one NVMe. You can configure more NVMe devices per profile.
+
 Generated files per profile:
 
 - `<name>-instance.yaml` for:
@@ -39,6 +42,8 @@ aws_ec2_setup_default_root_volume_size: 200
 aws_ec2_setup_default_root_volume_type: gp3
 aws_ec2_setup_default_owner_tag: REPLACE_WITH_OWNER
 aws_ec2_setup_default_availability_zone: ""
+aws_ec2_setup_default_gpu_count: 0
+aws_ec2_setup_default_nvme_count: 1
 
 aws_ec2_setup_instance_profiles:
   - name: g4ad-rocm-xio
@@ -47,6 +52,16 @@ aws_ec2_setup_instance_profiles:
     inventory_group: aws_g4
     ansible_user: ubuntu
     username: ubuntu
+    gpu_count: 1
+    nvme_count: 1
+  - name: g4ad-hipfile
+    instance_type: g4ad.xlarge
+    project_tag: hipfile
+    inventory_group: aws_hipfile
+    ansible_user: ubuntu
+    username: ubuntu
+    gpu_count: 1
+    nvme_count: 1
 ```
 
 Each profile can override defaults with optional keys:
@@ -61,6 +76,9 @@ Each profile can override defaults with optional keys:
 - `root_volume_type`
 - `owner_tag`
 - `availability_zone`
+- `gpu_count`
+- `nvme_count`
+- `extra_block_device_mappings` (for additional EBS/NVMe-style volumes)
 
 ## Example Playbook
 
@@ -95,6 +113,8 @@ all:
         g4ad-rocm-xio:
           ansible_host: REPLACE_WITH_PUBLIC_IP_OR_DNS
           ansible_user: ubuntu
+          expected_gpu_count: 1
+          expected_nvme_count: 1
       vars:
         username: ubuntu
 ```

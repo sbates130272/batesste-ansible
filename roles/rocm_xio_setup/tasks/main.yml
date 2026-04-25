@@ -30,12 +30,17 @@
       - rocm_xio_setup_build_clients or not rocm_xio_setup_run_test_endpoint
       - rocm_xio_setup_build_clients or not rocm_xio_setup_run_perf_tests
       - rocm_xio_setup_build_testing or not rocm_xio_setup_run_unit_tests
+      - rocm_xio_setup_gpu_count | int >= 1
+      - >-
+        rocm_xio_setup_perf_endpoint != 'nvme-ep'
+        or rocm_xio_setup_perf_nvme_controllers | length >= 1
     fail_msg: >-
       rocm_xio_setup_perf_endpoint must be one of nvme-ep or rdma-ep, and
       rocm_xio_setup_perf_provider must be one of bnxt, mlx5, ionic, or
       ernic for rdma-ep runs. For ernic, set rocm_xio_setup_perf_rdma_device.
       build_clients is required for test endpoint and perf tests, and
-      build_testing is required for ctest unit runs.
+      build_testing is required for ctest unit runs. gpu_count must be >= 1,
+      and perf_nvme_controllers must be non-empty for nvme-ep runs.
 
 - name: Install rocm-xio build dependencies
   ansible.builtin.package:
