@@ -28,6 +28,24 @@ ROLE_CONFIGS = {
         ],
         "needs_vault": True,
     },
+    "rocm_xio_setup": {
+        "free_disk_space": True,
+        "extra_vars": {
+            "rocm_setup_wsl_install": False,
+            "rocm_setup_rocm_version": "latest",
+            "rocm_setup_amdgpu_version": "latest",
+            "rocm_setup_run_checks": False,
+            "rocm_setup_install_metrics_exporter": False,
+            "rocm_setup_skip_reboot": True,
+            "rocm_xio_setup_run_basic_checks": False,
+            "rocm_xio_setup_run_perf_tests": False,
+        },
+        "verification_commands": [
+            "dpkg -l | grep rocm || true",
+            "test -d ~/Projects/rocm-xio || true",
+        ],
+        "needs_vault": True,
+    },
     "lemonade_setup": {
         "free_disk_space": True,
         "extra_vars": {

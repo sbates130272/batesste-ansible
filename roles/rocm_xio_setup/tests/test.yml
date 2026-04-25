@@ -1,0 +1,6 @@
+---
+- name: The test playbook for the rocm_xio_setup role
+  hosts: all
+  roles:
+    - role: rocm_xio_setup
+      become: false
