@@ -64,6 +64,15 @@ ROLE_CONFIGS = {
         ],
         "needs_vault": True,
     },
+    "rocm_hipfile_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "rocm_hipfile_setup_install": False,
+            "rocm_hipfile_setup_run_checks": False,
+        },
+        "verification_commands": [],
+        "needs_vault": False,
+    },
     "lemonade_setup": {
         "free_disk_space": True,
         "extra_vars": {

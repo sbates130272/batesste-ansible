@@ -1,0 +1,6 @@
+---
+minor_changes:
+  - >-
+    rocm_hipfile_setup - new role to clone, build, and install ROCm hipFile and
+    ROCm/fio hipFile-branch fio with libhipfile enabled. Assumes rocm_setup has
+    already run and supports Ubuntu noble/resolute.
