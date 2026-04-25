@@ -57,6 +57,7 @@ jobs:
                   rocm_setup_run_checks: false
                   rocm_setup_install_metrics_exporter: false
                   rocm_setup_skip_reboot: true
+                  rocm_setup_skip_system_upgrade: true
                   rocm_xio_setup_run_basic_checks: false
                   rocm_xio_setup_run_perf_tests: false
 

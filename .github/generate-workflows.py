@@ -33,6 +33,7 @@ ROLE_CONFIGS = {
             "rocm_setup_amdgpu_version": "latest",
             "rocm_setup_run_checks": False,
             "rocm_setup_install_metrics_exporter": False,
+            "rocm_setup_skip_system_upgrade": True,
         },
         "verification_commands": [
             "systemctl status amdgpu-dkms || true",
@@ -49,6 +50,7 @@ ROLE_CONFIGS = {
             "rocm_setup_run_checks": False,
             "rocm_setup_install_metrics_exporter": False,
             "rocm_setup_skip_reboot": True,
+            "rocm_setup_skip_system_upgrade": True,
             "rocm_xio_setup_run_basic_checks": False,
             "rocm_xio_setup_run_perf_tests": False,
         },
@@ -84,6 +86,7 @@ ROLE_CONFIGS = {
             "vault_grafana_setup_password": "test_ci_password_123",
             "grafana_setup_discover_node_exporters": False,
             "grafana_setup_discover_amd_gpu_exporters": False,
+            "grafana_setup_version": "latest",
         },
         "verification_commands": [
             "systemctl status grafana-server || true",

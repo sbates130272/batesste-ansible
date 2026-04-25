@@ -221,6 +221,7 @@
     upgrade: safe
     autoremove: true
   become: true
+  when: not rocm_setup_skip_system_upgrade
 
 - name: Perform a reboot to allow kernel updates
   ansible.builtin.reboot:

@@ -52,6 +52,7 @@ jobs:
                   vault_grafana_setup_password: test_ci_password_123
                   grafana_setup_discover_node_exporters: false
                   grafana_setup_discover_amd_gpu_exporters: false
+                  grafana_setup_version: latest
 
       - name: Run the test playbook against the local runner
         run: ansible-playbook -v -i hosts-ci ./tests/test.yml

@@ -25,6 +25,10 @@ rocm_setup_reboot_timeout: 300
 # Skip reboot steps (useful for CI, containers, or manual control).
 rocm_setup_skip_reboot: true
 
+# Skip apt safe-upgrade/autoremove system update pass in rocm_pre.
+# Useful in CI where full distro upgrades can be slow and noisy.
+rocm_setup_skip_system_upgrade: false
+
 # State if this is a Windows Subsystem for Linux (WSL) install or not.
 rocm_setup_wsl_install: false
 
