@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# AWS CLI template for launching an EC2 instance profile.
+#
+# Usage:
+# aws ec2 run-instances \
+#   --region {{ aws_ec2_setup_profile_region }} \
+#   --cli-input-yaml file://{{ aws_ec2_setup_profile_launch_file }}
+#
+# Fill placeholder values before use.
+#
+ImageId: {{ aws_ec2_setup_profile_ami_id }}
+InstanceType: {{ aws_ec2_setup_profile_instance_type }}
+MinCount: 1
+MaxCount: 1
+KeyName: {{ aws_ec2_setup_profile_key_name }}
+SecurityGroupIds:
+{% for sg in aws_ec2_setup_profile_security_group_ids %}
+  - {{ sg }}
+{% endfor %}
+SubnetId: {{ aws_ec2_setup_profile_subnet_id }}
+{% if aws_ec2_setup_profile_iam_instance_profile_name | length > 0 %}
+IamInstanceProfile:
+  Name: {{ aws_ec2_setup_profile_iam_instance_profile_name }}
+{% endif %}
+BlockDeviceMappings:
+  - DeviceName: /dev/sda1
+    Ebs:
+      VolumeSize: {{ aws_ec2_setup_profile_root_volume_size }}
+      VolumeType: {{ aws_ec2_setup_profile_root_volume_type }}
+      DeleteOnTermination: true
+      Encrypted: true
+TagSpecifications:
+  - ResourceType: instance
+    Tags:
+      - Key: Name
+        Value: {{ aws_ec2_setup_profile_name }}
+      - Key: Project
+        Value: {{ aws_ec2_setup_profile_project_tag }}
+      - Key: Owner
+        Value: {{ aws_ec2_setup_profile_owner_tag }}
+MetadataOptions:
+  HttpTokens: required
+  HttpEndpoint: enabled
+Monitoring:
+  Enabled: false
+{% if aws_ec2_setup_profile_availability_zone | length > 0 %}
+Placement:
+  AvailabilityZone: {{ aws_ec2_setup_profile_availability_zone }}
+{% endif %}

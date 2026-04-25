@@ -1,0 +1,56 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Generate EC2 launch and inventory templates for configured profiles.
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    aws_ec2_setup_calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.check_platform
+  vars:
+    calling_role_path: "{{ aws_ec2_setup_calling_role_path_fact }}"
+
+- name: Ensure output directory exists
+  ansible.builtin.file:
+    path: "{{ aws_ec2_setup_output_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Validate configured instance profiles
+  ansible.builtin.assert:
+    that:
+      - aws_ec2_setup_instance_profiles | length > 0
+      - profile.name is defined
+      - profile.instance_type is defined
+      - profile.inventory_group is defined
+      - profile.ansible_user is defined
+      - profile.username is defined
+    fail_msg: >-
+      Each aws_ec2_setup_instance_profiles entry must define:
+      name, instance_type, inventory_group, ansible_user, and username.
+  loop: "{{ aws_ec2_setup_instance_profiles }}"
+  loop_control:
+    loop_var: profile
+
+- name: Render launch YAML templates for each EC2 profile
+  ansible.builtin.template:
+    src: ec2-launch.yaml.j2
+    dest: "{{ aws_ec2_setup_output_dir }}/{{ profile.name }}-instance.yaml"
+    mode: "0644"
+  loop: "{{ aws_ec2_setup_instance_profiles }}"
+  loop_control:
+    loop_var: profile
+
+- name: Render inventory templates for each EC2 profile
+  ansible.builtin.template:
+    src: inventory.yml.j2
+    dest: "{{ aws_ec2_setup_output_dir }}/hosts-{{ profile.name }}.yml"
+    mode: "0644"
+  loop: "{{ aws_ec2_setup_instance_profiles }}"
+  loop_control:
+    loop_var: profile

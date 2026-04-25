@@ -95,34 +95,44 @@ hosts.
 
 ## Suggested Flow with AWS G4
 
-This repository now includes two AWS helper templates:
-
-- [EC2 launch template][ref-aws-g4-template]
-- [Ansible inventory template][ref-aws-hosts-template]
+Use the dedicated [aws_ec2_setup role][ref-aws-ec2-role] to generate EC2
+launch and inventory templates.
 
 Recommended flow:
 
-1. Edit `playbooks/aws/g4ad-rocm-xio-instance.yaml` and replace all
-   `REPLACE_WITH_*` placeholders.
-2. Launch the instance with AWS CLI:
+1. Generate templates:
+
+```bash
+PLAYBOOK=setup-aws-ec2-templates.yml \
+HOSTS=playbooks/hosts-example.yml \
+TARGETS=local \
+playbooks/run-ansible
+```
+
+2. Edit generated launch YAML and replace all `REPLACE_WITH_*`
+   placeholders. The default output path is:
+   `~/Projects/aws-ec2-templates/g4ad-rocm-xio-instance.yaml`.
+3. Launch the instance:
 
 ```bash
 aws ec2 run-instances \
-  --cli-input-yaml file://playbooks/aws/g4ad-rocm-xio-instance.yaml
+  --region us-east-1 \
+  --cli-input-yaml \
+  file://~/Projects/aws-ec2-templates/g4ad-rocm-xio-instance.yaml
 ```
 
-3. After the instance is up, update
-   `playbooks/aws/hosts-rocm-xio-aws.yml` with its public IP or DNS.
-4. Run the ROCm XIO playbook against the `aws_g4` target group:
+4. Update generated inventory host value:
+   `~/Projects/aws-ec2-templates/hosts-g4ad-rocm-xio.yml`.
+5. Run the ROCm XIO playbook against the `aws_g4` target group:
 
 ```bash
 PLAYBOOK=setup-rocm-xio.yml \
-HOSTS=playbooks/aws/hosts-rocm-xio-aws.yml \
+HOSTS=~/Projects/aws-ec2-templates/hosts-g4ad-rocm-xio.yml \
 TARGETS=aws_g4 \
 playbooks/run-ansible
 ```
 
-5. The role dependency chain runs `rocm_setup` first, then
+6. The role dependency chain runs `rocm_setup` first, then
    `rocm_xio_setup`.
 
 ## Testing
@@ -150,5 +160,4 @@ ANSIBLE_ROLES_PATH=../ ansible-playbook \
 <!-- References -->
 
 [ref-rocm-xio]: https://github.com/ROCm/rocm-xio
-[ref-aws-g4-template]: ../../playbooks/aws/g4ad-rocm-xio-instance.yaml
-[ref-aws-hosts-template]: ../../playbooks/aws/hosts-rocm-xio-aws.yml
+[ref-aws-ec2-role]: ../aws_ec2_setup/README.md

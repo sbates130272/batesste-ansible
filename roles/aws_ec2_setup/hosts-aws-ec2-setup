@@ -1,0 +1,12 @@
+aws_template_generator:
+  hosts:
+    localhost:
+      ansible_connection: local
+      aws_ec2_setup_output_dir: /tmp/aws-ec2-templates
+      aws_ec2_setup_instance_profiles:
+        - name: g4ad-rocm-xio
+          instance_type: g4ad.xlarge
+          project_tag: rocm-xio
+          inventory_group: aws_g4
+          ansible_user: ubuntu
+          username: ubuntu

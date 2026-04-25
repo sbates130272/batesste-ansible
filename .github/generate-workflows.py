@@ -13,6 +13,18 @@ from typing import Dict, List
 
 # Configuration for role-specific settings
 ROLE_CONFIGS = {
+    "aws_ec2_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "aws_ec2_setup_output_dir": "/tmp/aws-ec2-templates",
+        },
+        "verification_commands": [
+            "ls -la /tmp/aws-ec2-templates || true",
+            "test -f /tmp/aws-ec2-templates/g4ad-rocm-xio-instance.yaml || true",
+            "test -f /tmp/aws-ec2-templates/hosts-g4ad-rocm-xio.yml || true",
+        ],
+        "needs_vault": False,
+    },
     "rocm_setup": {
         "free_disk_space": True,
         "extra_vars": {

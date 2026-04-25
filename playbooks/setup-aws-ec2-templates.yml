@@ -1,0 +1,13 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# Generate AWS EC2 launch and inventory templates.
+#
+
+- name: Generate AWS EC2 launch and inventory templates
+  hosts: "{{ targets }}"
+  gather_facts: true
+  roles:
+    - role: sbates130272.batesste.aws_ec2_setup
+      remote_user: "{{ username }}"
+      tags: [aws_ec2_setup]
