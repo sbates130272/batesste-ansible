@@ -109,11 +109,10 @@ These are configured via the `extra_vars` in each role's configuration.
 Individual role workflows trigger on:
 - Manual dispatch (`workflow_dispatch`)
 - Pull requests to `main` branch (when role files change)
-- Pushes to `main` branch (when role files change)
 
 Path filters ensure workflows only run when relevant files are modified:
 - `roles/{role_name}/**`
-- `.github/workflows/**`
+- `.github/workflows/{role_name}-ci.yml`
 - `requirements.txt`
 - `requirements.yml`
 

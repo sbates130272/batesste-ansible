@@ -10,7 +10,7 @@ name: github_runner CI
       - main
     paths:
       - roles/github_runner/**
-      - .github/workflows/**
+      - .github/workflows/github_runner-ci.yml
       - requirements.txt
       - requirements.yml
 

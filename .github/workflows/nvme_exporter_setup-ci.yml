@@ -10,7 +10,7 @@ name: nvme_exporter_setup CI
       - main
     paths:
       - roles/nvme_exporter_setup/**
-      - .github/workflows/**
+      - .github/workflows/nvme_exporter_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

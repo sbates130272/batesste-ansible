@@ -10,7 +10,7 @@ name: rdma_setup CI
       - main
     paths:
       - roles/rdma_setup/**
-      - .github/workflows/**
+      - .github/workflows/rdma_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

@@ -26,7 +26,7 @@ Available variables are listed below, along with default values (see `defaults/m
 
 ```yaml
 # Grafana package version (apt). Pin to avoid surprise upgrades.
-grafana_setup_version: "13.0.0"
+grafana_setup_version: "13.0.1"
 
 # Grafana configuration
 # Note: Grafana's default admin username is always 'admin'

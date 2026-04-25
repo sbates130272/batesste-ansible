@@ -10,7 +10,7 @@ name: git_setup CI
       - main
     paths:
       - roles/git_setup/**
-      - .github/workflows/**
+      - .github/workflows/git_setup-ci.yml
       - requirements.txt
       - requirements.yml
 
