@@ -119,7 +119,9 @@
     name:
       - amdgpu-dkms
     state: latest
-  when: not rocm_setup_wsl_install
+  when:
+    - not rocm_setup_wsl_install
+    - rocm_setup_install_kernel_driver
   become: true
   register: rocm_setup_amdgpu_dkms_install
   # Using latest is intentional: When installing multiple ROCm versions,

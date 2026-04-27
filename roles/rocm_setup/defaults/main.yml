@@ -29,6 +29,10 @@ rocm_setup_skip_reboot: true
 # Useful in CI where full distro upgrades can be slow and noisy.
 rocm_setup_skip_system_upgrade: false
 
+# Install kernel-facing AMDGPU pieces (headers, modules, amdgpu-dkms).
+# Disable in CI where no GPU/kernel-driver validation is possible.
+rocm_setup_install_kernel_driver: true
+
 # State if this is a Windows Subsystem for Linux (WSL) install or not.
 rocm_setup_wsl_install: false
 

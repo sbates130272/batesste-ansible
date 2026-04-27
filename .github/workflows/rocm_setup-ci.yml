@@ -56,6 +56,7 @@ jobs:
                   rocm_setup_amdgpu_version: latest
                   rocm_setup_run_checks: false
                   rocm_setup_install_metrics_exporter: false
+                  rocm_setup_install_kernel_driver: false
                   rocm_setup_skip_system_upgrade: true
 
       - name: Run the test playbook against the local runner

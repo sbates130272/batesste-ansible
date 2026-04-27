@@ -56,13 +56,14 @@ jobs:
                   rocm_setup_amdgpu_version: latest
                   rocm_setup_run_checks: false
                   rocm_setup_install_metrics_exporter: false
+                  rocm_setup_install_kernel_driver: false
                   rocm_setup_skip_reboot: true
                   rocm_setup_skip_system_upgrade: true
                   rocm_xio_setup_run_basic_checks: false
                   rocm_xio_setup_run_perf_tests: false
 
       - name: Run the test playbook against the local runner
-        run: ansible-playbook --syntax-check -i hosts-ci ./tests/test.yml
+        run: ansible-playbook -v -i hosts-ci ./tests/test.yml
         working-directory: ./roles/rocm_xio_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
