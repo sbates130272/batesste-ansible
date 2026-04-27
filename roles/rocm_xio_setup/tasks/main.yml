@@ -49,6 +49,7 @@
       - git
       - cmake
       - ninja-build
+      - libclang-rt-dev
       - rocminfo
       - rocm-hip-sdk
       - libdrm-dev

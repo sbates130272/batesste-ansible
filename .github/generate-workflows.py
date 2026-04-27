@@ -53,6 +53,8 @@ ROLE_CONFIGS = {
             "rocm_setup_install_kernel_driver": False,
             "rocm_setup_skip_reboot": True,
             "rocm_setup_skip_system_upgrade": True,
+            "rocm_xio_setup_repo_version": "v0.1.0",
+            "rocm_xio_setup_force_clone": True,
             "rocm_xio_setup_run_basic_checks": False,
             "rocm_xio_setup_run_perf_tests": False,
         },

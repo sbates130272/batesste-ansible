@@ -33,7 +33,7 @@ Available variables are listed below, with defaults from
 ```yaml
 # Source location
 rocm_xio_setup_repo_url: "https://github.com/ROCm/rocm-xio.git"
-rocm_xio_setup_repo_version: "main"
+rocm_xio_setup_repo_version: "v0.1.0"
 rocm_xio_setup_source_dir: "{{ ansible_env.HOME }}/Projects/rocm-xio"
 rocm_xio_setup_force_clone: false
 
