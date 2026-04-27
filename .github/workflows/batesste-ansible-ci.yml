@@ -23,6 +23,30 @@ on:
 
 jobs:
 
+  detect-role-changes:
+    runs-on: ubuntu-24.04
+    outputs:
+      rocm_setup: ${{ steps.filter.outputs.rocm_setup }}
+      grafana_setup: ${{ steps.filter.outputs.grafana_setup }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+      - name: Detect changed role files
+        id: filter
+        uses: dorny/paths-filter@v3.0.2
+        with:
+          filters: |
+            rocm_setup:
+              - 'roles/rocm_setup/**'
+              - 'requirements.txt'
+              - 'requirements.yml'
+              - '.github/workflows/batesste-ansible-ci.yml'
+            grafana_setup:
+              - 'roles/grafana_setup/**'
+              - 'requirements.txt'
+              - 'requirements.yml'
+              - '.github/workflows/batesste-ansible-ci.yml'
+
   build-spellcheck-lint-test:
     runs-on: ubuntu-24.04
     steps:
@@ -77,6 +101,10 @@ jobs:
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
   rocm_setup-role-test:
+    needs: detect-role-changes
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+      needs.detect-role-changes.outputs.rocm_setup == 'true' }}
     strategy:
       matrix:
         include:
@@ -129,6 +157,10 @@ jobs:
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
   grafana_setup-role-test:
+    needs: detect-role-changes
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+      needs.detect-role-changes.outputs.grafana_setup == 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code

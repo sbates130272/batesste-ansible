@@ -10,7 +10,7 @@ name: rocm_setup CI
       - main
     paths:
       - roles/rocm_setup/**
-      - .github/workflows/**
+      - .github/workflows/rocm_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

@@ -3,7 +3,7 @@
 
 # Grafana package version (apt). Pin to avoid surprise upgrades.
 # grafana-cli was removed in v13.0; the role now uses "grafana cli".
-grafana_setup_version: "13.0.0"
+grafana_setup_version: "13.0.1"
 
 # Grafana configuration
 # Note: Grafana's default admin username is always 'admin'

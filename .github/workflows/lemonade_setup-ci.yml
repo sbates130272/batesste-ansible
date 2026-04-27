@@ -10,7 +10,7 @@ name: lemonade_setup CI
       - main
     paths:
       - roles/lemonade_setup/**
-      - .github/workflows/**
+      - .github/workflows/lemonade_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

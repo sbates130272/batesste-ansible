@@ -206,7 +206,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
             "      - main",
             "    paths:",
             f"      - roles/{role_name}/**",
-            "      - .github/workflows/**",
+            f"      - .github/workflows/{role_name}-ci.yml",
             "      - requirements.txt",
             "      - requirements.yml",
         ])

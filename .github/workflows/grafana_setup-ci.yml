@@ -10,7 +10,7 @@ name: grafana_setup CI
       - main
     paths:
       - roles/grafana_setup/**
-      - .github/workflows/**
+      - .github/workflows/grafana_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

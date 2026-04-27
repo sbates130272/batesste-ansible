@@ -10,7 +10,7 @@ name: mutt_setup CI
       - main
     paths:
       - roles/mutt_setup/**
-      - .github/workflows/**
+      - .github/workflows/mutt_setup-ci.yml
       - requirements.txt
       - requirements.yml
 
