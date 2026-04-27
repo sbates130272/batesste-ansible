@@ -221,6 +221,7 @@
     upgrade: safe
     autoremove: true
   become: true
+  when: not rocm_setup_skip_system_upgrade
 
 - name: Perform a reboot to allow kernel updates
   ansible.builtin.reboot:
@@ -252,7 +253,9 @@
       - linux-headers-{{ ansible_kernel }}
       - linux-modules-extra-{{ ansible_kernel }}
   become: true
-  when: not rocm_setup_wsl_install
+  when:
+    - not rocm_setup_wsl_install
+    - rocm_setup_install_kernel_driver
 
 - name: Ensure the video and render groups exist
   ansible.builtin.group:

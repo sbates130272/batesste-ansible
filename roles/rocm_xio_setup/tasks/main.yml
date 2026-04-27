@@ -1,0 +1,120 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Build and validate ROCm XIO from source. This role depends on
+# rocm_setup in meta/main.yml and assumes ROCm prerequisites are present.
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    rocm_xio_setup_calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.check_platform
+  vars:
+    calling_role_path: "{{ rocm_xio_setup_calling_role_path_fact }}"
+
+- name: Validate rocm_xio_setup endpoint selection
+  ansible.builtin.assert:
+    that:
+      - rocm_xio_setup_perf_endpoint in ['nvme-ep', 'rdma-ep']
+      - >-
+        rocm_xio_setup_perf_endpoint != 'rdma-ep'
+        or rocm_xio_setup_perf_provider in ['bnxt', 'mlx5', 'ionic', 'ernic']
+      - >-
+        rocm_xio_setup_perf_endpoint != 'rdma-ep'
+        or rocm_xio_setup_perf_provider != 'ernic'
+        or rocm_xio_setup_perf_rdma_device | length > 0
+      - rocm_xio_setup_build_clients or not rocm_xio_setup_run_test_endpoint
+      - rocm_xio_setup_build_clients or not rocm_xio_setup_run_perf_tests
+      - rocm_xio_setup_build_testing or not rocm_xio_setup_run_unit_tests
+      - rocm_xio_setup_gpu_count | int >= 1
+      - >-
+        rocm_xio_setup_perf_endpoint != 'nvme-ep'
+        or rocm_xio_setup_perf_nvme_controllers | length >= 1
+    fail_msg: >-
+      rocm_xio_setup_perf_endpoint must be one of nvme-ep or rdma-ep, and
+      rocm_xio_setup_perf_provider must be one of bnxt, mlx5, ionic, or
+      ernic for rdma-ep runs. For ernic, set rocm_xio_setup_perf_rdma_device.
+      build_clients is required for test endpoint and perf tests, and
+      build_testing is required for ctest unit runs. gpu_count must be >= 1,
+      and perf_nvme_controllers must be non-empty for nvme-ep runs.
+
+- name: Install rocm-xio build dependencies
+  ansible.builtin.package:
+    update_cache: true
+    name:
+      - git
+      - cmake
+      - ninja-build
+      - libclang-rt-dev
+      - rocminfo
+      - rocm-hip-sdk
+      - libdrm-dev
+      - libhsa-runtime-dev
+      - libcli11-dev
+      - pciutils
+    state: present
+  become: true
+  when: rocm_xio_setup_install_dependencies
+
+- name: Clone rocm-xio repository
+  ansible.builtin.git:
+    repo: "{{ rocm_xio_setup_repo_url }}"
+    dest: "{{ rocm_xio_setup_source_dir }}"
+    version: "{{ rocm_xio_setup_repo_version }}"
+    force: "{{ rocm_xio_setup_force_clone }}"
+    update: true
+
+- name: Configure rocm-xio with CMake
+  ansible.builtin.command:
+    cmd: >-
+      cmake -S {{ rocm_xio_setup_source_dir }} -B {{
+      rocm_xio_setup_source_dir }}/build
+      -DCMAKE_BUILD_TYPE={{ rocm_xio_setup_build_type }}
+      -DBUILD_CLIENTS={{ 'ON' if rocm_xio_setup_build_clients else 'OFF' }}
+      -DBUILD_TESTING={{ 'ON' if rocm_xio_setup_build_testing else 'OFF' }}
+  changed_when: false
+
+- name: Build rocm-xio
+  ansible.builtin.command:
+    cmd: >-
+      cmake --build {{ rocm_xio_setup_source_dir }}/build --target all
+      --parallel {{ rocm_xio_setup_parallel_jobs }}
+  changed_when: false
+
+- name: Install rocm-xio into install prefix
+  ansible.builtin.command:
+    cmd: >-
+      cmake --install {{ rocm_xio_setup_source_dir }}/build
+      --prefix {{ rocm_xio_setup_install_prefix }}
+  changed_when: false
+  become: true
+  when: rocm_xio_setup_install
+
+- name: Gather package facts for dependency checks
+  ansible.builtin.package_facts:
+    manager: auto
+  when:
+    - rocm_xio_setup_install_dependencies
+    - rocm_xio_setup_build_clients
+
+- name: Fail when CLI11 dependency package is missing
+  ansible.builtin.fail:
+    msg: >-
+      rocm_xio_setup_build_clients requires libcli11-dev. Either install the
+      package or set rocm_xio_setup_build_clients=false.
+  when:
+    - rocm_xio_setup_install_dependencies
+    - rocm_xio_setup_build_clients
+    - "'libcli11-dev' not in ansible_facts.packages"
+
+- name: Run post-install rocm-xio checks
+  ansible.builtin.import_tasks: rocm_xio_check.yml
+  when: rocm_xio_setup_run_basic_checks
+
+- name: Run rocm-xio performance test path
+  ansible.builtin.import_tasks: rocm_xio_perf.yml
+  when: rocm_xio_setup_run_perf_tests

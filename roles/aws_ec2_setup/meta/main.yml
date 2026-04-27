@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: Stephen Bates
+  company: Raithlin Semiconductors
+  role_name: aws_ec2_setup
+  description: >-
+    Generate reusable AWS EC2 launch and inventory templates
+  license: Apache-2.0
+  min_ansible_version: "2.15.0"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+        - resolute
+  galaxy_tags:
+    - aws
+    - ec2
+    - cloud
+    - templates
+
+dependencies: []

@@ -1,0 +1,67 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Output directory for generated templates.
+aws_ec2_setup_output_dir: "{{ ansible_env.HOME }}/Projects/aws-ec2-templates"
+
+# Common launch template defaults.
+aws_ec2_setup_default_region: "us-east-1"
+aws_ec2_setup_default_ami_id: "ami-REPLACE_WITH_UBUNTU_NOBLE_AMI"
+aws_ec2_setup_default_key_name: "REPLACE_WITH_KEYPAIR_NAME"
+aws_ec2_setup_default_security_group_ids:
+  - "sg-REPLACE_WITH_SSH_SECURITY_GROUP"
+aws_ec2_setup_default_subnet_id: "subnet-REPLACE_WITH_SUBNET_ID"
+aws_ec2_setup_default_iam_instance_profile_name: "REPLACE_WITH_OPTIONAL_INSTANCE_PROFILE"
+aws_ec2_setup_default_root_volume_size: 200
+aws_ec2_setup_default_root_volume_type: "gp3"
+aws_ec2_setup_default_root_device_name: "/dev/sda1"
+aws_ec2_setup_default_owner_tag: "REPLACE_WITH_OWNER"
+
+# Optional availability zone for placement stanza.
+aws_ec2_setup_default_availability_zone: ""
+
+# Baseline profile hardware targets:
+# - rocm_xio and hipfile profiles default to one GPU + one NVMe
+# - extra NVMe mappings can be added per profile with extra_block_device_mappings
+aws_ec2_setup_default_gpu_count: 0
+aws_ec2_setup_default_nvme_count: 1
+
+# Instance profiles to generate. Add/edit entries for desired fleets.
+aws_ec2_setup_instance_profiles:
+  - name: "g4ad-rocm-xio"
+    instance_type: "g4ad.xlarge"
+    project_tag: "rocm-xio"
+    inventory_group: "aws_g4"
+    ansible_user: "ubuntu"
+    username: "ubuntu"
+    gpu_count: 1
+    nvme_count: 1
+  - name: "g4ad-hipfile"
+    instance_type: "g4ad.xlarge"
+    project_tag: "hipfile"
+    inventory_group: "aws_hipfile"
+    ansible_user: "ubuntu"
+    username: "ubuntu"
+    gpu_count: 1
+    nvme_count: 1
+  - name: "cpu-general"
+    instance_type: "m7i.large"
+    project_tag: "general"
+    inventory_group: "aws_cpu"
+    ansible_user: "ubuntu"
+    username: "ubuntu"
+    gpu_count: 0
+    nvme_count: 1
+  - name: "storage-nvme"
+    instance_type: "i4i.large"
+    project_tag: "storage"
+    inventory_group: "aws_storage"
+    ansible_user: "ubuntu"
+    username: "ubuntu"
+    gpu_count: 0
+    nvme_count: 1
+
+# Extra host vars appended to generated inventory hosts.
+aws_ec2_setup_inventory_host_vars: {}

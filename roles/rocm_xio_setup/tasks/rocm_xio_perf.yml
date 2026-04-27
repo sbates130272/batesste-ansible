@@ -1,0 +1,143 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Basic endpoint performance checks for rocm-xio.
+
+- name: Check that requested NVMe controller exists
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: rocm_xio_setup_nvme_controller_stat
+  loop: "{{ rocm_xio_setup_perf_nvme_controllers }}"
+  loop_control:
+    label: "{{ item }}"
+  when: rocm_xio_setup_perf_endpoint == 'nvme-ep'
+
+- name: Build list of existing NVMe controllers for perf runs
+  ansible.builtin.set_fact:
+    rocm_xio_setup_perf_existing_nvme_controllers: >-
+      {{
+        (rocm_xio_setup_nvme_controller_stat.results | default([]))
+        | selectattr('stat.exists', 'equalto', true)
+        | map(attribute='item')
+        | list
+      }}
+  when: rocm_xio_setup_perf_endpoint == 'nvme-ep'
+
+- name: Default existing NVMe controller list when nvme-ep is not selected
+  ansible.builtin.set_fact:
+    rocm_xio_setup_perf_existing_nvme_controllers: []
+  when: rocm_xio_setup_perf_endpoint != 'nvme-ep'
+
+- name: Skip NVMe performance tests when no controllers are available
+  ansible.builtin.debug:
+    msg: >-
+      Skipping nvme-ep performance run because none of the configured
+      controllers were found: {{
+      rocm_xio_setup_perf_nvme_controllers | join(', ') }}.
+  when:
+    - rocm_xio_setup_perf_endpoint == 'nvme-ep'
+    - rocm_xio_setup_perf_existing_nvme_controllers | length == 0
+
+- name: Run nvme-ep performance path with xio-tester
+  ansible.builtin.command:
+    cmd: "{{ rocm_xio_setup_perf_nvme_cmd }}"
+    chdir: "{{ rocm_xio_setup_source_dir }}"
+  vars:
+    rocm_xio_setup_perf_nvme_cmd: >-
+      ./build/xio-tester nvme-ep
+      --controller {{ item }}
+      --read-io {{ rocm_xio_setup_perf_read_io }}
+      --batch-size {{ rocm_xio_setup_perf_batch_size }}
+      --verbose
+      --less-timing
+      {{ rocm_xio_setup_perf_extra_args }}
+  loop: "{{ rocm_xio_setup_perf_existing_nvme_controllers }}"
+  loop_control:
+    label: "{{ item }}"
+  environment:
+    HSA_FORCE_FINE_GRAIN_PCIE: "1"
+  become: true
+  changed_when: false
+  when:
+    - rocm_xio_setup_perf_endpoint == 'nvme-ep'
+    - rocm_xio_setup_perf_existing_nvme_controllers | length > 0
+    - rocm_xio_setup_force_fine_grain_pcie
+
+- name: Run nvme-ep performance path with xio-tester (no fine grain flag)
+  ansible.builtin.command:
+    cmd: "{{ rocm_xio_setup_perf_nvme_cmd }}"
+    chdir: "{{ rocm_xio_setup_source_dir }}"
+  vars:
+    rocm_xio_setup_perf_nvme_cmd: >-
+      ./build/xio-tester nvme-ep
+      --controller {{ item }}
+      --read-io {{ rocm_xio_setup_perf_read_io }}
+      --batch-size {{ rocm_xio_setup_perf_batch_size }}
+      --verbose
+      --less-timing
+      {{ rocm_xio_setup_perf_extra_args }}
+  loop: "{{ rocm_xio_setup_perf_existing_nvme_controllers }}"
+  loop_control:
+    label: "{{ item }}"
+  become: true
+  changed_when: false
+  when:
+    - rocm_xio_setup_perf_endpoint == 'nvme-ep'
+    - rocm_xio_setup_perf_existing_nvme_controllers | length > 0
+    - not rocm_xio_setup_force_fine_grain_pcie
+
+- name: Run rdma-ep performance path with xio-tester
+  ansible.builtin.command:
+    cmd: "{{ rocm_xio_setup_perf_rdma_cmd }}"
+    chdir: "{{ rocm_xio_setup_source_dir }}"
+  vars:
+    rocm_xio_setup_perf_rdma_device_resolved: >-
+      {{
+        rocm_xio_setup_perf_rdma_device
+        if rocm_xio_setup_perf_rdma_device | length > 0
+        else 'rocm-rdma-' + rocm_xio_setup_perf_provider + '0'
+      }}
+    rocm_xio_setup_perf_rdma_cmd: >-
+      ./build/xio-tester rdma-ep
+      --provider {{ rocm_xio_setup_perf_provider }}
+      --device {{ rocm_xio_setup_perf_rdma_device_resolved }}
+      --loopback
+      --iterations {{ rocm_xio_setup_perf_iterations }}
+      --transfer-size {{ rocm_xio_setup_perf_transfer_size }}
+      --verbose
+      {{ rocm_xio_setup_perf_extra_args }}
+  environment:
+    HSA_FORCE_FINE_GRAIN_PCIE: "1"
+  become: true
+  changed_when: false
+  when:
+    - rocm_xio_setup_perf_endpoint == 'rdma-ep'
+    - rocm_xio_setup_force_fine_grain_pcie
+
+- name: Run rdma-ep performance path with xio-tester (no fine grain flag)
+  ansible.builtin.command:
+    cmd: "{{ rocm_xio_setup_perf_rdma_cmd }}"
+    chdir: "{{ rocm_xio_setup_source_dir }}"
+  vars:
+    rocm_xio_setup_perf_rdma_device_resolved: >-
+      {{
+        rocm_xio_setup_perf_rdma_device
+        if rocm_xio_setup_perf_rdma_device | length > 0
+        else 'rocm-rdma-' + rocm_xio_setup_perf_provider + '0'
+      }}
+    rocm_xio_setup_perf_rdma_cmd: >-
+      ./build/xio-tester rdma-ep
+      --provider {{ rocm_xio_setup_perf_provider }}
+      --device {{ rocm_xio_setup_perf_rdma_device_resolved }}
+      --loopback
+      --iterations {{ rocm_xio_setup_perf_iterations }}
+      --transfer-size {{ rocm_xio_setup_perf_transfer_size }}
+      --verbose
+      {{ rocm_xio_setup_perf_extra_args }}
+  become: true
+  changed_when: false
+  when:
+    - rocm_xio_setup_perf_endpoint == 'rdma-ep'
+    - not rocm_xio_setup_force_fine_grain_pcie

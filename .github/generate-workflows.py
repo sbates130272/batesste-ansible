@@ -13,6 +13,18 @@ from typing import Dict, List
 
 # Configuration for role-specific settings
 ROLE_CONFIGS = {
+    "aws_ec2_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "aws_ec2_setup_output_dir": "/tmp/aws-ec2-templates",
+        },
+        "verification_commands": [
+            "ls -la /tmp/aws-ec2-templates || true",
+            "test -f /tmp/aws-ec2-templates/g4ad-rocm-xio-instance.yaml || true",
+            "test -f /tmp/aws-ec2-templates/hosts-g4ad-rocm-xio.yml || true",
+        ],
+        "needs_vault": False,
+    },
     "rocm_setup": {
         "free_disk_space": True,
         "extra_vars": {
@@ -21,10 +33,34 @@ ROLE_CONFIGS = {
             "rocm_setup_amdgpu_version": "latest",
             "rocm_setup_run_checks": False,
             "rocm_setup_install_metrics_exporter": False,
+            "rocm_setup_install_kernel_driver": False,
+            "rocm_setup_skip_system_upgrade": True,
         },
         "verification_commands": [
             "systemctl status amdgpu-dkms || true",
             "dpkg -l | grep rocm || true",
+        ],
+        "needs_vault": True,
+    },
+    "rocm_xio_setup": {
+        "free_disk_space": True,
+        "extra_vars": {
+            "rocm_setup_wsl_install": False,
+            "rocm_setup_rocm_version": "latest",
+            "rocm_setup_amdgpu_version": "latest",
+            "rocm_setup_run_checks": False,
+            "rocm_setup_install_metrics_exporter": False,
+            "rocm_setup_install_kernel_driver": False,
+            "rocm_setup_skip_reboot": True,
+            "rocm_setup_skip_system_upgrade": True,
+            "rocm_xio_setup_repo_version": "v0.1.0",
+            "rocm_xio_setup_force_clone": True,
+            "rocm_xio_setup_run_basic_checks": False,
+            "rocm_xio_setup_run_perf_tests": False,
+        },
+        "verification_commands": [
+            "dpkg -l | grep rocm || true",
+            "test -d ~/Projects/rocm-xio || true",
         ],
         "needs_vault": True,
     },
@@ -54,6 +90,7 @@ ROLE_CONFIGS = {
             "vault_grafana_setup_password": "test_ci_password_123",
             "grafana_setup_discover_node_exporters": False,
             "grafana_setup_discover_amd_gpu_exporters": False,
+            "grafana_setup_version": "13.0.1",
         },
         "verification_commands": [
             "systemctl status grafana-server || true",

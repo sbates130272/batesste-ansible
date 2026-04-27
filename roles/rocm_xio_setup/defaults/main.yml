@@ -1,0 +1,45 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Build source location for ROCm XIO.
+rocm_xio_setup_repo_url: "https://github.com/ROCm/rocm-xio.git"
+rocm_xio_setup_repo_version: "v0.1.0"
+rocm_xio_setup_source_dir: "{{ ansible_env.HOME }}/Projects/rocm-xio"
+rocm_xio_setup_force_clone: false
+
+# Build and install controls.
+rocm_xio_setup_install_dependencies: true
+rocm_xio_setup_build_type: "Release"
+rocm_xio_setup_build_clients: true
+rocm_xio_setup_build_testing: true
+rocm_xio_setup_install: false
+rocm_xio_setup_install_prefix: "/opt/rocm"
+rocm_xio_setup_parallel_jobs: "{{ ansible_processor_vcpus | default(4) }}"
+
+# Run install validation checks after build.
+rocm_xio_setup_run_basic_checks: true
+rocm_xio_setup_check_rocminfo: true
+rocm_xio_setup_run_unit_tests: true
+rocm_xio_setup_run_test_endpoint: true
+rocm_xio_setup_test_endpoint_emulate: true
+
+# Run a hardware-oriented performance path after checks.
+# Supported endpoints: rdma-ep, nvme-ep
+rocm_xio_setup_run_perf_tests: true
+rocm_xio_setup_perf_endpoint: "nvme-ep"
+rocm_xio_setup_perf_provider: "bnxt"
+rocm_xio_setup_perf_rdma_device: ""
+rocm_xio_setup_perf_iterations: 128
+rocm_xio_setup_perf_transfer_size: 4096
+# Baseline target is one GPU and one NVMe for xio-tester runs.
+rocm_xio_setup_gpu_count: 1
+rocm_xio_setup_perf_nvme_controllers:
+  - "/dev/nvme0"
+rocm_xio_setup_perf_read_io: 128
+rocm_xio_setup_perf_batch_size: 1
+rocm_xio_setup_perf_extra_args: ""
+
+# Use HSA_FORCE_FINE_GRAIN_PCIE=1 in endpoint checks and perf tests.
+rocm_xio_setup_force_fine_grain_pcie: true

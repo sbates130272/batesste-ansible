@@ -44,12 +44,21 @@
     filename: grafana
   become: true
 
-- name: Install Grafana
+- name: Install Grafana (latest available)
+  ansible.builtin.apt:
+    name: grafana
+    state: present
+    update_cache: true
+  become: true
+  when: grafana_setup_version == 'latest'
+
+- name: Install Grafana (pinned version)
   ansible.builtin.apt:
     name: "grafana={{ grafana_setup_version }}"
     state: present
     update_cache: true
   become: true
+  when: grafana_setup_version != 'latest'
 
 - name: Create Grafana configuration directory
   ansible.builtin.file:

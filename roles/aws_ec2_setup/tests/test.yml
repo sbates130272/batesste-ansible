@@ -1,0 +1,6 @@
+---
+- name: The test playbook for the aws_ec2_setup role
+  hosts: all
+  roles:
+    - role: aws_ec2_setup
+      become: false

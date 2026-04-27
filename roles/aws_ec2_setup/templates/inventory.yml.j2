@@ -1,0 +1,14 @@
+all:
+  children:
+    {{ aws_ec2_setup_profile_inventory_group }}:
+      hosts:
+        {{ aws_ec2_setup_profile_name }}:
+          ansible_host: REPLACE_WITH_PUBLIC_IP_OR_DNS
+          ansible_user: {{ aws_ec2_setup_profile_ansible_user }}
+          expected_gpu_count: {{ aws_ec2_setup_profile_gpu_count }}
+          expected_nvme_count: {{ aws_ec2_setup_profile_nvme_count }}
+{% for key, value in aws_ec2_setup_inventory_host_vars.items() %}
+          {{ key }}: {{ value }}
+{% endfor %}
+      vars:
+        username: {{ aws_ec2_setup_profile_username }}

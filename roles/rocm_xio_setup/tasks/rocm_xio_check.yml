@@ -1,0 +1,41 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Basic post-build validation for rocm-xio.
+
+- name: Check that rocminfo is available
+  ansible.builtin.command:
+    cmd: rocminfo
+  changed_when: false
+  when: rocm_xio_setup_check_rocminfo
+
+- name: Check xio-tester endpoint registration
+  ansible.builtin.command:
+    cmd: ./build/xio-tester --list-endpoints
+    chdir: "{{ rocm_xio_setup_source_dir }}"
+  changed_when: false
+
+- name: Run rocm-xio unit tests with ctest
+  ansible.builtin.command:
+    cmd: ctest --test-dir build -L unit --output-on-failure
+    chdir: "{{ rocm_xio_setup_source_dir }}"
+  changed_when: false
+  when: rocm_xio_setup_run_unit_tests
+
+- name: Run xio-tester test endpoint
+  ansible.builtin.command:
+    cmd: "{{ rocm_xio_setup_test_endpoint_cmd }}"
+    chdir: "{{ rocm_xio_setup_source_dir }}"
+  vars:
+    rocm_xio_setup_test_endpoint_cmd: >-
+      {{ './build/xio-tester test-ep --emulate --verbose'
+         if rocm_xio_setup_test_endpoint_emulate
+         else './build/xio-tester test-ep --verbose' }}
+  environment:
+    HSA_FORCE_FINE_GRAIN_PCIE: >-
+      {{ '1' if rocm_xio_setup_force_fine_grain_pcie else omit }}
+  changed_when: false
+  become: true
+  when: rocm_xio_setup_run_test_endpoint
