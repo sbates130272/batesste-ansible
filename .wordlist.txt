@@ -71,6 +71,7 @@ Radeon
 RoCE
 SMI
 SSDs
+SSD
 Subnet
 UFW
 UI

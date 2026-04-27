@@ -10,7 +10,7 @@ name: aws_ec2_setup CI
       - main
     paths:
       - roles/aws_ec2_setup/**
-      - .github/workflows/**
+      - .github/workflows/aws_ec2_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

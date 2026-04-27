@@ -10,7 +10,7 @@ name: rocm_xio_setup CI
       - main
     paths:
       - roles/rocm_xio_setup/**
-      - .github/workflows/**
+      - .github/workflows/rocm_xio_setup-ci.yml
       - requirements.txt
       - requirements.yml
 
