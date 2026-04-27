@@ -25,7 +25,7 @@ rocm_hipfile_setup_install: true
 rocm_hipfile_setup_run_checks: true
 
 # Source and install paths
-rocm_hipfile_setup_projects_dir: "~/Projects"
+rocm_hipfile_setup_projects_dir: "{{ ansible_env.HOME }}/Projects"
 rocm_hipfile_setup_hipfile_src_dir: "{{ rocm_hipfile_setup_projects_dir }}/hipFile"
 rocm_hipfile_setup_hipfile_build_dir: "{{ rocm_hipfile_setup_hipfile_src_dir }}/build"
 rocm_hipfile_setup_fio_src_dir: "{{ rocm_hipfile_setup_projects_dir }}/fio-hipfile"
