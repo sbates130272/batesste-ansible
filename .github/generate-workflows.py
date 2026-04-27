@@ -54,6 +54,7 @@ ROLE_CONFIGS = {
             "rocm_xio_setup_run_basic_checks": False,
             "rocm_xio_setup_run_perf_tests": False,
         },
+        "test_command": "ansible-playbook --syntax-check -i hosts-ci ./tests/test.yml",
         "verification_commands": [
             "dpkg -l | grep rocm || true",
             "test -d ~/Projects/rocm-xio || true",
@@ -200,6 +201,7 @@ DEFAULT_CONFIG = {
     "ubuntu_versions": ["24.04"],
     "free_disk_space": False,
     "extra_vars": {},
+    "test_command": "ansible-playbook -v -i hosts-ci ./tests/test.yml",
     "verification_commands": [],
     "needs_vault": False,
     "ignore_failure": False,
@@ -342,7 +344,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
     # Run test playbook
     lines.extend([
         "      - name: Run the test playbook against the local runner",
-        "        run: ansible-playbook -v -i hosts-ci ./tests/test.yml",
+        f"        run: {config['test_command']}",
         f"        working-directory: ./roles/{role_name}",
         "        env:",
         "          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles",
