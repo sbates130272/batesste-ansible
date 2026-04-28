@@ -48,6 +48,8 @@ MacOS
 Mellanox
 NIC
 NICs
+NFS
+NFSv
 NQNs
 NUMA
 NVMe
@@ -226,6 +228,7 @@ pre
 preload
 profiling
 prometheus
+pNFS
 qemu
 radeon
 raithlin
@@ -312,3 +315,15 @@ xfsprogs
 yaml
 yml
 zv
+async
+conf
+crossmnt
+mnt
+nfs
+nfsd
+nfsrdma
+nfsvers
+pnfs
+rw
+subtree
+vers
