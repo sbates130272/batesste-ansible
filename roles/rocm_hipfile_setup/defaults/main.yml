@@ -1,0 +1,64 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Set to true to build and install hipFile and hipFile-enabled fio.
+rocm_hipfile_setup_install: true
+
+# Set to true to run lightweight post-install checks.
+rocm_hipfile_setup_run_checks: true
+
+# Source and install paths
+# Use an absolute home-based path so become/chdir tasks behave consistently.
+rocm_hipfile_setup_projects_dir: "{{ ansible_env.HOME }}/Projects"
+rocm_hipfile_setup_hipfile_src_dir: "{{ rocm_hipfile_setup_projects_dir }}/hipFile"
+rocm_hipfile_setup_hipfile_build_dir: "{{ rocm_hipfile_setup_hipfile_src_dir }}/build"
+rocm_hipfile_setup_fio_src_dir: "{{ rocm_hipfile_setup_projects_dir }}/fio-hipfile"
+rocm_hipfile_setup_fio_install_dir: "/opt/fio-hipfile"
+
+# Upstream repositories and pinned references
+rocm_hipfile_setup_hipfile_repo: "https://github.com/ROCm/hipFile.git"
+rocm_hipfile_setup_hipfile_version: "9b0b6a1ce01d2cbb655151e69bbfe3bea4e493ae"
+rocm_hipfile_setup_hipfile_force: false
+rocm_hipfile_setup_fio_repo: "https://github.com/ROCm/fio.git"
+rocm_hipfile_setup_fio_version: "ee6ea2ebcc266f766c69df9d7990f1255e9f59f9"
+rocm_hipfile_setup_fio_force: false
+
+# ROCm and AIS locations
+rocm_hipfile_setup_rocm_path: "/opt/rocm"
+rocm_hipfile_setup_ais_lib_path: "/opt/rocs-ais/lib"
+rocm_hipfile_setup_ais_include_path: "/opt/rocs-ais/include"
+rocm_hipfile_setup_runtime_ld_library_path: >-
+  {{ rocm_hipfile_setup_ais_lib_path }}:{{ rocm_hipfile_setup_rocm_path }}/lib:{{
+  rocm_hipfile_setup_rocm_path }}/lib64
+rocm_hipfile_setup_fio_extra_cflags: >-
+  -I{{ rocm_hipfile_setup_ais_include_path }}
+  -I{{ rocm_hipfile_setup_rocm_path }}/include
+rocm_hipfile_setup_fio_extra_ldflags: >-
+  -L{{ rocm_hipfile_setup_ais_lib_path }}
+  -L{{ rocm_hipfile_setup_rocm_path }}/lib
+  -Wl,-rpath,{{ rocm_hipfile_setup_ais_lib_path }}
+  -Wl,-rpath,{{ rocm_hipfile_setup_rocm_path }}/lib
+rocm_hipfile_setup_hip_platform: "amd"
+rocm_hipfile_setup_hipfile_build_type: "Release"
+rocm_hipfile_setup_parallel_jobs: "{{ ansible_processor_vcpus | default(4) }}"
+
+# Build dependencies used for hipFile and fio
+rocm_hipfile_setup_build_packages:
+  - build-essential
+  - cmake
+  - gettext
+  - git
+  - libaio-dev
+  - libboost-program-options-dev
+  - libmount-dev
+  - libnuma-dev
+  - libpci-dev
+  - libpmem-dev
+  - libpmem2-dev
+  - liburing-dev
+  - pkg-config
+  - python3
+  - wget

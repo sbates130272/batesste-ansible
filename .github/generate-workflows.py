@@ -64,6 +64,21 @@ ROLE_CONFIGS = {
         ],
         "needs_vault": True,
     },
+    "rocm_hipfile_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "rocm_hipfile_setup_install": True,
+            "rocm_hipfile_setup_run_checks": False,
+            "rocm_setup_rocm_version": "latest",
+            "rocm_setup_amdgpu_version": "latest",
+            "rocm_setup_wsl_install": False,
+            "rocm_setup_run_checks": False,
+            "rocm_setup_install_metrics_exporter": False,
+            "rocm_setup_skip_reboot": True,
+        },
+        "verification_commands": [],
+        "needs_vault": False,
+    },
     "lemonade_setup": {
         "free_disk_space": True,
         "extra_vars": {

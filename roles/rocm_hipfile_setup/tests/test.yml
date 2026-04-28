@@ -1,0 +1,12 @@
+---
+- name: The test playbook for the rocm_hipfile_setup role
+  hosts: all
+  roles:
+    - role: rocm_setup
+      become: false
+      rocm_setup_run_checks: false
+      rocm_setup_install_metrics_exporter: false
+      rocm_setup_skip_reboot: true
+    - role: rocm_hipfile_setup
+      become: false
+      rocm_hipfile_setup_run_checks: false

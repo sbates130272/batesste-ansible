@@ -38,6 +38,7 @@ jobs:
           filters: |
             rocm_setup:
               - 'roles/rocm_setup/**'
+              - 'roles/rocm_hipfile_setup/**'
               - 'requirements.txt'
               - 'requirements.yml'
               - '.github/workflows/batesste-ansible-ci.yml'
