@@ -55,7 +55,7 @@
 - name: Load rpcrdma module on client
   community.general.modprobe:
     name: rpcrdma
-    persistent: false
+    persistent: disabled
   become: true
   when: nfs_rdma_setup_enable_rdma | bool
 

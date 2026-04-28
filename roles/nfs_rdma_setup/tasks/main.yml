@@ -31,18 +31,25 @@
 
 - name: Resolve NFS server IPv4 for mount (host mode)
   ansible.builtin.set_fact:
-    nfs_rdma_setup_nfs_server_resolved: "{{
-      hostvars[nfs_rdma_setup_target_host].nfs_rdma_setup_server_address_resolved
-      if (nfs_rdma_setup_target_host | length > 0)
-        and (hostvars[nfs_rdma_setup_target_host]
-          .nfs_rdma_setup_server_address_resolved | default('') | length > 0)
-      else (
-        hostvars[nfs_rdma_setup_target_host].ansible_default_ipv4.address | default('')
-      )
-      if (nfs_rdma_setup_target_host | length > 0)
-        and (hostvars[nfs_rdma_setup_target_host].ansible_default_ipv4 is defined)
-      else nfs_rdma_setup_nfs_server
-    }}"
+    nfs_rdma_setup_nfs_server_resolved: "{{ _nfs_rdma_server_ip }}"
+  vars:
+    _hv: "{{ hostvars[nfs_rdma_setup_target_host] | default({}) }}"
+    _addr_from_fact: "{{ _hv.nfs_rdma_setup_server_address_resolved | default('') }}"
+    _addr_from_default: "{{ _hv.ansible_default_ipv4.address | default('') }}"
+    _nfs_rdma_server_ip: >-
+      {{
+        nfs_rdma_setup_nfs_server
+        if (nfs_rdma_setup_target_host | length == 0)
+        else (
+          _addr_from_fact
+          if (_addr_from_fact | length > 0)
+          else (
+            _addr_from_default
+            if (_hv.ansible_default_ipv4 is defined)
+            else nfs_rdma_setup_nfs_server
+          )
+        )
+      }}
   when: nfs_rdma_setup_mode == 'host'
 
 - name: Configure NFS server (exports, rdma)

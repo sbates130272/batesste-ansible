@@ -28,7 +28,7 @@
 - name: Load rpcrdma module for NFS over RDMA
   community.general.modprobe:
     name: rpcrdma
-    persistent: "{{ nfs_rdma_setup_persist_rdma_module | bool }}"
+    persistent: "{{ 'present' if nfs_rdma_setup_persist_rdma_module | bool else 'disabled' }}"
   become: true
   when: nfs_rdma_setup_enable_rdma | bool
 
