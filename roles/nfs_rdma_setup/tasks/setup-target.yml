@@ -51,6 +51,19 @@
   when: nfs_rdma_setup_enable_rdma | bool
   notify: Reload nfs server
 
+- name: Advertise NFSv4 minor versions in nfs.conf (pNFS / NFSv4.1+)
+  community.general.ini_file:
+    path: /etc/nfs.conf
+    section: nfsd
+    option: vers4
+    value: "{{ nfs_rdma_setup_nfsd_vers4 if (nfs_rdma_setup_nfsd_vers4 | default('') | length > 0) else 'y' }}"
+    mode: "0644"
+  become: true
+  when:
+    - nfs_rdma_setup_enable_pnfs | bool
+      or (nfs_rdma_setup_nfsd_vers4 | default('') | length > 0)
+  notify: Reload nfs server
+
 - name: Configure nfs kernel server RDMA listen port
   ansible.builtin.lineinfile:
     path: /etc/default/nfs-kernel-server

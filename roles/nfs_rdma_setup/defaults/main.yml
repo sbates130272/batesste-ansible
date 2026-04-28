@@ -71,9 +71,31 @@ nfs_rdma_setup_nfs_server: ""
 # that host's ansible default IPv4 or RDMA address when set.
 nfs_rdma_setup_target_host: ""
 
-# Host mode: mount options (RDMA port matches nfs server rdma listen port)
-nfs_rdma_setup_mount_options: >-
-  rdma,port={{ nfs_rdma_setup_rdma_port }},nfsvers=4,_netdev
+# NFSv4 minor protocol version on the client mount: 0 = NFSv4.0 (classic),
+# 1 = NFSv4.1 (required for parallel NFS / pNFS), 2 = NFSv4.2, etc.
+nfs_rdma_setup_nfs_minor_version: 0
+
+# Parallel NFS (pNFS): requires NFSv4.1 or later on client and server. When
+# true, the effective minor version is at least 1 even if
+# nfs_rdma_setup_nfs_minor_version is 0.
+nfs_rdma_setup_enable_pnfs: false
+
+# Target mode: when true or when nfs_rdma_setup_nfsd_vers4 is non-empty,
+# set [nfsd] vers4 in /etc/nfs.conf so the kernel server advertises NFSv4.1+
+# (needed for pNFS clients). Leave empty with enable_pnfs to use "y".
+nfs_rdma_setup_nfsd_vers4: ""
+
+# Host mode: full mount(8) option string. Empty uses auto-built options from
+# nfs_rdma_setup_rdma_port, nfs_rdma_setup_nfs_minor_version (after pNFS bump),
+# nfs_rdma_setup_mount_options_extra, and _netdev.
+nfs_rdma_setup_mount_options: ""
+
+# Host mode: comma-separated extra mount options (appended when mount_options
+# is empty), e.g. "minorversion=1,rsize=1048576".
+nfs_rdma_setup_mount_options_extra: ""
 
 # Host mode: fstab field for pass (dump/fsck)
 nfs_rdma_setup_mount_passno: 0
+
+# Host mode: mount immediately vs fstab-only (present)
+nfs_rdma_setup_mount_auto: true

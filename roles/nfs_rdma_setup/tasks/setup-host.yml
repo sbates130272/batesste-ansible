@@ -10,6 +10,31 @@
       nfs_rdma_setup_target_host to the inventory hostname of the NFS server.
   when: nfs_rdma_setup_mode == 'host'
 
+- name: Resolve NFSv4 minor version (pNFS needs at least 4.1)
+  ansible.builtin.set_fact:
+    nfs_rdma_setup_nfs_minor_version_effective: "{{
+      [nfs_rdma_setup_nfs_minor_version | int, 1] | max
+      if (nfs_rdma_setup_enable_pnfs | bool)
+      else (nfs_rdma_setup_nfs_minor_version | int)
+    }}"
+
+- name: Build effective NFS mount options for host
+  ansible.builtin.set_fact:
+    nfs_rdma_setup_mount_opts_effective: "{{
+      nfs_rdma_setup_mount_options
+      if (nfs_rdma_setup_mount_options | default('') | length > 0)
+      else (
+        'rdma,port=' ~ (nfs_rdma_setup_rdma_port | string)
+        ~ ',nfsvers=4.' ~ (nfs_rdma_setup_nfs_minor_version_effective | string)
+        ~ ',_netdev'
+        ~ (
+          ',' ~ nfs_rdma_setup_mount_options_extra
+          if (nfs_rdma_setup_mount_options_extra | default('') | length > 0)
+          else ''
+        )
+      )
+    }}"
+
 - name: Install NFS client and RDMA packages
   ansible.builtin.package:
     name: "{{ nfs_rdma_setup_client_packages }}"
@@ -46,7 +71,7 @@
     path: "{{ nfs_rdma_setup_mount_path }}"
     src: "{{ nfs_rdma_setup_nfs_server_resolved }}:{{ nfs_rdma_setup_export_path }}"
     fstype: nfs
-    opts: "{{ nfs_rdma_setup_mount_options }}"
+    opts: "{{ nfs_rdma_setup_mount_opts_effective }}"
     state: "{{ 'mounted' if (nfs_rdma_setup_mount_auto | bool) else 'present' }}"
     passno: "{{ nfs_rdma_setup_mount_passno }}"
   become: true
