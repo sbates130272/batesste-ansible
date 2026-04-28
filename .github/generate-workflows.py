@@ -195,6 +195,22 @@ ROLE_CONFIGS = {
         "ignore_failure": True,
         "workflow_dispatch_only": True,
     },
+    "nfs_rdma_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "nfs_rdma_setup_configure_firewall": False,
+        },
+        "verification_commands": [
+            "dpkg -l | grep nfs-kernel-server || true",
+            "grep -E '^[^#].*nfsrdma' /etc/nfs.conf || true",
+            "systemctl is-active nfs-server || true",
+            "lsmod | grep rpcrdma || true",
+        ],
+        "needs_vault": False,
+        "needs_github_token": False,
+        "ignore_failure": True,
+        "workflow_dispatch_only": True,
+    },
     "uprof_setup": {
         "free_disk_space": False,
         "extra_vars": {

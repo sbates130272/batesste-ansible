@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  author: Stephen Bates
+  company: Raithlin Semiconductors
+  role_name: nfs_rdma_setup
+  description: >-
+    Setup NFS over RDMA: server exports and client mounts (modeled on
+    nvmeof_setup transport patterns).
+  license: Apache-2.0
+  min_ansible_version: "2.15.0"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+        - resolute
+  galaxy_tags:
+    - nfs
+    - storage
+    - rdma
+    - nfsrdma
+
+dependencies: []

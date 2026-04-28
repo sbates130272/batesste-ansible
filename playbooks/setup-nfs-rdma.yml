@@ -1,0 +1,11 @@
+---
+# Copyright (c) Stephen Bates, 2025
+#
+
+- name: Setup NFS over RDMA server and clients
+  hosts: "{{ targets }}"
+  gather_facts: true
+  roles:
+    - role: sbates130272.batesste.nfs_rdma_setup
+      remote_user: "{{ username }}"
+      tags: [nfs_rdma_setup]

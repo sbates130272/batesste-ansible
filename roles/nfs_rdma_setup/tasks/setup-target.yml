@@ -1,0 +1,83 @@
+---
+# NFS server: packages, rpcrdma, exports, nfs.conf, nfs-kernel-server defaults
+
+- name: Install NFS server and RDMA packages
+  ansible.builtin.package:
+    name: "{{ nfs_rdma_setup_server_packages }}"
+    state: present
+    update_cache: true
+  become: true
+
+- name: Install optional diagnostics tools
+  ansible.builtin.package:
+    name:
+      - libibverbs-dev
+    state: present
+    update_cache: true
+  become: true
+  when: nfs_rdma_setup_install_tools | bool
+
+- name: Ensure export directory exists
+  ansible.builtin.file:
+    path: "{{ nfs_rdma_setup_export_path }}"
+    state: directory
+    mode: "0755"
+  become: true
+  when: nfs_rdma_setup_export_create_directory | bool
+
+- name: Load rpcrdma module for NFS over RDMA
+  community.general.modprobe:
+    name: rpcrdma
+    persistent: "{{ nfs_rdma_setup_persist_rdma_module | bool }}"
+  become: true
+  when: nfs_rdma_setup_enable_rdma | bool
+
+- name: Publish exports file
+  ansible.builtin.template:
+    src: exports.j2
+    dest: /etc/exports
+    mode: "0644"
+  become: true
+  notify: Reload nfs server
+
+- name: Enable NFS-over-RDMA in nfs.conf
+  community.general.ini_file:
+    path: /etc/nfs.conf
+    section: nfsd
+    option: rdma
+    value: nfsrdma
+    mode: "0644"
+  become: true
+  when: nfs_rdma_setup_enable_rdma | bool
+  notify: Reload nfs server
+
+- name: Configure nfs kernel server RDMA listen port
+  ansible.builtin.lineinfile:
+    path: /etc/default/nfs-kernel-server
+    regexp: '^RPCNFSDOPTS='
+    line: 'RPCNFSDOPTS="{{ nfs_rdma_setup_nfs_kernel_server_rdma_opts }}"'
+    create: true
+    mode: "0644"
+  become: true
+  when: nfs_rdma_setup_enable_rdma | bool
+  notify: Reload nfs server
+
+- name: Allow NFS and RDMA NFS ports in UFW
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    interface: "{{ item.interface }}"
+    direction: in
+  become: true
+  loop: "{{ nfs_rdma_setup_ufw_rules }}"
+  when:
+    - nfs_rdma_setup_configure_firewall | bool
+    - nfs_rdma_setup_ufw_rules | length > 0
+
+- name: Enable and start NFS server
+  ansible.builtin.service:
+    name: nfs-server
+    enabled: true
+    state: started
+  become: true

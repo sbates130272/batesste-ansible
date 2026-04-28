@@ -1,0 +1,9 @@
+---
+- name: The test playbook for the nfs_rdma_setup role
+  hosts: all
+  vars:
+    nfs_rdma_setup_configure_firewall: false
+    nfs_rdma_setup_export_create_directory: true
+  roles:
+    - role: nfs_rdma_setup
+      become: true
