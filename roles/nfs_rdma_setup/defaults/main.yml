@@ -1,0 +1,101 @@
+---
+# defaults file for nfs_rdma_setup
+
+# Role mode: 'target' for NFS server (exports), 'host' for NFS client (mount)
+nfs_rdma_setup_mode: target
+
+# Enable NFS-over-RDMA path (rpcrdma module, nfs.conf rdma, RDMA port).
+nfs_rdma_setup_enable_rdma: true
+
+# RDMA port for nfsrdma (matches nfs kernel server --rdma=)
+nfs_rdma_setup_rdma_port: 20049
+
+# Path exported on the server (target mode). Must exist or be created if
+# nfs_rdma_setup_export_create_directory is true.
+nfs_rdma_setup_export_path: /storage/home
+
+# Export line options (appended after path and clients in /etc/exports).
+nfs_rdma_setup_export_options: >-
+  rw,no_subtree_check,no_root_squash,async,crossmnt,insecure
+
+# Which clients may mount (NFS exports format, e.g. *, or 192.168.0.0/24)
+nfs_rdma_setup_export_clients: "*"
+
+# Create export_path on the target if missing
+nfs_rdma_setup_export_create_directory: true
+
+# Server: write rpcrdma to /etc/modules-load.d for persistence
+nfs_rdma_setup_persist_rdma_module: true
+
+# Server: line for /etc/default/nfs-kernel-server (RPCNFSDOPTS)
+nfs_rdma_setup_nfs_kernel_server_rdma_opts: "--rdma={{ nfs_rdma_setup_rdma_port }}"
+
+# Server: optional firewall (UFW). Requires community.general.ufw and
+# matching interface names on the host.
+nfs_rdma_setup_configure_firewall: false
+
+# When nfs_rdma_setup_configure_firewall is true: UFW rules per entry.
+nfs_rdma_setup_ufw_rules: []
+
+# Example when firewall is enabled (adjust interfaces to your host):
+# nfs_rdma_setup_ufw_rules:
+#   - { port: 2049, proto: tcp, interface: eth0 }
+#   - { port: 2049, proto: udp, interface: eth0 }
+#   - { port: 2049, proto: tcp, interface: ib0 }
+#   - { port: 2049, proto: udp, interface: ib0 }
+#   - { port: "{{ nfs_rdma_setup_rdma_port }}", proto: udp, interface: ib0 }
+#   - { port: "{{ nfs_rdma_setup_rdma_port }}", proto: tcp, interface: ib0 }
+
+# Packages installed on server (target mode)
+nfs_rdma_setup_server_packages:
+  - nfs-kernel-server
+  - rdma-core
+  - ibverbs-utils
+  - infiniband-diags
+
+# Packages installed on client (host mode)
+nfs_rdma_setup_client_packages:
+  - nfs-common
+  - rdma-core
+
+# Install auxiliary tools on both modes when true
+nfs_rdma_setup_install_tools: true
+
+# Host mode: local mount point for NFS
+nfs_rdma_setup_mount_path: /mnt/nfs-rdma
+
+# Host mode: server address (set explicitly or use nfs_rdma_setup_target_host)
+nfs_rdma_setup_nfs_server: ""
+
+# Host mode: inventory hostname of the NFS server; server IP is taken from
+# that host's ansible default IPv4 or RDMA address when set.
+nfs_rdma_setup_target_host: ""
+
+# NFSv4 minor protocol version on the client mount: 0 = NFSv4.0 (classic),
+# 1 = NFSv4.1 (required for parallel NFS / pNFS), 2 = NFSv4.2, etc.
+nfs_rdma_setup_nfs_minor_version: 0
+
+# Parallel NFS (pNFS): requires NFSv4.1 or later on client and server. When
+# true, the effective minor version is at least 1 even if
+# nfs_rdma_setup_nfs_minor_version is 0.
+nfs_rdma_setup_enable_pnfs: false
+
+# Target mode: when true or when nfs_rdma_setup_nfsd_vers4 is non-empty,
+# set [nfsd] vers4 in /etc/nfs.conf so the kernel server advertises NFSv4.1+
+# (needed for pNFS clients). Leave empty with enable_pnfs to use "y".
+nfs_rdma_setup_nfsd_vers4: ""
+
+# Host mode: full mount(8) option string. Empty uses auto-built options from
+# nfs_rdma_setup_rdma_port, nfs_rdma_setup_nfs_minor_version (after pNFS bump),
+# nfs_rdma_setup_mount_options_extra, and _netdev.
+nfs_rdma_setup_mount_options: ""
+
+# Host mode: comma-separated extra mount options (appended when mount_options
+# is empty), e.g. "minorversion=1,rsize=1048576".
+nfs_rdma_setup_mount_options_extra: ""
+
+# Host mode: fstab field for pass (dump/fsck)
+nfs_rdma_setup_mount_passno: 0
+
+# Host mode: mount immediately vs fstab-only (present)
+nfs_rdma_setup_mount_auto: true

@@ -1,0 +1,61 @@
+---
+# Copyright (c) Stephen Bates, 2025
+#
+# NFS over RDMA: target (server exports) and host (client mount)
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.check_platform
+  vars:
+    calling_role_path: "{{ calling_role_path_fact }}"
+
+- name: Discover RDMA interfaces and IPv4 addresses on NFS server
+  ansible.builtin.include_tasks: resolve-rdma-addresses.yml
+  when:
+    - nfs_rdma_setup_enable_rdma | bool
+    - nfs_rdma_setup_mode == 'target'
+
+- name: Resolve NFS server address fact for clients
+  ansible.builtin.set_fact:
+    nfs_rdma_setup_server_address_resolved: "{{
+      (nfs_rdma_rdma_interfaces | first).address
+      if (nfs_rdma_rdma_interfaces | default([]) | length) > 0
+      else ansible_default_ipv4.address | default('')
+    }}"
+  when:
+    - nfs_rdma_setup_mode == 'target'
+
+- name: Resolve NFS server IPv4 for mount (host mode)
+  ansible.builtin.set_fact:
+    nfs_rdma_setup_nfs_server_resolved: "{{ _nfs_rdma_server_ip }}"
+  vars:
+    _hv: "{{ hostvars[nfs_rdma_setup_target_host] | default({}) }}"
+    _addr_from_fact: "{{ _hv.nfs_rdma_setup_server_address_resolved | default('') }}"
+    _addr_from_default: "{{ _hv.ansible_default_ipv4.address | default('') }}"
+    _nfs_rdma_server_ip: >-
+      {{
+        nfs_rdma_setup_nfs_server
+        if (nfs_rdma_setup_target_host | length == 0)
+        else (
+          _addr_from_fact
+          if (_addr_from_fact | length > 0)
+          else (
+            _addr_from_default
+            if (_hv.ansible_default_ipv4 is defined)
+            else nfs_rdma_setup_nfs_server
+          )
+        )
+      }}
+  when: nfs_rdma_setup_mode == 'host'
+
+- name: Configure NFS server (exports, rdma)
+  ansible.builtin.include_tasks: setup-target.yml
+  when: nfs_rdma_setup_mode == 'target'
+
+- name: Configure NFS client (mount over RDMA)
+  ansible.builtin.include_tasks: setup-host.yml
+  when: nfs_rdma_setup_mode == 'host'

@@ -1,0 +1,9 @@
+---
+# handlers for nfs_rdma_setup
+
+- name: Reload nfs server
+  ansible.builtin.service:
+    name: nfs-server
+    state: reloaded
+  become: true
+  when: nfs_rdma_setup_mode == 'target'
