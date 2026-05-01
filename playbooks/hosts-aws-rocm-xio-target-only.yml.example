@@ -1,0 +1,14 @@
+---
+# Copy to hosts-aws-rocm-xio-target-only.yml (repo ships a working copy).
+# The first line MUST be "---" (no comment lines above it) or inventory parse
+# fails. Set aws_ec2_bootstrap_ansible_host in group_vars/all/main.yml.
+#
+#   ansible-playbook -i hosts-aws-rocm-xio-target-only.yml setup-aws-rocm-xio.yml
+#   ansible-playbook -i hosts-aws-rocm-xio-target-only.yml setup-aws-rocm-xio.yml \
+#     --tags rocm_setup,rocm_hipfile_setup,rocm_xio_setup
+all:
+  children:
+    aws_rocm_bootstrap:
+      hosts:
+        aws-rocm-xio-target:
+          ansible_user: ubuntu

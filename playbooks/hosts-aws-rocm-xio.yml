@@ -1,5 +1,6 @@
 ---
 # Inventory for playbooks/setup-aws-rocm-xio.yml (localhost bootstrap + dynamic host).
+# For --tags on an already-running instance, use hosts-aws-rocm-xio-target-only.yml.example.
 all:
   children:
     aws_ec2_launch:

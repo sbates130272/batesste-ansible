@@ -1,0 +1,13 @@
+---
+# Target-only inventory for setup-aws-rocm-xio.yml (skips Play 1 / EC2 API).
+# Set aws_ec2_bootstrap_ansible_host in group_vars/all/main.yml (IP or DNS).
+# Optional: ansible-playbook ... --tags … for partial reruns.
+#
+# Copy was hosts-aws-rocm-xio-target-only.yml.example; comments before "---"
+# break Ansible inventory parsing — "---" must be the first line.
+all:
+  children:
+    aws_rocm_bootstrap:
+      hosts:
+        aws-rocm-xio-target:
+          ansible_user: ubuntu
