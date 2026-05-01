@@ -1,0 +1,8 @@
+---
+# Inventory for playbooks/setup-aws-rocm-xio.yml (localhost bootstrap + dynamic host).
+all:
+  children:
+    aws_ec2_launch:
+      hosts:
+        localhost:
+          ansible_connection: local

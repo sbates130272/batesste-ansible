@@ -1,0 +1,6 @@
+---
+minor_changes:
+  - >-
+    Add playbooks/setup-aws-rocm-xio.yml to launch a g4ad Ubuntu 24.04 EC2
+    instance via amazon.aws and configure ROCm, hipFile, and rocm-xio. Declare
+    amazon.aws in requirements.yml and galaxy.yml dependencies.

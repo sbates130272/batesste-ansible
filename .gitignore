@@ -17,6 +17,9 @@ roles/consul_setup/files/*-key.pem
 # Ansible Galaxy collection build artifacts
 *.tar.gz
 
+# Local ansible-galaxy collection installs (-p collections)
+collections/
+
 # Python __pycache__ folders
 __pycache__/
 

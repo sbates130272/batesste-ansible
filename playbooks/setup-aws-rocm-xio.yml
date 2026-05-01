@@ -1,0 +1,186 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# Provision a g4ad EC2 instance (Ubuntu 24.04 noble, 1 GPU / 1 NVMe target)
+# using amazon.aws on localhost, then configure ROCm, hipFile, and rocm-xio.
+#
+# Prerequisites:
+# - ansible-galaxy collection install -r requirements.yml (includes amazon.aws)
+# - playbooks/group_vars/all/vault.yml with vault_aws_ec2_access_key_id and
+#   vault_aws_ec2_secret_access_key (see vault.yml.example), or rely on the
+#   standard AWS credential environment / shared config on the control node.
+# - Set aws_ec2_vpc_subnet_id, aws_ec2_security_group_ids, aws_ec2_key_name
+#   (and optionally aws_ec2_ami_id) via group_vars or -e.
+#
+# uProf: download the AMD uProf .deb and pass uprof_setup_deb_path as for setup-amd.
+#
+
+- name: Launch Ubuntu 24.04 g4ad instance for ROCm XIO
+  hosts: aws_ec2_launch
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+  tasks:
+    - name: Require VPC networking and SSH key for EC2 launch
+      ansible.builtin.assert:
+        that:
+          - aws_ec2_vpc_subnet_id | default('', true) | length > 0
+          - aws_ec2_key_name | default('', true) | length > 0
+          - aws_ec2_security_group_ids | default([]) | length > 0
+        fail_msg: >-
+          Set aws_ec2_vpc_subnet_id, aws_ec2_key_name, and a non-empty
+          aws_ec2_security_group_ids list (group_vars or -e).
+
+    - name: Gather Canonical Ubuntu 24.04 noble AMI when aws_ec2_ami_id empty
+      amazon.aws.ec2_ami_info:
+        region: "{{ aws_ec2_region }}"
+        access_key: "{{ vault_aws_ec2_access_key_id | default(omit) }}"
+        secret_key: "{{ vault_aws_ec2_secret_access_key | default(omit) }}"
+        owners:
+          - "099720109477"
+        filters:
+          name: ubuntu/images/hvm-ssd/ubuntu-noble-24.04-amd64-server-*
+          architecture: x86_64
+      register: aws_ec2_ami_info_result
+      when: aws_ec2_ami_id | default('', true) | length == 0
+
+    - name: Resolve AMI id from discovery
+      ansible.builtin.set_fact:
+        aws_ec2_ami_resolved: >-
+          {{ (aws_ec2_ami_info_result.images | sort(attribute='creation_date', reverse=true)
+             | first).image_id }}
+      when:
+        - aws_ec2_ami_id | default('', true) | length == 0
+        - aws_ec2_ami_info_result.images | default([]) | length > 0
+
+    - name: Resolve AMI id from explicit variable
+      ansible.builtin.set_fact:
+        aws_ec2_ami_resolved: "{{ aws_ec2_ami_id }}"
+      when: aws_ec2_ami_id | default('', true) | length > 0
+
+    - name: Require a resolved AMI id
+      ansible.builtin.assert:
+        that:
+          - aws_ec2_ami_resolved | default('', true) | length > 0
+        fail_msg: >-
+          Set aws_ec2_ami_id to a regional AMI, or fix AMI discovery filters.
+
+    - name: Create or update EC2 instance
+      amazon.aws.ec2_instance:
+        state: started
+        region: "{{ aws_ec2_region }}"
+        access_key: "{{ vault_aws_ec2_access_key_id | default(omit) }}"
+        secret_key: "{{ vault_aws_ec2_secret_access_key | default(omit) }}"
+        name: "{{ aws_ec2_instance_name }}"
+        instance_type: "{{ aws_ec2_instance_type }}"
+        image_id: "{{ aws_ec2_ami_resolved }}"
+        key_name: "{{ aws_ec2_key_name }}"
+        vpc_subnet_id: "{{ aws_ec2_vpc_subnet_id }}"
+        security_groups: "{{ aws_ec2_security_group_ids }}"
+        iam_instance_profile: "{{ aws_ec2_iam_instance_profile_name if aws_ec2_iam_instance_profile_name | default('', true) | length > 0 else omit }}"
+        network_interfaces:
+          - assign_public_ip: "{{ aws_ec2_assign_public_ip }}"
+        volumes:
+          - device_name: /dev/sda1
+            ebs:
+              volume_size: "{{ aws_ec2_root_volume_size }}"
+              volume_type: "{{ aws_ec2_root_volume_type }}"
+              delete_on_termination: true
+              encrypted: true
+        metadata_options:
+          http_endpoint: enabled
+          http_tokens: required
+        tags:
+          Name: "{{ aws_ec2_instance_name }}"
+          Project: "{{ aws_ec2_project_tag }}"
+          Owner: "{{ aws_ec2_owner_tag }}"
+          ExpectedGpuCount: "{{ expected_gpu_count | string }}"
+          ExpectedNvmeCount: "{{ expected_nvme_count | string }}"
+        wait: true
+      register: aws_ec2_launch_instance
+      no_log: true
+
+    - name: Pick SSH target address from instance
+      ansible.builtin.set_fact:
+        aws_ec2_launched_public_dns: >-
+          {{ aws_ec2_launch_instance.instances[0].public_dns_name | default('', true) }}
+        aws_ec2_launched_public_ip: >-
+          {{ aws_ec2_launch_instance.instances[0].public_ip_address | default('', true) }}
+        aws_ec2_launched_private_ip: >-
+          {{ aws_ec2_launch_instance.instances[0].private_ip_address | default('', true) }}
+
+    - name: Register launched host for subsequent plays
+      ansible.builtin.add_host:
+        name: "{{ aws_ec2_inventory_host_name }}"
+        groups:
+          - aws_rocm_bootstrap
+          - awsmachines
+        ansible_host: >-
+          {{ aws_ec2_launched_public_dns if (aws_ec2_launched_public_dns | length > 0)
+          else aws_ec2_launched_public_ip if (aws_ec2_launched_public_ip | length > 0)
+          else aws_ec2_launched_private_ip }}
+        ansible_user: "{{ aws_ec2_ssh_user }}"
+        root_user: "{{ root_user }}"
+        username: "{{ username }}"
+        expected_gpu_count: "{{ expected_gpu_count }}"
+        expected_nvme_count: "{{ expected_nvme_count }}"
+
+- name: Configure ROCm, hipFile, and rocm-xio on the new EC2 host
+  hosts: aws_rocm_bootstrap
+  gather_facts: true
+  pre_tasks:
+    - name: Confirm username is set for role remote_user
+      ansible.builtin.assert:
+        that:
+          - username | default('', true) | length > 0
+        fail_msg: >-
+          Define username (account to configure, e.g. stebates) in group_vars or -e.
+
+    - name: Wait for SSH (redundant safety)
+      ansible.builtin.wait_for_connection:
+        timeout: 600
+
+  roles:
+    # Bare role names resolve via playbooks/ansible.cfg roles_path (../roles).
+    - role: user_setup
+      remote_user: "{{ root_user }}"
+      tags: [user_setup]
+    - role: fave_packages
+      remote_user: "{{ username }}"
+      tags: [fave_packages]
+    - role: nvme_exporter_setup
+      remote_user: "{{ username }}"
+      tags: [nvme_exporter_setup]
+    - role: git_setup
+      remote_user: "{{ username }}"
+      tags: [git_setup]
+    - role: rdma_setup
+      remote_user: "{{ username }}"
+      rocm_setup_user: "{{ username }}"
+      tags: [rdma_setup]
+    - role: rocm_setup
+      remote_user: "{{ username }}"
+      rocm_setup_user: "{{ username }}"
+      tags: [rocm_setup]
+    - role: uprof_setup
+      remote_user: "{{ username }}"
+      tags: [uprof_setup]
+    - role: cloud_setup
+      remote_user: "{{ username }}"
+      tags: [cloud_setup]
+      when:
+        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution_release'] in ['noble', 'resolute']
+    - role: aws_grub
+      remote_user: "{{ username }}"
+      tags: [aws_grub]
+      when:
+        - inventory_hostname in groups['awsmachines']
+    - role: rocm_hipfile_setup
+      remote_user: "{{ username }}"
+      tags: [rocm_hipfile_setup]
+    - role: rocm_xio_setup
+      remote_user: "{{ username }}"
+      rocm_setup_user: "{{ username }}"
+      tags: [rocm_xio_setup]

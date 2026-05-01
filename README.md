@@ -133,6 +133,31 @@ accepting the EULA, and pass its path via the
 PLAYBOOK=setup-amd.yml HOSTS=<host-file> TARGETS=<target-group> playbooks/run-ansible
 ```
 
+### AWS g4ad + ROCm XIO (automated EC2)
+
+Use [setup-aws-rocm-xio.yml](./playbooks/setup-aws-rocm-xio.yml) to launch a
+**g4ad** instance (Ubuntu 24.04 noble, one GPU / one NVMe target) with
+`amazon.aws`, then run `user_setup`, ROCm, `cloud_setup`, `aws_grub`,
+`rocm_hipfile_setup`, and `rocm_xio_setup`.
+
+1. `ansible-galaxy collection install -r requirements.yml` (pulls **amazon.aws**).
+2. Copy [vault.yml.example](./playbooks/group_vars/all/vault.yml.example) to
+   `playbooks/group_vars/all/vault.yml` and run `ansible-vault encrypt` on
+   it, or rely on AWS credentials already configured on the control node.
+3. Set `aws_ec2_vpc_subnet_id`, `aws_ec2_security_group_ids`,
+   `aws_ec2_key_name`, and related options in
+   `playbooks/group_vars/all/main.yml` or pass `-e`.
+4. Run from the `playbooks/` directory (see
+   [ansible.cfg](./playbooks/ansible.cfg)):
+
+```
+ansible-playbook -i hosts-aws-rocm-xio.yml setup-aws-rocm-xio.yml \
+  --vault-password-file vault-password --become-password-file sudo-password
+```
+
+With `run-ansible`, set `HOSTS=hosts-aws-rocm-xio.yml` and
+`PLAYBOOK=setup-aws-rocm-xio.yml`; `TARGETS` is unused by this playbook.
+
 ### run-ansible
 
 There is a simple bash script at `playbooks/run-ansible` that can call

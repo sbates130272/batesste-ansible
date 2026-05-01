@@ -1,0 +1,43 @@
+---
+# Non-secret defaults for setup-aws-rocm-xio.yml (Play 1).
+# Override in inventory, group_vars, or with ansible-playbook -e.
+
+# Required for EC2 (set here or with -e before launch)
+aws_ec2_vpc_subnet_id: ""
+aws_ec2_key_name: ""
+aws_ec2_security_group_ids: []
+# Optional; omit when empty
+aws_ec2_iam_instance_profile_name: ""
+
+# user_setup connects as root_user; remaining roles use username.
+root_user: ubuntu
+username: stebates
+
+# AWS API / EC2 launch
+aws_ec2_region: us-east-1
+# Smallest common g4ad SKU with one AMD GPU (override per region/need).
+aws_ec2_instance_type: g4ad.xlarge
+aws_ec2_root_volume_size: 200
+aws_ec2_root_volume_type: gp3
+aws_ec2_assign_public_ip: true
+# Leave empty to resolve latest Canonical Ubuntu 24.04 noble amd64 server AMI.
+aws_ec2_ami_id: ""
+aws_ec2_instance_name: aws-rocm-xio
+aws_ec2_project_tag: rocm-xio
+aws_ec2_owner_tag: REPLACE_WITH_OWNER
+aws_ec2_inventory_host_name: aws-rocm-xio-target
+
+# SSH / accounts on the new instance (Ubuntu cloud images).
+aws_ec2_ssh_user: ubuntu
+aws_ec2_root_user: ubuntu
+
+# Host vars mirrored from aws_ec2_setup inventory templates.
+expected_gpu_count: 1
+expected_nvme_count: 1
+
+# rocm_xio_setup (nvme-ep requires at least one path; override after lsblk on host).
+rocm_xio_setup_perf_endpoint: nvme-ep
+rocm_xio_setup_gpu_count: 1
+# Instance-store NVMe path varies; confirm with lsblk after boot.
+rocm_xio_setup_perf_nvme_controllers:
+  - /dev/nvme1n1
