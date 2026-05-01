@@ -36,12 +36,21 @@
     filter:
       - ansible_kernel
 
+- name: Check if linux-modules-extra exists for this kernel
+  ansible.builtin.command:
+    cmd: apt-cache show linux-modules-extra-{{ ansible_kernel }}
+  register: rdma_setup_modules_extra_check
+  changed_when: false
+  failed_when: false
+
 - name: Install the desired kernel packages
   ansible.builtin.package:
     update_cache: true
-    name:
-      - linux-headers-{{ ansible_kernel }}
-      - linux-modules-extra-{{ ansible_kernel }}
+    name: >-
+      {{ ['linux-headers-' + ansible_kernel]
+         + (['linux-modules-extra-' + ansible_kernel]
+            if rdma_setup_modules_extra_check.rc == 0
+            else []) }}
   become: true
 
 - name: Install the desired RDMA packages
