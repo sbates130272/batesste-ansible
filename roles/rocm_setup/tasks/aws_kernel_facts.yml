@@ -30,15 +30,18 @@
         (ansible_system_vendor | default('', true) | lower is search('amazon'))
         or (ansible_chassis_asset_tag | default('', true) | lower is search('amazon'))
         or (
-          (not rocm_setup_dmi_board_vendor.failed)
+          (not rocm_setup_dmi_board_vendor.failed | default(false))
+          and ('content' in rocm_setup_dmi_board_vendor)
           and (rocm_setup_dmi_board_vendor.content | b64decode | trim | lower == 'amazon ec2')
         )
         or (
-          (not rocm_setup_dmi_sys_vendor.failed)
+          (not rocm_setup_dmi_sys_vendor.failed | default(false))
+          and ('content' in rocm_setup_dmi_sys_vendor)
           and (rocm_setup_dmi_sys_vendor.content | b64decode | trim | lower == 'amazon ec2')
         )
         or (
-          (not rocm_setup_hypervisor_uuid.failed)
+          (not rocm_setup_hypervisor_uuid.failed | default(false))
+          and ('content' in rocm_setup_hypervisor_uuid)
           and ((rocm_setup_hypervisor_uuid.content | b64decode | trim | lower).startswith('ec2'))
         )
       }}

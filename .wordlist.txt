@@ -327,3 +327,13 @@ pnfs
 rw
 subtree
 vers
+cfg
+DKMS
+dkms
+DMI
+gitignored
+pem
+UUID
+vpc
+Xen
+yourlogin

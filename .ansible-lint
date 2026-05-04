@@ -4,6 +4,7 @@
 
 exclude_paths:
   - .github
+  - changelogs
   - playbooks
 
 warn_list:

@@ -36,7 +36,7 @@ Role-specific configurations are defined in `generate-workflows.py` in the `ROLE
 ```python
 ROLE_CONFIGS = {
     "role_name": {
-        "ubuntu_versions": ["24.04", "26.04"],  # Ubuntu versions to test
+        "ubuntu_versions": ["24.04"],  # Add "26.04" when ubuntu-26.04 runners exist
         "free_disk_space": False,      # Whether to free disk space first
         "extra_vars": {},              # Additional Ansible variables
         "verification_commands": [],   # Commands to verify installation
@@ -77,19 +77,19 @@ in `ROLE_CONFIGS`. Regenerate workflows after changing.
 ## Role Configurations
 
 ### grafana_setup
-- Tests on: Ubuntu 24.04, 26.04
+- Tests on: Ubuntu 24.04 (26.04 skipped until GitHub-hosted runners exist)
 - Disables network discovery for CI (no network scanning)
 - Verifies Grafana, Prometheus, and Node Exporter services
 - Checks service health endpoints
 
 ### rocm_setup
-- Tests on: Ubuntu 24.04, 26.04
+- Tests on: Ubuntu 24.04 (26.04 skipped until GitHub-hosted runners exist)
 - Requires disk space cleanup (large packages)
 - Skips hardware checks (no AMD GPUs in CI)
 - Verifies ROCm package installation
 
 ### rdma_setup
-- Tests on: Ubuntu 24.04, 26.04
+- Tests on: Ubuntu 24.04 (26.04 skipped until GitHub-hosted runners exist)
 - Verifies RDMA package installation
 - Checks for InfiniBand tools
 
@@ -128,14 +128,18 @@ Path filters ensure workflows only run when relevant files are modified:
 ### Adding New Ubuntu Versions
 
 Update the `ubuntu_versions` list in `DEFAULT_CONFIG` or the role's
-config in `ROLE_CONFIGS`. The default tests on 24.04 and 26.04:
+config in `ROLE_CONFIGS`. The default is 24.04 only until
+`ubuntu-26.04` is reliably available on GitHub-hosted runners:
 
 ```python
 DEFAULT_CONFIG = {
-    "ubuntu_versions": ["24.04", "26.04"],
+    "ubuntu_versions": ["24.04"],
     ...
 }
 ```
+
+When `ubuntu-26.04` works in Actions, add `"26.04"` to that list (and
+regenerate). Override per role in `ROLE_CONFIGS` if needed.
 
 Then regenerate workflows.
 
@@ -144,8 +148,8 @@ Then regenerate workflows.
 1. **Keep test playbooks simple**: Use `tests/test.yml` for straightforward role execution
 2. **Add verification commands**: Include commands to verify the role worked correctly
 3. **Skip non-CI features**: Use `extra_vars` to disable features that don't work in CI
-4. **Test on supported Ubuntu version**: This repo tests on Ubuntu 24.04
-   and 26.04 LTS
+4. **Test on supported Ubuntu version**: CI uses Ubuntu 24.04; re-add
+   26.04 when GitHub-hosted `ubuntu-26.04` runners are available.
 5. **Free disk space when needed**: Large packages (ROCm, etc.) may need disk cleanup
 
 ## Troubleshooting
