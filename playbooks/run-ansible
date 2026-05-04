@@ -1,31 +1,48 @@
 #!/bin/bash
 #
-# Copyright (C) Stephen Bates, 2022
+# Copyright (c) Stephen Bates, 2022
 #
-# A single call to ansible-playbook that works for
-# batesste-ansible. See README.md for more information.
+# SPDX-License-Identifier: Apache-2.0
+#
+# A single call to ansible-playbook that works for batesste-ansible. See
+# README.md for more information.
 
 PLAYBOOK=${PLAYBOOK:-setup.yml}
 HOSTS=${HOSTS:-hosts.yml}
 TARGETS=${TARGETS:-localvms}
-# Comma-separated recipe/role tags (playbook is playbooks/setup.yml). Default
-# matches the former setup-newmachine.yml. Set TAGS=recipe_aws_rocm_xio for
-# the AWS flow; use TAGS=all only if you intend to run every play.
-TAGS=${TAGS:-recipe_newmachine}
+RECIPE=${RECIPE:-newmachine}
+TAGS=${TAGS:-}
 
-if [ ! -f ${HOSTS} ]; then
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+REPO_ROOT=$(cd -- "${SCRIPT_DIR}/.." && pwd)
+ANSIBLE_ROLES_PATH=${ANSIBLE_ROLES_PATH:-"${REPO_ROOT}/roles"}
+export ANSIBLE_ROLES_PATH
+
+if [ ! -f "${HOSTS}" ]; then
     echo "${HOSTS} does not exist. Exiting!"
     exit -1
 fi
 
 AP_EXTRA=()
+AP_VARS=()
+
+if [ -n "${TAGS}" ]; then
+    AP_EXTRA+=(--tags "${TAGS}")
+fi
+
+if [ "$(basename -- "${PLAYBOOK}")" != "setup-ec2.yml" ]; then
+    AP_VARS+=(--extra-vars "targets=${TARGETS}")
+    AP_VARS+=(--extra-vars "setup_recipe=${RECIPE}")
+fi
 
 if [ -f vault-password ]; then
     AP_EXTRA+=(--vault-password-file vault-password)
 elif [ "${RUN_ANSIBLE_NO_VAULT:-}" = "1" ]; then
     :
 else
-    echo "vault-password does not exist. Exiting! (Set RUN_ANSIBLE_NO_VAULT=1 to run without a vault file.)"
+    printf '%s\n' \
+        "vault-password does not exist. Exiting!" \
+        "Set RUN_ANSIBLE_NO_VAULT=1 to run without a vault file."
     exit -1
 fi
 
@@ -34,12 +51,13 @@ if [ -f sudo-password ]; then
 elif [ "${RUN_ANSIBLE_NO_SUDO_PASS:-}" = "1" ]; then
     :
 else
-    echo "sudo-password does not exist. Exiting! (Set RUN_ANSIBLE_NO_SUDO_PASS=1 to run without a become password file.)"
+    printf '%s\n' \
+        "sudo-password does not exist. Exiting!" \
+        "Set RUN_ANSIBLE_NO_SUDO_PASS=1 to run without a become password file."
     exit -1
 fi
 
-ansible-playbook ${PLAYBOOK} \
-  -i ${HOSTS} \
+ansible-playbook "${PLAYBOOK}" \
+  -i "${HOSTS}" \
   "${AP_EXTRA[@]}" \
-  --tags "${TAGS}" \
-  --extra-vars targets=${TARGETS} "$@"
+  "${AP_VARS[@]}" "$@"

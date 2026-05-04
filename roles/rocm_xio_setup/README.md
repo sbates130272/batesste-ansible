@@ -100,48 +100,21 @@ hosts.
 
 ## Suggested Flow with AWS G4
 
-Use the dedicated [aws_ec2_setup role][ref-aws-ec2-role] to generate EC2
-launch and inventory templates.
+Use the top-level setup playbook when you want the standard g4ad launch and
+ROCm XIO configuration path. The EC2 play launches or discovers the instance,
+then the shared recipe dispatcher runs the host setup roles.
 
 Recommended flow:
 
-1. Generate templates:
+1. Set the EC2 variables in `playbooks/hosts.yml`, a gitignored local vars
+   file, or extra vars passed to Ansible.
+2. Run the AWS ROCm XIO recipe from the repository root:
 
 ```bash
-TAGS=recipe_aws_ec2_setup \
-PLAYBOOK=setup.yml \
-HOSTS=playbooks/hosts.yml \
-TARGETS=local \
-playbooks/run-ansible
+PLAYBOOK=setup-ec2.yml HOSTS=playbooks/hosts.yml playbooks/run-ansible
 ```
 
-2. Edit generated launch YAML and replace all `REPLACE_WITH_*`
-   placeholders. The default output path is:
-   `~/Projects/aws-ec2-templates/g4ad-rocm-xio-instance.yaml`.
-3. Launch the instance:
-
-```bash
-aws ec2 run-instances \
-  --region us-east-1 \
-  --cli-input-yaml \
-  file://~/Projects/aws-ec2-templates/g4ad-rocm-xio-instance.yaml
-```
-
-4. Update generated inventory host value:
-   `~/Projects/aws-ec2-templates/hosts-g4ad-rocm-xio.yml`.
-5. Run the ROCm XIO playbook against the `aws_g4` target group:
-
-```bash
-TAGS=recipe_rocm_xio \
-PLAYBOOK=setup.yml \
-HOSTS=~/Projects/aws-ec2-templates/hosts-g4ad-rocm-xio.yml \
-TARGETS=aws_g4 \
-playbooks/run-ansible
-```
-
-6. The role dependency chain runs `rocm_setup` first, then
-   `rocm_xio_setup`.
-7. For the standard target shape, keep one GPU and one NVMe:
+3. For the standard target shape, keep one GPU and one NVMe:
    `rocm_xio_setup_gpu_count: 1` and one NVMe controller path.
    Add extra NVMe paths in `rocm_xio_setup_perf_nvme_controllers`
    when needed.
@@ -171,4 +144,3 @@ ANSIBLE_ROLES_PATH=../ ansible-playbook \
 <!-- References -->
 
 [ref-rocm-xio]: https://github.com/ROCm/rocm-xio
-[ref-aws-ec2-role]: ../aws_ec2_setup/README.md

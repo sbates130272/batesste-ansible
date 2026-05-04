@@ -1,24 +1,58 @@
 ---
 # Copyright (c) Stephen Bates, 2026
 #
-# Unified playbooks: pick a recipe with --tags recipe_<name>. Role-level tags
-# still apply (e.g. --tags recipe_amd,rocm_setup). Examples:
-#   ansible-playbook setup.yml -i hosts.yml -e targets=localvms --tags recipe_newmachine
-#   ansible-playbook setup.yml -i hosts.yml -e targets=amd --tags recipe_amd
-#   ansible-playbook setup.yml -i hosts.yml --tags recipe_aws_rocm_xio
+# SPDX-License-Identifier: Apache-2.0
 #
-# Recipes: recipe_newmachine, recipe_amd, recipe_nfs_rdma, recipe_nvmeof,
-# recipe_rocm_xio, recipe_aws_ec2_setup, recipe_aws_rocm_xio
-#
-# Without --tags, Ansible runs every play (usually not what you want).
 
-# --- recipe_newmachine -------------------------------------------------------
+# Select recipes with `-e setup_recipe=<name>`. Use `--tags <role_tag>` only to
+# narrow work inside the chosen recipe.
 
-- name: Setup user account and install cool stuff on a new machine
+- name: Configure hosts with the selected setup recipe
   hosts: "{{ targets }}"
   gather_facts: true
-  tags: [recipe_newmachine]
+  tags:
+    - always
   vars:
+    setup_recipe_name: "{{ setup_recipe | default(recipe | default('newmachine')) }}"
+    setup_recipes:
+      newmachine:
+        - user_setup
+        - fave_packages
+        - nvme_exporter_setup
+        - git_setup
+        - tmux_scripts
+        - cloud_setup
+        - consul_setup
+        - mutt_setup
+        - kernel_setup
+        - fio_devel
+        - docker_setup
+        - qemu_setup
+        - vm_create
+      amd:
+        - user_setup
+        - fave_packages
+        - nvme_exporter_setup
+        - git_setup
+        - rdma_setup
+        - rocm_setup
+        - rocm_hipfile_setup
+        - rocm_xio_setup
+        - uprof_setup
+      nfs_rdma:
+        - nfs_rdma_setup
+      nvmeof:
+        - nvmeof_setup
+      rocm_xio:
+        - rocm_xio_setup
+    setup_selected_roles: >-
+      {{
+        (setup_roles.split(',') if setup_roles is string else setup_roles)
+        if setup_roles is defined else setup_recipes[setup_recipe_name]
+      }}
+    setup_user_setup_remote_user_effective: >-
+      {{ setup_user_setup_remote_user | default(root_user
+         if setup_recipe_name == 'newmachine' else username) }}
     force: false
     kernel_setup_force: "{{ force }}"
     kernel_setup_tools_force: "{{ force }}"
@@ -26,317 +60,316 @@
     tmux_scripts_force: "{{ force }}"
     fio_devel_fio_force: "{{ force }}"
     fio_devel_fio_stuff_force: "{{ force }}"
-  roles:
-    - role: sbates130272.batesste.user_setup
-      remote_user: "{{ root_user }}"
-      tags: [user_setup]
-    - role: sbates130272.batesste.fave_packages
-      remote_user: "{{ username }}"
-      tags: [fave_packages]
-    - role: sbates130272.batesste.nvme_exporter_setup
-      remote_user: "{{ username }}"
-      tags: [nvme_exporter_setup]
-    - role: sbates130272.batesste.git_setup
-      remote_user: "{{ username }}"
-      tags: [git_setup]
-    - role: sbates130272.batesste.tmux_scripts
-      remote_user: "{{ username }}"
-      tags: [tmux_scripts]
-    - role: sbates130272.batesste.cloud_setup
-      remote_user: "{{ username }}"
-      tags: [cloud_setup]
-      when:
-        - ansible_facts['distribution'] == "Ubuntu"
-        - ansible_facts['distribution_release'] in ['noble', 'resolute']
-    - role: sbates130272.batesste.consul_setup
-      remote_user: "{{ username }}"
-      tags: [consul_setup]
-      when:
-        - ansible_facts['distribution'] == "Ubuntu"
-        - ansible_facts['distribution_release'] in ['noble', 'resolute']
-    - role: sbates130272.batesste.mutt_setup
-      remote_user: "{{ username }}"
-      tags: [mutt_setup]
-    - role: sbates130272.batesste.kernel_setup
-      remote_user: "{{ username }}"
-      tags: [kernel_setup]
-    - role: sbates130272.batesste.fio_devel
-      remote_user: "{{ username }}"
-      tags: [fio_devel]
-    - role: sbates130272.batesste.docker_setup
-      docker_setup_users:
-        - "{{ username }}"
-      become: true
-      tags: [docker_setup]
-    - role: sbates130272.batesste.aws_grub
-      remote_user: "{{ username }}"
-      tags: [aws_grub]
-      when:
-        - inventory_hostname in groups['awsmachines']
-    - role: sbates130272.batesste.qemu_setup
-      remote_user: "{{ username }}"
-      tags: [qemu_setup]
-      when:
-        - inventory_hostname not in groups['localvms'] and
-          inventory_hostname not in groups['runners']
-    - role: sbates130272.batesste.vm_create
-      remote_user: "{{ username }}"
-      tags: [vm_create]
-      when:
-        - inventory_hostname not in groups['localvms'] and
-          inventory_hostname not in groups['runners']
-
-# --- recipe_amd --------------------------------------------------------------
-
-- name: Setup user account and cool stuff on a new AMD machine
-  hosts: "{{ targets }}"
-  gather_facts: true
-  tags: [recipe_amd]
-  roles:
-    - role: sbates130272.batesste.user_setup
-      remote_user: "{{ username }}"
-      tags: [user_setup]
-    - role: sbates130272.batesste.fave_packages
-      remote_user: "{{ username }}"
-      tags: [fave_packages]
-    - role: sbates130272.batesste.nvme_exporter_setup
-      remote_user: "{{ username }}"
-      tags: [nvme_exporter_setup]
-    - role: sbates130272.batesste.git_setup
-      remote_user: "{{ username }}"
-      tags: [git_setup]
-    - role: sbates130272.batesste.rdma_setup
-      remote_user: "{{ username }}"
-      rocm_setup_user: "{{ username }}"
-      tags: [rdma_setup]
-    - role: sbates130272.batesste.rocm_setup
-      remote_user: "{{ username }}"
-      rocm_setup_user: "{{ username }}"
-      tags: [rocm_setup]
-    - role: sbates130272.batesste.uprof_setup
-      remote_user: "{{ username }}"
-      tags: [uprof_setup]
-
-# --- recipe_nfs_rdma ---------------------------------------------------------
-
-- name: Setup NFS over RDMA server and clients
-  hosts: "{{ targets }}"
-  gather_facts: true
-  tags: [recipe_nfs_rdma]
-  roles:
-    - role: sbates130272.batesste.nfs_rdma_setup
-      remote_user: "{{ username }}"
-      tags: [nfs_rdma_setup]
-
-# --- recipe_nvmeof -----------------------------------------------------------
-
-- name: Setup NVMe-oF target and host
-  hosts: "{{ targets }}"
-  gather_facts: true
-  tags: [recipe_nvmeof]
-  roles:
-    - role: sbates130272.batesste.nvmeof_setup
-      remote_user: "{{ username }}"
-      tags: [nvmeof_setup]
-
-# --- recipe_rocm_xio ---------------------------------------------------------
-
-- name: Build and validate rocm-xio on AMD hosts
-  hosts: "{{ targets }}"
-  gather_facts: true
-  tags: [recipe_rocm_xio]
-  roles:
-    - role: sbates130272.batesste.rocm_xio_setup
-      remote_user: "{{ username }}"
-      rocm_setup_user: "{{ username }}"
-      tags: [rocm_xio_setup]
-
-# --- recipe_aws_ec2_setup (aws_ec2_setup role) --------------------------------
-
-- name: Generate AWS EC2 launch and inventory templates
-  hosts: "{{ targets }}"
-  gather_facts: true
-  tags: [recipe_aws_ec2_setup]
-  roles:
-    - role: sbates130272.batesste.aws_ec2_setup
-      remote_user: "{{ username }}"
-      tags: [aws_ec2_setup]
-
-# --- recipe_aws_rocm_xio (see hosts.yml vars; optional aws_rocm_skip_ec2_launch)
-
-- name: Launch Ubuntu 24.04 g4ad instance for ROCm XIO
-  hosts: aws_ec2_launch
-  connection: local
-  gather_facts: false
-  tags: [recipe_aws_rocm_xio, ec2_launch]
-  vars:
-    ansible_python_interpreter: "{{ ansible_playbook_python }}"
-  tasks:
-    - name: EC2 launch (skip when aws_rocm_skip_ec2_launch)
-      when: not aws_rocm_skip_ec2_launch | default(false)
-      block:
-        - name: Require VPC networking and SSH key for EC2 launch
-          ansible.builtin.assert:
-            that:
-              - aws_ec2_vpc_subnet_id | default('', true) | length > 0
-              - aws_ec2_key_name | default('', true) | length > 0
-              - aws_ec2_security_group_ids | default([]) | length > 0
-            fail_msg: >-
-              Set aws_ec2_vpc_subnet_id, aws_ec2_key_name, and a non-empty
-              aws_ec2_security_group_ids list (hosts.yml, -e @file, or -e).
-
-        - name: Gather Canonical Ubuntu 24.04 noble AMI when aws_ec2_ami_id empty
-          amazon.aws.ec2_ami_info:
-            region: "{{ aws_ec2_region }}"
-            access_key: "{{ vault_aws_ec2_access_key_id | default(omit) }}"
-            secret_key: "{{ vault_aws_ec2_secret_access_key | default(omit) }}"
-            owners:
-              - "099720109477"
-            filters:
-              name: ubuntu/images/hvm-ssd/ubuntu-noble-24.04-amd64-server-*
-              architecture: x86_64
-          register: aws_ec2_ami_info_result
-          when: aws_ec2_ami_id | default('', true) | length == 0
-
-        - name: Resolve AMI id from discovery
-          ansible.builtin.set_fact:
-            aws_ec2_ami_resolved: >-
-              {{ (aws_ec2_ami_info_result.images | sort(attribute='creation_date', reverse=true)
-                 | first).image_id }}
-          when:
-            - aws_ec2_ami_id | default('', true) | length == 0
-            - aws_ec2_ami_info_result.images | default([]) | length > 0
-
-        - name: Resolve AMI id from explicit variable
-          ansible.builtin.set_fact:
-            aws_ec2_ami_resolved: "{{ aws_ec2_ami_id }}"
-          when: aws_ec2_ami_id | default('', true) | length > 0
-
-        - name: Require a resolved AMI id
-          ansible.builtin.assert:
-            that:
-              - aws_ec2_ami_resolved | default('', true) | length > 0
-            fail_msg: >-
-              Set aws_ec2_ami_id to a regional AMI, or fix AMI discovery filters.
-
-        - name: Create or update EC2 instance
-          amazon.aws.ec2_instance:
-            state: started
-            region: "{{ aws_ec2_region }}"
-            access_key: "{{ vault_aws_ec2_access_key_id | default(omit) }}"
-            secret_key: "{{ vault_aws_ec2_secret_access_key | default(omit) }}"
-            name: "{{ aws_ec2_instance_name }}"
-            instance_type: "{{ aws_ec2_instance_type }}"
-            image_id: "{{ aws_ec2_ami_resolved }}"
-            key_name: "{{ aws_ec2_key_name }}"
-            vpc_subnet_id: "{{ aws_ec2_vpc_subnet_id }}"
-            security_groups: "{{ aws_ec2_security_group_ids }}"
-            iam_instance_profile: "{{ aws_ec2_iam_instance_profile_name if aws_ec2_iam_instance_profile_name | default('', true) | length > 0 else omit }}"
-            network_interfaces:
-              - assign_public_ip: "{{ aws_ec2_assign_public_ip }}"
-            volumes:
-              - device_name: /dev/sda1
-                ebs:
-                  volume_size: "{{ aws_ec2_root_volume_size }}"
-                  volume_type: "{{ aws_ec2_root_volume_type }}"
-                  delete_on_termination: true
-                  encrypted: true
-            metadata_options:
-              http_endpoint: enabled
-              http_tokens: required
-            tags:
-              Name: "{{ aws_ec2_instance_name }}"
-              Project: "{{ aws_ec2_project_tag }}"
-              Owner: "{{ aws_ec2_owner_tag }}"
-              ExpectedGpuCount: "{{ expected_gpu_count | string }}"
-              ExpectedNvmeCount: "{{ expected_nvme_count | string }}"
-            wait: true
-          register: aws_ec2_launch_instance
-          no_log: true
-
-        - name: Pick SSH target address from instance
-          ansible.builtin.set_fact:
-            aws_ec2_launched_public_dns: >-
-              {{ aws_ec2_launch_instance.instances[0].public_dns_name | default('', true) }}
-            aws_ec2_launched_public_ip: >-
-              {{ aws_ec2_launch_instance.instances[0].public_ip_address | default('', true) }}
-            aws_ec2_launched_private_ip: >-
-              {{ aws_ec2_launch_instance.instances[0].private_ip_address | default('', true) }}
-
-        - name: Register launched host for subsequent plays
-          ansible.builtin.add_host:
-            name: "{{ aws_ec2_inventory_host_name }}"
-            groups:
-              - aws_rocm_bootstrap
-              - awsmachines
-            ansible_host: >-
-              {{ aws_ec2_bootstrap_ansible_host if (aws_ec2_bootstrap_ansible_host | default('', true) | length > 0)
-              else aws_ec2_launched_public_dns if (aws_ec2_launched_public_dns | length > 0)
-              else aws_ec2_launched_public_ip if (aws_ec2_launched_public_ip | length > 0)
-              else aws_ec2_launched_private_ip }}
-            ansible_user: "{{ aws_ec2_ssh_user }}"
-            ansible_ssh_private_key_file: >-
-              {{ aws_ec2_ssh_private_key_file if (aws_ec2_ssh_private_key_file | default('', true) | length > 0) else omit }}
-            root_user: "{{ root_user }}"
-            username: "{{ username }}"
-            expected_gpu_count: "{{ expected_gpu_count }}"
-            expected_nvme_count: "{{ expected_nvme_count }}"
-
-- name: Configure ROCm, hipFile, and rocm-xio on the new EC2 host
-  hosts: aws_rocm_bootstrap
-  gather_facts: true
-  tags: [recipe_aws_rocm_xio]
   pre_tasks:
+    - name: Confirm setup recipe is known
+      ansible.builtin.assert:
+        that:
+          - setup_recipe_name in setup_recipes
+        fail_msg: >-
+          Unknown setup_recipe '{{ setup_recipe_name }}'. Choose one of {{
+          setup_recipes.keys() | list | join(', ') }}.
+      tags:
+        - always
+
     - name: Confirm username is set for role remote_user
       ansible.builtin.assert:
         that:
           - username | default('', true) | length > 0
         fail_msg: >-
           Define username (account to configure) in hosts.yml, -e @file, or -e.
+      tags:
+        - always
 
     - name: Wait for SSH (redundant safety)
       ansible.builtin.wait_for_connection:
         timeout: 600
+      tags:
+        - always
 
-  roles:
-    - role: sbates130272.batesste.user_setup
-      remote_user: "{{ root_user }}"
-      tags: [user_setup]
-    - role: sbates130272.batesste.fave_packages
-      remote_user: "{{ username }}"
-      tags: [fave_packages]
-    - role: sbates130272.batesste.nvme_exporter_setup
-      remote_user: "{{ username }}"
-      tags: [nvme_exporter_setup]
-    - role: sbates130272.batesste.git_setup
-      remote_user: "{{ username }}"
-      tags: [git_setup]
-    - role: sbates130272.batesste.rdma_setup
-      remote_user: "{{ username }}"
-      rocm_setup_user: "{{ username }}"
-      tags: [rdma_setup]
-    - role: sbates130272.batesste.rocm_setup
-      remote_user: "{{ username }}"
-      rocm_setup_user: "{{ username }}"
-      tags: [rocm_setup]
-    - role: sbates130272.batesste.uprof_setup
-      remote_user: "{{ username }}"
-      tags: [uprof_setup]
-    - role: sbates130272.batesste.cloud_setup
-      remote_user: "{{ username }}"
-      tags: [cloud_setup]
+  tasks:
+    - name: Run user_setup
+      ansible.builtin.include_role:
+        name: user_setup
+        apply:
+          remote_user: "{{ setup_user_setup_remote_user_effective }}"
+          tags:
+            - user_setup
+      when: "'user_setup' in setup_selected_roles"
+      tags:
+        - always
+        - user_setup
+
+    - name: Run fave_packages
+      ansible.builtin.include_role:
+        name: fave_packages
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - fave_packages
+      when: "'fave_packages' in setup_selected_roles"
+      tags:
+        - always
+        - fave_packages
+
+    - name: Run nvme_exporter_setup
+      ansible.builtin.include_role:
+        name: nvme_exporter_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - nvme_exporter_setup
+      when: "'nvme_exporter_setup' in setup_selected_roles"
+      tags:
+        - always
+        - nvme_exporter_setup
+
+    - name: Run git_setup
+      ansible.builtin.include_role:
+        name: git_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - git_setup
+      when: "'git_setup' in setup_selected_roles"
+      tags:
+        - always
+        - git_setup
+
+    - name: Run rdma_setup
+      ansible.builtin.include_role:
+        name: rdma_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - rdma_setup
+      vars:
+        rocm_setup_user: "{{ username }}"  # noqa var-naming
+      when: "'rdma_setup' in setup_selected_roles"
+      tags:
+        - always
+        - rdma_setup
+
+    - name: Run rocm_setup
+      ansible.builtin.include_role:
+        name: rocm_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - rocm_setup
+      vars:
+        rocm_setup_user: "{{ username }}"  # noqa var-naming
+      when: "'rocm_setup' in setup_selected_roles"
+      tags:
+        - always
+        - rocm_setup
+
+    - name: Run uprof_setup
+      ansible.builtin.include_role:
+        name: uprof_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - uprof_setup
+      when: "'uprof_setup' in setup_selected_roles"
+      tags:
+        - always
+        - uprof_setup
+
+    - name: Run cloud_setup
+      ansible.builtin.include_role:
+        name: cloud_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - cloud_setup
       when:
+        - "'cloud_setup' in setup_selected_roles"
         - ansible_facts['distribution'] == "Ubuntu"
         - ansible_facts['distribution_release'] in ['noble', 'resolute']
-    - role: sbates130272.batesste.aws_grub
-      remote_user: "{{ username }}"
-      tags: [aws_grub]
+      tags:
+        - always
+        - cloud_setup
+
+    - name: Run consul_setup
+      ansible.builtin.include_role:
+        name: consul_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - consul_setup
       when:
-        - inventory_hostname in groups['awsmachines']
-    - role: sbates130272.batesste.rocm_hipfile_setup
-      remote_user: "{{ username }}"
-      tags: [rocm_hipfile_setup]
-    - role: sbates130272.batesste.rocm_xio_setup
-      remote_user: "{{ username }}"
-      rocm_setup_user: "{{ username }}"
-      tags: [rocm_xio_setup]
+        - "'consul_setup' in setup_selected_roles"
+        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution_release'] in ['noble', 'resolute']
+      tags:
+        - always
+        - consul_setup
+
+    - name: Run aws_grub
+      ansible.builtin.include_role:
+        name: aws_grub
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - aws_grub
+      when:
+        - "'aws_grub' in setup_selected_roles"
+        - inventory_hostname in groups.get('awsmachines', [])
+      tags:
+        - always
+        - aws_grub
+
+    - name: Run rocm_hipfile_setup
+      ansible.builtin.include_role:
+        name: rocm_hipfile_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - rocm_hipfile_setup
+      when: "'rocm_hipfile_setup' in setup_selected_roles"
+      tags:
+        - always
+        - rocm_hipfile_setup
+
+    - name: Run rocm_xio_setup
+      ansible.builtin.include_role:
+        name: rocm_xio_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - rocm_xio_setup
+      vars:
+        rocm_setup_user: "{{ username }}"  # noqa var-naming
+      when: "'rocm_xio_setup' in setup_selected_roles"
+      tags:
+        - always
+        - rocm_xio_setup
+
+    - name: Run tmux_scripts
+      ansible.builtin.include_role:
+        name: tmux_scripts
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - tmux_scripts
+      when: "'tmux_scripts' in setup_selected_roles"
+      tags:
+        - always
+        - tmux_scripts
+
+    - name: Run mutt_setup
+      ansible.builtin.include_role:
+        name: mutt_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - mutt_setup
+      when: "'mutt_setup' in setup_selected_roles"
+      tags:
+        - always
+        - mutt_setup
+
+    - name: Run kernel_setup
+      ansible.builtin.include_role:
+        name: kernel_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - kernel_setup
+      when: "'kernel_setup' in setup_selected_roles"
+      tags:
+        - always
+        - kernel_setup
+
+    - name: Run fio_devel
+      ansible.builtin.include_role:
+        name: fio_devel
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - fio_devel
+      when: "'fio_devel' in setup_selected_roles"
+      tags:
+        - always
+        - fio_devel
+
+    - name: Run docker_setup
+      ansible.builtin.include_role:
+        name: docker_setup
+        apply:
+          become: true
+          tags:
+            - docker_setup
+      vars:
+        docker_setup_users:
+          - "{{ username }}"
+      when: "'docker_setup' in setup_selected_roles"
+      tags:
+        - always
+        - docker_setup
+
+    - name: Run qemu_setup
+      ansible.builtin.include_role:
+        name: qemu_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - qemu_setup
+      when:
+        - "'qemu_setup' in setup_selected_roles"
+        - inventory_hostname not in groups.get('localvms', [])
+        - inventory_hostname not in groups.get('runners', [])
+      tags:
+        - always
+        - qemu_setup
+
+    - name: Run vm_create
+      ansible.builtin.include_role:
+        name: vm_create
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - vm_create
+      when:
+        - "'vm_create' in setup_selected_roles"
+        - inventory_hostname not in groups.get('localvms', [])
+        - inventory_hostname not in groups.get('runners', [])
+      tags:
+        - always
+        - vm_create
+
+    - name: Run nfs_rdma_setup
+      ansible.builtin.include_role:
+        name: nfs_rdma_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - nfs_rdma_setup
+      when: "'nfs_rdma_setup' in setup_selected_roles"
+      tags:
+        - always
+        - nfs_rdma_setup
+
+    - name: Run nvmeof_setup
+      ansible.builtin.include_role:
+        name: nvmeof_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - nvmeof_setup
+      when: "'nvmeof_setup' in setup_selected_roles"
+      tags:
+        - always
+        - nvmeof_setup
+
+    - name: Run aws_ec2_setup
+      ansible.builtin.include_role:
+        name: aws_ec2_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - aws_ec2_setup
+      when: "'aws_ec2_setup' in setup_selected_roles"
+      tags:
+        - always
+        - aws_ec2_setup

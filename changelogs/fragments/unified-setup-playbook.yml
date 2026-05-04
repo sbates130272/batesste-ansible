@@ -1,7 +1,11 @@
 ---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 minor_changes:
   - >-
     Replace separate ``playbooks/setup-*.yml`` playbooks with a single
-    ``playbooks/setup.yml`` that selects flows via recipe tags
-    (``recipe_newmachine``, ``recipe_amd``, ``recipe_aws_rocm_xio``, etc.).
-    ``run-ansible`` defaults to ``TAGS=recipe_newmachine``.
+    ``playbooks/setup.yml`` that selects flows via ``setup_recipe`` values
+    (``newmachine``, ``amd``, etc.). ``run-ansible`` defaults to
+    ``RECIPE=newmachine``.
