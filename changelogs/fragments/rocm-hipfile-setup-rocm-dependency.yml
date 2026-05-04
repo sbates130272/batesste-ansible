@@ -1,0 +1,9 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+minor_changes:
+  - >-
+    Declare rocm_setup as a tagged dependency of rocm_hipfile_setup so
+    standalone hipFile runs have the same ROCm prerequisite path as rocm-xio.

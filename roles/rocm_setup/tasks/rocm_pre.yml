@@ -284,3 +284,8 @@
     - video
     - render
   become: true
+  register: rocm_setup_group_membership
+
+- name: Reset the connection so ROCm group membership takes effect
+  ansible.builtin.meta: reset_connection
+  when: rocm_setup_user == ansible_user_id
