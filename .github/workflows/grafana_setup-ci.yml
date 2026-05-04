@@ -61,11 +61,10 @@ jobs:
                   grafana_setup_version: 13.0.1
 
       - name: Run the test playbook against the local runner
-        run: ansible-playbook -v -i hosts-ci ./tests/test.yml
+        run: ansible-playbook -v -i hosts-ci ./tests/test.yml --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD")
         working-directory: ./roles/grafana_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
-          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
       - name: Verify grafana_setup installation

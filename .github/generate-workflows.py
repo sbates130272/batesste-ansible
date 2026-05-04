@@ -374,19 +374,22 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
 
     lines.append("")
 
-    # Run test playbook
+    # Run test playbook (vault: bash process substitution reads secret from env)
+    run_cmd = "ansible-playbook -v -i hosts-ci ./tests/test.yml"
+    if config.get("needs_vault", False):
+        run_cmd += (
+            " --vault-password-file <(printf '%s\\n' \"$ANSIBLE_VAULT_PASSWORD\")"
+        )
     lines.extend([
         "      - name: Run the test playbook against the local runner",
-        "        run: ansible-playbook -v -i hosts-ci ./tests/test.yml",
+        f"        run: {run_cmd}",
         f"        working-directory: ./roles/{role_name}",
         "        env:",
         "          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles",
     ])
 
-    # Add vault password if needed
     if config.get("needs_vault", False):
         lines.extend([
-            "          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env",
             "          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}",
         ])
 
@@ -496,20 +499,25 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
         }
     })
 
-    # Run test playbook
+    # Run test playbook (vault: bash process substitution reads secret from env)
+    run_cmd = "ansible-playbook -v -i hosts-ci ./tests/test.yml"
+    if config.get("needs_vault", False):
+        run_cmd += (
+            " --vault-password-file <(printf '%s\\n' \"$ANSIBLE_VAULT_PASSWORD\")"
+        )
     run_test_step = {
         "name": "Run the test playbook against the local runner",
-        "run": "ansible-playbook -v -i hosts-ci ./tests/test.yml",
+        "run": run_cmd,
         "working-directory": f"./roles/{role_name}",
         "env": {
             "ANSIBLE_ROLES_PATH": "${{ github.workspace }}/roles"
         }
     }
 
-    # Add vault password if needed
     if config.get("needs_vault", False):
-        run_test_step["env"]["ANSIBLE_VAULT_PASSWORD_FILE"] = "${{ github.workspace }}/playbooks/vault-env"
-        run_test_step["env"]["ANSIBLE_VAULT_PASSWORD"] = "${{ secrets.ANSIBLE_VAULT_PASSWORD }}"
+        run_test_step["env"]["ANSIBLE_VAULT_PASSWORD"] = (
+            "${{ secrets.ANSIBLE_VAULT_PASSWORD }}"
+        )
 
     steps.append(run_test_step)
 

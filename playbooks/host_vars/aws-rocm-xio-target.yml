@@ -1,7 +1,0 @@
----
-# Pin SSH when aws_ec2_bootstrap_ansible_host is set in group_vars or -e.
-# When empty, omit ansible_host so Play 1 add_host can set it from EC2.
-ansible_host: >-
-  {{ aws_ec2_bootstrap_ansible_host if (aws_ec2_bootstrap_ansible_host | default('', true) | length > 0) else omit }}
-ansible_ssh_private_key_file: >-
-  {{ aws_ec2_ssh_private_key_file if (aws_ec2_ssh_private_key_file | default('', true) | length > 0) else omit }}

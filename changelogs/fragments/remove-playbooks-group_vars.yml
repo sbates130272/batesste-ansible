@@ -1,0 +1,6 @@
+---
+minor_changes:
+  - >-
+    Remove playbooks/group_vars; fold recipe_aws_rocm_xio defaults into
+    playbooks/hosts.yml (all.vars, aws_ec2_launch.vars, aws_rocm_bootstrap.vars)
+    and document optional -e @playbooks/vars/local.yml overrides.

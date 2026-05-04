@@ -108,8 +108,9 @@ Recommended flow:
 1. Generate templates:
 
 ```bash
-PLAYBOOK=setup-aws-ec2-templates.yml \
-HOSTS=playbooks/hosts-example.yml \
+TAGS=recipe_aws_ec2_setup \
+PLAYBOOK=setup.yml \
+HOSTS=playbooks/hosts.yml \
 TARGETS=local \
 playbooks/run-ansible
 ```
@@ -131,7 +132,8 @@ aws ec2 run-instances \
 5. Run the ROCm XIO playbook against the `aws_g4` target group:
 
 ```bash
-PLAYBOOK=setup-rocm-xio.yml \
+TAGS=recipe_rocm_xio \
+PLAYBOOK=setup.yml \
 HOSTS=~/Projects/aws-ec2-templates/hosts-g4ad-rocm-xio.yml \
 TARGETS=aws_g4 \
 playbooks/run-ansible

@@ -5,28 +5,41 @@
 # A single call to ansible-playbook that works for
 # batesste-ansible. See README.md for more information.
 
-PLAYBOOK=${PLAYBOOK:-setup-newmachine.yml}
-HOSTS=${HOSTS:-hosts-example.yml}
+PLAYBOOK=${PLAYBOOK:-setup.yml}
+HOSTS=${HOSTS:-hosts.yml}
 TARGETS=${TARGETS:-localvms}
+# Comma-separated recipe/role tags (playbook is playbooks/setup.yml). Default
+# matches the former setup-newmachine.yml. Set TAGS=recipe_aws_rocm_xio for
+# the AWS flow; use TAGS=all only if you intend to run every play.
+TAGS=${TAGS:-recipe_newmachine}
 
 if [ ! -f ${HOSTS} ]; then
     echo "${HOSTS} does not exist. Exiting!"
     exit -1
 fi
 
-if [ ! -f vault-password ]; then
-    echo "vault-password does not exist. Exiting!"
+AP_EXTRA=()
+
+if [ -f vault-password ]; then
+    AP_EXTRA+=(--vault-password-file vault-password)
+elif [ "${RUN_ANSIBLE_NO_VAULT:-}" = "1" ]; then
+    :
+else
+    echo "vault-password does not exist. Exiting! (Set RUN_ANSIBLE_NO_VAULT=1 to run without a vault file.)"
     exit -1
 fi
 
-if [ ! -f sudo-password ]; then
-    echo "sudo-password does not exist. Exiting!"
+if [ -f sudo-password ]; then
+    AP_EXTRA+=(--become-password-file sudo-password)
+elif [ "${RUN_ANSIBLE_NO_SUDO_PASS:-}" = "1" ]; then
+    :
+else
+    echo "sudo-password does not exist. Exiting! (Set RUN_ANSIBLE_NO_SUDO_PASS=1 to run without a become password file.)"
     exit -1
 fi
-
 
 ansible-playbook ${PLAYBOOK} \
   -i ${HOSTS} \
-  --vault-password-file vault-password \
-  --become-password-file sudo-password \
+  "${AP_EXTRA[@]}" \
+  --tags "${TAGS}" \
   --extra-vars targets=${TARGETS} "$@"

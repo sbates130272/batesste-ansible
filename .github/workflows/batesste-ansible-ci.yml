@@ -96,15 +96,16 @@ jobs:
             [awsmachines]
             [localvms]
       - name: Run the default playbook against the local runner
-        run: >
-          ansible-playbook ${PLAYBOOK} -v -i ${HOSTS}
-          -e "targets=${TARGETS}" -e "{ 'consul_setup_start_service': false }"
+        run: |
+          ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} \
+            --tags recipe_newmachine \
+            --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD") \
+            -e "targets=${TARGETS}" -e "{ 'consul_setup_start_service': false }"
         working-directory: ./playbooks
         env:
-          PLAYBOOK: setup-newmachine.yml
+          PLAYBOOK: setup.yml
           TARGETS: runners
           HOSTS: hosts-ci
-          ANSIBLE_VAULT_PASSWORD_FILE: ./vault-env
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
   rocm_setup-role-test:
@@ -165,11 +166,12 @@ jobs:
                 root_user: runner
                 username: runner
       - name: Run the test playbook against the local runner
-        run: ansible-playbook -v -i hosts-ci ./tests/test.yml --limit runners
+        run: >
+          ansible-playbook -v -i hosts-ci ./tests/test.yml --limit runners
+          --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD")
         working-directory: ./roles/rocm_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
-          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
   grafana_setup-role-test:
@@ -212,11 +214,12 @@ jobs:
                   ansible_user: runner
                   vault_grafana_setup_password: test_ci_password_123
       - name: Run the test playbook against the local runner
-        run: ansible-playbook -v -i hosts-ci ./tests/test.yml
+        run: >
+          ansible-playbook -v -i hosts-ci ./tests/test.yml
+          --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD")
         working-directory: ./roles/grafana_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
-          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
       - name: Verify Grafana installation
         run: |

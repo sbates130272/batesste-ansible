@@ -1,0 +1,5 @@
+---
+trivial:
+  - >-
+    Remove playbooks/vault-env; CI uses --vault-password-file with bash process
+    substitution and ANSIBLE_VAULT_PASSWORD from secrets.

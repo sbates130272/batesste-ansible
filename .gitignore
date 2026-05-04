@@ -8,6 +8,9 @@ playbooks/hosts
 playbooks/vault-password
 playbooks/sudo-password
 
+# Optional extra-vars file (see README; ansible-playbook -e @playbooks/vars/local.yml)
+playbooks/vars/local.yml
+
 # OAuth token files
 roles/mutt_setup/files/*.token
 
