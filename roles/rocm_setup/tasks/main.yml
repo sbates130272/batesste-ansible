@@ -13,6 +13,13 @@
   vars:
     calling_role_path: "{{ rocm_setup_calling_role_path_fact }}"  # noqa var-naming
 
+- name: Detect AWS EC2 and kernel shape (linux-image vs amdgpu-dkms)
+  ansible.builtin.import_tasks:
+    file: aws_kernel_facts.yml
+  when:
+    - ansible_system == "Linux"
+    - rocm_setup_aws_kernel_fact_detection | default(true)
+
 - name: Run the rocm_setup prerequisite steps
   ansible.builtin.import_tasks:
     file: rocm_pre.yml
@@ -112,6 +119,15 @@
   become: true
   failed_when: false
   changed_when: false
+
+- name: Install extra kernel-related packages (e.g. linux-modules-extra-aws)
+  ansible.builtin.package:
+    name: "{{ rocm_setup_extra_kernel_packages }}"
+    state: present
+    update_cache: true
+  when: rocm_setup_extra_kernel_packages | default([]) | length > 0
+  become: true
+  register: rocm_setup_extra_kernel_install
 
 - name: Install or upgrade amdgpu-dkms to latest available  # noqa package-latest
   ansible.builtin.package:

@@ -19,5 +19,10 @@ galaxy_info:
     - rdma
     - nvme
 
+# Tag the dependency so `--tags rocm_xio_setup` does not re-run rocm_setup
+# (untagged dependencies always execute with the parent role). Playbooks that
+# only install XIO should list rocm_setup earlier when a full stack is needed.
 dependencies:
   - role: rocm_setup
+    tags:
+      - rocm_setup

@@ -12,3 +12,7 @@ all:
       hosts:
         aws-rocm-xio-target:
           ansible_user: ubuntu
+    awsmachines:
+      hosts:
+        aws-rocm-xio-target:
+          ansible_user: ubuntu

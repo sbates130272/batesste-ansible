@@ -30,8 +30,28 @@ rocm_setup_skip_reboot: true
 rocm_setup_skip_system_upgrade: false
 
 # Install kernel-facing AMDGPU pieces (headers, modules, amdgpu-dkms).
-# Disable in CI where no GPU/kernel-driver validation is possible.
+# Disable in CI where no GPU/kernel-driver validation is possible, or on AWS
+# when using a vendor kernel image that already ships AMDGPU (see
+# rocm_setup_extra_kernel_packages).
 rocm_setup_install_kernel_driver: true
+
+# Optional extra kernel image / module metapackages (installed before amdgpu-dkms).
+# Example on Ubuntu EC2 with DKMS: linux-modules-extra-aws; without DKMS, a pinned
+# linux-image-*-aw only.
+rocm_setup_extra_kernel_packages: []
+
+# On Linux, import aws_kernel_facts.yml to set rocm_setup_aws_ec2 and kernel facts
+# (rocm_setup_kernel_release, rocm_setup_kernel_trailing_flavor, …). Disable on
+# non-EC2 hosts if you want to avoid sysfs reads.
+rocm_setup_aws_kernel_fact_detection: true
+
+# Filled by aws_kernel_facts.yml when rocm_setup_aws_kernel_fact_detection is true.
+rocm_setup_aws_ec2: false
+rocm_setup_kernel_release: ""
+rocm_setup_kernel_trailing_flavor: ""
+rocm_setup_kernel_version_abi: ""
+rocm_setup_linux_image_package_for_running_kernel: ""
+rocm_setup_is_ubuntu_style_aws_surface_kernel: false
 
 # State if this is a Windows Subsystem for Linux (WSL) install or not.
 rocm_setup_wsl_install: false

@@ -48,7 +48,21 @@ rocm_setup_metrics_exporter_repo_uri: https://repo.radeon.com/device-metrics-exp
 rocm_setup_metrics_exporter_port: 5000
 rocm_setup_metrics_exporter_config_path: /etc/metrics/config.json
 rocm_setup_metrics_exporter_open_firewall: true
+
+# Extra kernel packages (before amdgpu-dkms); AWS EC2 / kernel facts
+rocm_setup_extra_kernel_packages: []
+rocm_setup_aws_kernel_fact_detection: true
 ```
+
+When `rocm_setup_aws_kernel_fact_detection` is true on Linux, the role sets
+`rocm_setup_aws_ec2` (DMI / chassis / Xen UUID heuristics) and kernel facts from
+`ansible_kernel`: `rocm_setup_kernel_release`,
+`rocm_setup_kernel_trailing_flavor`, `rocm_setup_kernel_version_abi`,
+`rocm_setup_linux_image_package_for_running_kernel`, and
+`rocm_setup_is_ubuntu_style_aws_surface_kernel` (true when the trailing flavor
+is `aws` or `aw`). Use these with `rocm_setup_extra_kernel_packages` and
+`rocm_setup_install_kernel_driver: false` on EC2 when you rely on an Ubuntu
+AWS kernel image instead of DKMS.
 
 ## Version Management
 

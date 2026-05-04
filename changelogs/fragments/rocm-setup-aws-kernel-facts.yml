@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - rocm_setup — detect AWS EC2 and expose kernel facts; optional extra kernel
+    packages before amdgpu-dkms.

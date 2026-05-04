@@ -11,3 +11,8 @@ all:
       hosts:
         aws-rocm-xio-target:
           ansible_user: ubuntu
+    # Same membership as Play 1 add_host so aws_grub (when: awsmachines) runs.
+    awsmachines:
+      hosts:
+        aws-rocm-xio-target:
+          ansible_user: ubuntu

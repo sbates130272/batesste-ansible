@@ -147,7 +147,11 @@ Use [setup-aws-rocm-xio.yml](./playbooks/setup-aws-rocm-xio.yml) to launch a
 3. Set `aws_ec2_vpc_subnet_id`, `aws_ec2_security_group_ids`,
    `aws_ec2_key_name`, and related options in
    `playbooks/group_vars/all/main.yml` or pass `-e`.
-4. Run from the `playbooks/` directory (see
+4. `rocm_setup` reboots after AMDGPU DKMS (`group_vars/aws_rocm_bootstrap.yml`
+   sets `rocm_setup_skip_reboot: false`). Target-only inventory must list the
+   host under both `aws_rocm_bootstrap` and `awsmachines` (same as Play 1
+   `add_host`) so `aws_grub` runs.
+5. Run from the `playbooks/` directory (see
    [ansible.cfg](./playbooks/ansible.cfg)):
 
 ```

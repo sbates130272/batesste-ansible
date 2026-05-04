@@ -1,0 +1,4 @@
+---
+trivial:
+  - Enable amdgpu-dkms reboot for setup-aws-rocm-xio (group_vars/aws_rocm_bootstrap).
+  - Target-only inventory includes awsmachines for aws_grub when skipping EC2 play.
