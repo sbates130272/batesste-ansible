@@ -28,6 +28,7 @@ GeForce
 Gmail
 Grafana
 Grafana's
+HSA
 HTTPS
 Homebrew
 IPv
@@ -120,6 +121,7 @@ dev
 devel
 dhcp
 dir
+distro
 distros
 dmesg
 dnsmasq
@@ -165,6 +167,7 @@ ib
 init
 ip
 ipv
+hsa
 journalctl
 json
 kfd

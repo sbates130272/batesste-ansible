@@ -1,0 +1,10 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+bugfixes:
+  - >-
+    Stop rocm_xio_setup from installing Ubuntu's libhsa-runtime-dev package so
+    ROCm XIO builds rely on the ROCm stack supplied by rocm_setup instead of a
+    distro HSA runtime that can conflict with ROCm repository packages.

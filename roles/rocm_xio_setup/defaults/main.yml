@@ -11,6 +11,7 @@ rocm_xio_setup_force_clone: false
 
 # Build and install controls.
 rocm_xio_setup_install_dependencies: true
+rocm_xio_setup_remove_distro_hsa_runtime_dev: true
 rocm_xio_setup_build_type: "Release"
 rocm_xio_setup_build_clients: true
 rocm_xio_setup_build_testing: true
