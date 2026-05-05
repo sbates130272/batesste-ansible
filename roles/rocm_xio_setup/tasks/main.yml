@@ -43,6 +43,15 @@
       build_testing is required for ctest unit runs. gpu_count must be >= 1,
       and perf_nvme_controllers must be non-empty for nvme-ep perf runs.
 
+- name: Remove distro HSA runtime development package
+  ansible.builtin.package:
+    name: libhsa-runtime-dev
+    state: absent
+  become: true
+  when:
+    - rocm_xio_setup_install_dependencies
+    - rocm_xio_setup_remove_distro_hsa_runtime_dev
+
 - name: Install rocm-xio build dependencies
   ansible.builtin.package:
     update_cache: true
@@ -54,7 +63,6 @@
       - rocminfo
       - rocm-hip-sdk
       - libdrm-dev
-      - libhsa-runtime-dev
       - libcli11-dev
       - pciutils
     state: present

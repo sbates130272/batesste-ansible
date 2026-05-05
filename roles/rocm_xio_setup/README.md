@@ -16,6 +16,9 @@ The role currently supports:
 - Basic checks (`rocminfo`, endpoint listing, unit tests, test endpoint)
 - Endpoint performance testing (`nvme-ep` or `rdma-ep`)
 
+The role relies on `rocm_setup` for the ROCm stack and avoids installing Ubuntu
+distro HSA packages that can conflict with ROCm repository packages.
+
 ## Requirements
 
 - Ubuntu noble (24.04) or resolute (26.04)
@@ -39,6 +42,7 @@ rocm_xio_setup_force_clone: false
 
 # Build/install controls
 rocm_xio_setup_install_dependencies: true
+rocm_xio_setup_remove_distro_hsa_runtime_dev: true
 rocm_xio_setup_build_type: "Release"
 rocm_xio_setup_build_clients: true
 rocm_xio_setup_build_testing: true
