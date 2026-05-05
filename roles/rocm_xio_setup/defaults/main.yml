@@ -25,20 +25,21 @@ rocm_xio_setup_run_unit_tests: true
 rocm_xio_setup_run_test_endpoint: true
 rocm_xio_setup_test_endpoint_emulate: true
 
-# Run a hardware-oriented performance path after checks.
+# Hardware performance runs are opt-in because NVMe endpoint tests issue I/O to
+# the configured block device.
 # Supported endpoints: rdma-ep, nvme-ep
-rocm_xio_setup_run_perf_tests: true
+rocm_xio_setup_run_perf_tests: false
 rocm_xio_setup_perf_endpoint: "nvme-ep"
 rocm_xio_setup_perf_provider: "bnxt"
 rocm_xio_setup_perf_rdma_device: ""
 rocm_xio_setup_perf_iterations: 128
 rocm_xio_setup_perf_transfer_size: 4096
-# Baseline target is one GPU and one NVMe for xio-tester runs.
+# Baseline target is one GPU. Set NVMe controllers explicitly for perf tests.
 rocm_xio_setup_gpu_count: 1
-rocm_xio_setup_perf_nvme_controllers:
-  - "/dev/nvme0"
+rocm_xio_setup_perf_nvme_controllers: []
 rocm_xio_setup_perf_read_io: 128
-rocm_xio_setup_perf_batch_size: 1
+# Optional: pass --batch-size when using an xio-tester build that supports it.
+rocm_xio_setup_perf_batch_size: ""
 rocm_xio_setup_perf_extra_args: ""
 
 # Use HSA_FORCE_FINE_GRAIN_PCIE=1 in endpoint checks and perf tests.

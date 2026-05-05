@@ -53,20 +53,17 @@ rocm_xio_setup_run_unit_tests: true
 rocm_xio_setup_run_test_endpoint: true
 rocm_xio_setup_test_endpoint_emulate: true
 
-# Performance path
-rocm_xio_setup_run_perf_tests: true
+# Performance path (opt-in; can issue I/O to configured devices)
+rocm_xio_setup_run_perf_tests: false
 rocm_xio_setup_perf_endpoint: "nvme-ep"   # nvme-ep | rdma-ep
 rocm_xio_setup_perf_provider: "bnxt"      # bnxt | mlx5 | ionic | ernic
 rocm_xio_setup_perf_rdma_device: ""       # defaults to rocm-rdma-<provider>0
 rocm_xio_setup_perf_iterations: 128        # used by rdma-ep
 rocm_xio_setup_perf_transfer_size: 4096    # used by rdma-ep
-rocm_xio_setup_gpu_count: 1                # baseline target: 1 GPU
-rocm_xio_setup_perf_nvme_controllers:      # baseline target: 1 NVMe
-  - "/dev/nvme0"
-  # Add more entries to test additional NVMe controllers
-  # - "/dev/nvme1"
+rocm_xio_setup_gpu_count: 1                # baseline target for validation
+rocm_xio_setup_perf_nvme_controllers: []   # set explicitly for nvme-ep perf
 rocm_xio_setup_perf_read_io: 128           # used by nvme-ep
-rocm_xio_setup_perf_batch_size: 1          # used by nvme-ep
+rocm_xio_setup_perf_batch_size: ""         # optional nvme-ep --batch-size
 rocm_xio_setup_perf_extra_args: ""
 
 # Environment control
@@ -93,56 +90,26 @@ hosts.
       vars:
         rocm_setup_user: "{{ username }}"
         rocm_xio_setup_source_dir: "~/Projects/rocm-xio"
-        rocm_xio_setup_perf_endpoint: nvme-ep
-        rocm_xio_setup_perf_nvme_controllers:
-          - /dev/nvme0
 ```
 
 ## Suggested Flow with AWS G4
 
-Use the dedicated [aws_ec2_setup role][ref-aws-ec2-role] to generate EC2
-launch and inventory templates.
+Use the top-level setup playbook when you want the standard g4ad launch and
+ROCm XIO configuration path. The EC2 play launches or discovers the instance,
+then the shared recipe dispatcher runs the host setup roles.
 
 Recommended flow:
 
-1. Generate templates:
+1. Set the EC2 variables in `playbooks/hosts.yml`, a gitignored local vars
+   file, or extra vars passed to Ansible.
+2. Run the AWS ROCm XIO recipe from the repository root:
 
 ```bash
-PLAYBOOK=setup-aws-ec2-templates.yml \
-HOSTS=playbooks/hosts-example.yml \
-TARGETS=local \
-playbooks/run-ansible
+PLAYBOOK=setup-ec2.yml HOSTS=playbooks/hosts.yml playbooks/run-ansible
 ```
 
-2. Edit generated launch YAML and replace all `REPLACE_WITH_*`
-   placeholders. The default output path is:
-   `~/Projects/aws-ec2-templates/g4ad-rocm-xio-instance.yaml`.
-3. Launch the instance:
-
-```bash
-aws ec2 run-instances \
-  --region us-east-1 \
-  --cli-input-yaml \
-  file://~/Projects/aws-ec2-templates/g4ad-rocm-xio-instance.yaml
-```
-
-4. Update generated inventory host value:
-   `~/Projects/aws-ec2-templates/hosts-g4ad-rocm-xio.yml`.
-5. Run the ROCm XIO playbook against the `aws_g4` target group:
-
-```bash
-PLAYBOOK=setup-rocm-xio.yml \
-HOSTS=~/Projects/aws-ec2-templates/hosts-g4ad-rocm-xio.yml \
-TARGETS=aws_g4 \
-playbooks/run-ansible
-```
-
-6. The role dependency chain runs `rocm_setup` first, then
-   `rocm_xio_setup`.
-7. For the standard target shape, keep one GPU and one NVMe:
-   `rocm_xio_setup_gpu_count: 1` and one NVMe controller path.
-   Add extra NVMe paths in `rocm_xio_setup_perf_nvme_controllers`
-   when needed.
+3. Enable performance tests only when you have explicitly configured safe test
+   devices in `rocm_xio_setup_perf_nvme_controllers`.
 
 ## Testing
 
@@ -158,6 +125,10 @@ ANSIBLE_ROLES_PATH=../ ansible-playbook \
 
 - `nvme-ep` performance checks are skipped automatically when the configured
   NVMe controller path does not exist.
+- `rocm_xio_setup_run_perf_tests` defaults to `false`; do not enable it on a
+  host unless the configured NVMe controller is safe for endpoint test I/O.
+- `rocm_xio_setup_perf_batch_size` is empty by default because not every
+  `xio-tester nvme-ep` build accepts `--batch-size`.
 - `rdma-ep` performance checks require a supported RDMA environment and may
   need endpoint-specific extra arguments.
 - When using provider `ernic`, set `rocm_xio_setup_perf_rdma_device` explicitly
@@ -169,4 +140,3 @@ ANSIBLE_ROLES_PATH=../ ansible-playbook \
 <!-- References -->
 
 [ref-rocm-xio]: https://github.com/ROCm/rocm-xio
-[ref-aws-ec2-role]: ../aws_ec2_setup/README.md

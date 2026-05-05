@@ -1,0 +1,10 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+bugfixes:
+  - >-
+    Make rocm_xio_setup hardware performance tests opt-in and remove the
+    default /dev/nvme0 controller so the role never targets a root disk unless
+    inventory explicitly configures a safe device.

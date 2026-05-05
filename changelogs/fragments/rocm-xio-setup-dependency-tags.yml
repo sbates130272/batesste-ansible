@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - rocm_xio_setup — tag the rocm_setup role dependency so `--tags rocm_xio_setup`
+    does not implicitly re-run rocm_setup.

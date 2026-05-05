@@ -49,13 +49,7 @@ jobs:
               - '.github/workflows/batesste-ansible-ci.yml'
 
   build-spellcheck-lint-test:
-    strategy:
-      matrix:
-        runs-on:
-          - ubuntu-24.04
-          - ubuntu-26.04
-    runs-on: ${{ matrix.runs-on }}
-    continue-on-error: ${{ matrix.runs-on == 'ubuntu-26.04' }}
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -96,15 +90,18 @@ jobs:
             [awsmachines]
             [localvms]
       - name: Run the default playbook against the local runner
-        run: >
-          ansible-playbook ${PLAYBOOK} -v -i ${HOSTS}
-          -e "targets=${TARGETS}" -e "{ 'consul_setup_start_service': false }"
+        run: |
+          ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} \
+            --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD") \
+            -e "targets=${TARGETS}" \
+            -e "setup_recipe=${RECIPE}" \
+            -e "{ 'consul_setup_start_service': false }"
         working-directory: ./playbooks
         env:
-          PLAYBOOK: setup-newmachine.yml
+          PLAYBOOK: setup.yml
+          RECIPE: newmachine
           TARGETS: runners
           HOSTS: hosts-ci
-          ANSIBLE_VAULT_PASSWORD_FILE: ./vault-env
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
   rocm_setup-role-test:
@@ -121,14 +118,7 @@ jobs:
           - rocm_version: 7.2
             wsl_install: true
             runs-on: ubuntu-24.04
-          - rocm_version: 7.2
-            wsl_install: false
-            runs-on: ubuntu-26.04
-          - rocm_version: 7.2
-            wsl_install: true
-            runs-on: ubuntu-26.04
     runs-on: ${{ matrix.runs-on }}
-    continue-on-error: ${{ matrix.runs-on == 'ubuntu-26.04' }}
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1
@@ -165,11 +155,12 @@ jobs:
                 root_user: runner
                 username: runner
       - name: Run the test playbook against the local runner
-        run: ansible-playbook -v -i hosts-ci ./tests/test.yml --limit runners
+        run: >
+          ansible-playbook -v -i hosts-ci ./tests/test.yml --limit runners
+          --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD")
         working-directory: ./roles/rocm_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
-          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
   grafana_setup-role-test:
@@ -177,13 +168,7 @@ jobs:
     if: >-
       ${{ github.event_name == 'workflow_dispatch' ||
       needs.detect-role-changes.outputs.grafana_setup == 'true' }}
-    strategy:
-      matrix:
-        runs-on:
-          - ubuntu-24.04
-          - ubuntu-26.04
-    runs-on: ${{ matrix.runs-on }}
-    continue-on-error: ${{ matrix.runs-on == 'ubuntu-26.04' }}
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -212,11 +197,12 @@ jobs:
                   ansible_user: runner
                   vault_grafana_setup_password: test_ci_password_123
       - name: Run the test playbook against the local runner
-        run: ansible-playbook -v -i hosts-ci ./tests/test.yml
+        run: >
+          ansible-playbook -v -i hosts-ci ./tests/test.yml
+          --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD")
         working-directory: ./roles/grafana_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
-          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
       - name: Verify Grafana installation
         run: |

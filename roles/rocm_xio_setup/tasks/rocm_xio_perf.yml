@@ -49,7 +49,8 @@
       ./build/xio-tester nvme-ep
       --controller {{ item }}
       --read-io {{ rocm_xio_setup_perf_read_io }}
-      --batch-size {{ rocm_xio_setup_perf_batch_size }}
+      {{ '--batch-size ' + rocm_xio_setup_perf_batch_size | string
+         if rocm_xio_setup_perf_batch_size | string | length > 0 else '' }}
       --verbose
       --less-timing
       {{ rocm_xio_setup_perf_extra_args }}
@@ -74,7 +75,8 @@
       ./build/xio-tester nvme-ep
       --controller {{ item }}
       --read-io {{ rocm_xio_setup_perf_read_io }}
-      --batch-size {{ rocm_xio_setup_perf_batch_size }}
+      {{ '--batch-size ' + rocm_xio_setup_perf_batch_size | string
+         if rocm_xio_setup_perf_batch_size | string | length > 0 else '' }}
       --verbose
       --less-timing
       {{ rocm_xio_setup_perf_extra_args }}

@@ -1,0 +1,17 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+minor_changes:
+  - >-
+    Refactor ``playbooks/setup.yml`` so setup recipes select ordered role lists
+    through ``setup_recipe`` while role tags remain optional filters within the
+    selected recipe.
+  - >-
+    Move the AWS ROCm XIO EC2 launch flow to ``playbooks/setup-ec2.yml`` and
+    route the launched host through the shared setup role dispatcher.
+  - >-
+    Make ``playbooks/run-ansible`` prefer this checkout's local ``roles/``
+    directory instead of dispatching setup roles through the installed
+    collection.

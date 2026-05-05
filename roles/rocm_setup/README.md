@@ -15,7 +15,8 @@ currently supported.
 
 # Role Variables
 
-Available variables are listed below, along with default values (see [defaults/main.yml](./defaults/main.yml)):
+Available variables are listed below, along with default values (see
+[defaults/main.yml](./defaults/main.yml)):
 
 ```yaml
 # ROCm version to install (use 'latest' for automatic detection)
@@ -48,7 +49,14 @@ rocm_setup_metrics_exporter_repo_uri: https://repo.radeon.com/device-metrics-exp
 rocm_setup_metrics_exporter_port: 5000
 rocm_setup_metrics_exporter_config_path: /etc/metrics/config.json
 rocm_setup_metrics_exporter_open_firewall: true
+
+# Extra kernel packages installed before amdgpu-dkms
+rocm_setup_extra_kernel_packages: []
 ```
+
+Set `rocm_setup_extra_kernel_packages` from inventory when a target host needs
+kernel-specific packages before `amdgpu-dkms`, such as `linux-modules-extra-aws`
+on EC2.
 
 ## Version Management
 
@@ -95,7 +103,8 @@ rocm_setup_install_metrics_exporter: false
 
 ### Network Access for VMs
 
-By default, the exporter binds to `0.0.0.0` (all interfaces), making it accessible from other machines on the LAN. This is particularly useful when:
+By default, the exporter binds to `0.0.0.0` (all interfaces), making it
+accessible from other machines on the LAN. This is particularly useful when:
 - The target host is a VM and you want to scrape metrics from the host machine
 - You have a centralized Prometheus server monitoring multiple systems
 - You want to access metrics from Grafana running on a different machine
@@ -116,8 +125,10 @@ rocm_setup_metrics_exporter_open_firewall: false
 The AMD Device Metrics Exporter handles missing hardware gracefully:
 
 **Behavior:**
-- **With AMD GPUs detected**: Exports full GPU metrics (power, temperature, utilization, etc.)
-- **Without GPUs (VM without passthrough)**: Exporter still runs and responds to `/metrics` requests
+- **With AMD GPUs detected**: Exports full GPU metrics (power, temperature,
+  utilization, etc.)
+- **Without GPUs (VM without passthrough)**: Exporter still runs and responds
+  to `/metrics` requests
   - Version 1.3.1+: Omits unsupported/unavailable fields
   - Older versions: Reports unavailable metrics as `0`
   - Logs indicate which fields are unsupported
@@ -135,7 +146,8 @@ The AMD Device Metrics Exporter handles missing hardware gracefully:
 
 # Dependencies
 
-This role depends on the `check_platform` role for platform compatibility verification.
+This role depends on the `check_platform` role for platform compatibility
+verification.
 
 # Example Playbook
 
@@ -169,7 +181,8 @@ This role depends on the `check_platform` role for platform compatibility verifi
         rocm_setup_metrics_exporter_open_firewall: true
 ```
 
-After installation, you can access metrics from the host machine or any LAN device:
+After installation, you can access metrics from the host machine or any LAN
+device:
 ```bash
 # From host machine (replace VM_IP with your VM's IP address)
 curl http://VM_IP:2021/metrics

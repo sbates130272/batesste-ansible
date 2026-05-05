@@ -1,0 +1,9 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+bugfixes:
+  - >-
+    Reset the Ansible connection after rocm_setup adds the target user to the
+    video and render groups so immediate ROCm checks can access /dev/kfd.

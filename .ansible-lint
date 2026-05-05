@@ -4,7 +4,9 @@
 
 exclude_paths:
   - .github
+  - changelogs
   - playbooks
+  - tests/sanity
 
 warn_list:
   - command-instead-of-module

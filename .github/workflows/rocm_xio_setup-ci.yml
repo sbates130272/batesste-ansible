@@ -16,13 +16,7 @@ name: rocm_xio_setup CI
 
 jobs:
   rocm_xio_setup-test:
-    strategy:
-      matrix:
-        runs-on:
-          - ubuntu-24.04
-          - ubuntu-26.04
-    runs-on: ${{ matrix.runs-on }}
-    continue-on-error: ${{ matrix.runs-on == 'ubuntu-26.04' }}
+    runs-on: ubuntu-24.04
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1
@@ -71,11 +65,10 @@ jobs:
                   rocm_xio_setup_run_perf_tests: false
 
       - name: Run the test playbook against the local runner
-        run: ansible-playbook -v -i hosts-ci ./tests/test.yml
+        run: ansible-playbook -v -i hosts-ci ./tests/test.yml --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD")
         working-directory: ./roles/rocm_xio_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
-          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/playbooks/vault-env
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
       - name: Verify rocm_xio_setup installation

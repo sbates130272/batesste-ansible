@@ -1,0 +1,10 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+minor_changes:
+  - >-
+    Remove playbooks/group_vars; fold EC2 ROCm XIO defaults into
+    playbooks/hosts.yml (all.vars, aws_ec2_launch.vars, aws_rocm_bootstrap.vars)
+    and document optional -e @playbooks/vars/local.yml overrides.

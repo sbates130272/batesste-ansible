@@ -30,8 +30,15 @@ rocm_setup_skip_reboot: true
 rocm_setup_skip_system_upgrade: false
 
 # Install kernel-facing AMDGPU pieces (headers, modules, amdgpu-dkms).
-# Disable in CI where no GPU/kernel-driver validation is possible.
+# Disable in CI where no GPU/kernel-driver validation is possible, or on AWS
+# when using a vendor kernel image that already ships AMDGPU (see
+# rocm_setup_extra_kernel_packages).
 rocm_setup_install_kernel_driver: true
+
+# Optional extra kernel image / module metapackages (installed before amdgpu-dkms).
+# Example on Ubuntu EC2 with DKMS: linux-modules-extra-aws; without DKMS, a pinned
+# linux-image-*-aw only.
+rocm_setup_extra_kernel_packages: []
 
 # State if this is a Windows Subsystem for Linux (WSL) install or not.
 rocm_setup_wsl_install: false

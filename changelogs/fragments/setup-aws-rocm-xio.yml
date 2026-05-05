@@ -1,0 +1,10 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+minor_changes:
+  - >-
+    Add ``playbooks/setup-ec2.yml`` to launch a g4ad Ubuntu 24.04 EC2 instance
+    via amazon.aws and configure ROCm, hipFile, and rocm-xio. Declare amazon.aws
+    in requirements.yml and galaxy.yml dependencies.

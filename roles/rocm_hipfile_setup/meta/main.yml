@@ -18,4 +18,10 @@ galaxy_info:
     - fio
     - storage
 
-dependencies: []
+# Tag the dependency so `--tags rocm_hipfile_setup` does not re-run rocm_setup
+# (untagged dependencies always execute with the parent role). Playbooks that
+# build a full stack should still list rocm_setup before rocm_hipfile_setup.
+dependencies:
+  - role: rocm_setup
+    tags:
+      - rocm_setup
