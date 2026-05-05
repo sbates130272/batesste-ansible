@@ -1,0 +1,11 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+username: batesste
+user_setup_motd: true
+user_setup_home_parent: /local-homes
+user_setup_create: true
+user_setup_ssh_key_src_dir: /home/stebates/.ssh

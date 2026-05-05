@@ -1,0 +1,48 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+nvmeof_setup_mode: target
+nvmeof_setup_rdma_dhcp_enable: false
+nvmeof_setup_rdma_dhcp_subnet: "192.168.2.0/24"
+nvmeof_setup_rdma_dhcp_range: "192.168.2.10,192.168.2.50"
+nvmeof_setup_rdma_dhcp_target_ip: "192.168.2.1"
+nvmeof_setup_rdma_dhcp_lease: "1h"
+nvmeof_setup_target_interface: enp1s0np1
+nvmeof_setup_subsystems:
+  - name: nvmet-storage
+    allow_any_host: true
+    namespaces:
+      - nsid: 1
+        device_path: /dev/nvme0n1
+        enable: true
+      - nsid: 2
+        device_path: /dev/nvme1n1
+        enable: true
+      - nsid: 3
+        device_path: /dev/nvme2n1
+        enable: true
+      - nsid: 4
+        device_path: /dev/nvme3n1
+        enable: true
+      - nsid: 5
+        device_path: /dev/nvme4n1
+        enable: true
+      - nsid: 6
+        device_path: /dev/nvme4n1
+        enable: true
+      - nsid: 7
+        device_path: /dev/nvme6n1
+        enable: true
+      - nsid: 8
+        device_path: /dev/nvme7n1
+        enable: true
+nvmeof_setup_ports:
+  - port_id: 1
+    trtype: rdma
+    adrfam: ipv4
+    trsvcid: 4420
+    subsystems:
+      - nvmet-storage

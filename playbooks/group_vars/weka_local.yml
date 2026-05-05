@@ -1,0 +1,15 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+username: stebates
+user_setup_vm_fstab: true
+user_setup_motd: true
+rocm_setup_user: stebates
+rocm_setup_run_checks: false
+rdma_setup_install_rdma_exporter: true
+rdma_setup_motd: true
+ansible_ssh_common_args: >-
+  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null

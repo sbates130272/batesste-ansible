@@ -25,6 +25,15 @@
     - admin
   become: true
 
+- name: Ensure the user home parent directory exists
+  ansible.builtin.file:
+    path: "{{ user_setup_home_parent }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
 - name: Create (or update) an account for the specified user
   ansible.builtin.user:
     name: "{{ username }}"
@@ -32,18 +41,32 @@
     append: true
     state: present
     shell: /bin/bash
+    home: "{{ user_setup_home_parent }}/{{ username }}"
   become: true
   register: user_setup_user_result
+  when: user_setup_create
 
 - name: Set target user home directory fact
   ansible.builtin.set_fact:
-    user_setup_home: "{{ user_setup_user_result.home }}"
+    user_setup_home: "{{ user_setup_home_parent }}/{{ username }}"
+
+- name: Ensure the user home directory exists
+  ansible.builtin.file:
+    path: "{{ user_setup_home }}"
+    state: directory
+    owner: "{{ username }}"
+    group: users
+    mode: "0755"
+  become: true
 
 - name: Set authorized key for the user from local file
   ansible.posix.authorized_key:
     user: "{{ username }}"
     state: present
-    key: "{{ lookup('file', user_setup_ssh_key_src_dir ~ '/' ~ user_setup_ssh_key_name ~ '.pub') }}"
+    path: "{{ user_setup_home }}/.ssh/authorized_keys"
+    key: >-
+      {{ lookup('file', user_setup_ssh_key_src_dir ~ '/' ~
+      user_setup_ssh_key_name ~ '.pub') }}
   become: true
 
 - name: Set user as passwordless sudoer
@@ -77,7 +100,7 @@
     mode: "0644"
   become: true
 
-- name: Ensure users can access dmesg without sudo # noqa: args[module]
+- name: Ensure users can access dmesg without sudo  # noqa: args[module]
   ansible.builtin.blockinfile:
     path: /etc/sysctl.d/10-kernel-hardening.conf
     state: present
@@ -88,7 +111,7 @@
       kernel.dmesg_restrict = 0
   become: true
 
-- name: Restart procps service so dmesg rule takes effect # noqa: args[module]
+- name: Restart procps service so dmesg rule takes effect  # noqa: args[module]
   ansible.builtin.service:
     service: procps
     state: restarted
@@ -101,10 +124,21 @@
     line: ExecStart=/lib/systemd/systemd-networkd-wait-online --any
   become: true
 
-- name: Restart service # noqa: args[module]
+- name: Restart service  # noqa: args[module]
   ansible.builtin.service:
     service: network-online.target
     state: restarted
+  become: true
+
+- name: Ensure user bashrc exists
+  ansible.builtin.file:
+    path: "{{ user_setup_home }}/.bashrc"
+    state: touch
+    owner: "{{ username }}"
+    group: users
+    mode: "0644"
+    modification_time: preserve
+    access_time: preserve
   become: true
 
 - name: Ensure package install is non-interactive
@@ -193,7 +227,9 @@
 - name: Add an entry in fstab for VM virtio-fs
   ansible.builtin.lineinfile:
     path: /etc/fstab
-    line: "hostfs {{ user_setup_home }}/Projects 9p trans=virtio,version=9p2000.L,nofail 0 1"
+    line: >-
+      hostfs {{ user_setup_home }}/Projects 9p
+      trans=virtio,version=9p2000.L,nofail 0 1
     state: present
   become: true
   when: user_setup_vm_fstab
@@ -207,8 +243,12 @@
   register: user_setup_mount_start_result
   failed_when:
     - user_setup_mount_start_result is failed
-    - "'already active' not in (user_setup_mount_start_result.msg | default('') | lower)"
-    - "'not found' not in (user_setup_mount_start_result.msg | default('') | lower)"
+    - >-
+      'already active' not in
+      (user_setup_mount_start_result.msg | default('') | lower)
+    - >-
+      'not found' not in
+      (user_setup_mount_start_result.msg | default('') | lower)
   when: user_setup_vm_fstab
 
 - name: Install driverctl for MOTD driver overrides display

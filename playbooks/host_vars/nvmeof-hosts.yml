@@ -1,0 +1,12 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+nvmeof_setup_mode: host
+nvmeof_setup_target_host: 192.168.2.1
+nvmeof_setup_connections:
+  - transport: rdma
+    trsvcid: 4420
+    nqn: nvmet-storage

@@ -3,6 +3,13 @@
 username: batesste
 user_setup_timezone: America/Edmonton
 
+# Parent directory used when creating the user's home directory.
+user_setup_home_parent: /home
+
+# Create or update a local account. Set this false when the account is provided
+# by NSS/LDAP and the role should only manage the home and user files.
+user_setup_create: true
+
 # Do we want to fstab in a VM
 user_setup_vm_fstab: false
 

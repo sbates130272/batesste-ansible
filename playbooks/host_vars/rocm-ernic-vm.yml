@@ -1,0 +1,17 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+user_setup_vm_fstab: true
+user_setup_motd: true
+rocm_setup_user: stebates
+rocm_setup_run_checks: false
+rdma_setup_install_rdma_exporter: true
+rdma_setup_motd: true
+nvme_exporter_setup_install: true
+
+# Forwarded exporter ports (QEMU hostfwd on host rocm-ernic).
+# node_exporter_port: 9100
+# nvme_exporter_port: 9998

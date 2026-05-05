@@ -1,0 +1,14 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+root_user: ubuntu
+username: ""
+
+# Track latest upstream sources for lab playbook runs. Role defaults remain
+# pinned for collection users unless inventory overrides these versions.
+rocm_hipfile_setup_hipfile_version: main
+rocm_hipfile_setup_fio_version: main
+rocm_xio_setup_repo_version: main

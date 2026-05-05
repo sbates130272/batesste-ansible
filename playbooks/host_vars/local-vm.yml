@@ -1,0 +1,9 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+username: stebates
+user_setup_vm_fstab: true
+user_setup_motd: true

@@ -9,6 +9,7 @@
 
 PLAYBOOK=${PLAYBOOK:-setup.yml}
 HOSTS=${HOSTS:-hosts.yml}
+FIRST_TIME=${FIRST_TIME:-false}
 TARGETS=${TARGETS:-localvms}
 RECIPE=${RECIPE:-newmachine}
 TAGS=${TAGS:-}
@@ -35,22 +36,25 @@ if [ "$(basename -- "${PLAYBOOK}")" != "setup-ec2.yml" ]; then
     AP_VARS+=(--extra-vars "setup_recipe=${RECIPE}")
 fi
 
+if [ "${FIRST_TIME}" = "true" ]; then
+    AP_VARS+=(--extra-vars "setup_roles=user_setup")
+    AP_VARS+=(--extra-vars "ansible_user=ubuntu")
+fi
+
 if [ -f vault-password ]; then
     AP_EXTRA+=(--vault-password-file vault-password)
-elif [ "${RUN_ANSIBLE_NO_VAULT:-}" = "1" ]; then
-    :
-else
+elif [ "${RUN_ANSIBLE_NO_VAULT:-}" != "1" ]; then
     printf '%s\n' \
         "vault-password does not exist. Exiting!" \
         "Set RUN_ANSIBLE_NO_VAULT=1 to run without a vault file."
     exit -1
 fi
 
-if [ -f sudo-password ]; then
+if [ "${FIRST_TIME}" = "true" ]; then
+    AP_EXTRA+=(--ask-pass --ask-become-pass)
+elif [ -f sudo-password ]; then
     AP_EXTRA+=(--become-password-file sudo-password)
-elif [ "${RUN_ANSIBLE_NO_SUDO_PASS:-}" = "1" ]; then
-    :
-else
+elif [ "${RUN_ANSIBLE_NO_SUDO_PASS:-}" != "1" ]; then
     printf '%s\n' \
         "sudo-password does not exist. Exiting!" \
         "Set RUN_ANSIBLE_NO_SUDO_PASS=1 to run without a become password file."

@@ -1,0 +1,27 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# EC2 launch defaults. Tune these in a local vars file or with `-e`.
+aws_rocm_skip_ec2_launch: false
+aws_ec2_vpc_subnet_id: ""
+aws_ec2_key_name: ""
+aws_ec2_security_group_ids: []
+aws_ec2_iam_instance_profile_name: ""
+aws_ec2_profile: ""
+aws_ec2_region: us-west-2
+aws_ec2_instance_type: g4ad.xlarge
+aws_ec2_root_volume_size: 200
+aws_ec2_root_volume_type: gp3
+aws_ec2_assign_public_ip: true
+aws_ec2_ami_id: ""
+aws_ec2_instance_name: aws-rocm-xio
+aws_ec2_project_tag: rocm-xio
+aws_ec2_owner_tag: ""
+aws_ec2_inventory_host_name: aws-rocm-xio-target
+aws_ec2_ssh_user: ubuntu
+aws_ec2_root_user: ubuntu
+aws_ec2_bootstrap_ansible_host: ""
+aws_ec2_ssh_private_key_file: ""

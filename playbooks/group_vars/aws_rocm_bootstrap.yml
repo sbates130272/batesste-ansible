@@ -1,0 +1,23 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Bootstrap host connection and ROCm/XIO defaults.
+ansible_host: >-
+  {{ aws_ec2_bootstrap_ansible_host if (aws_ec2_bootstrap_ansible_host |
+  default('', true) | length > 0) else omit }}
+ansible_ssh_private_key_file: >-
+  {{ aws_ec2_ssh_private_key_file if (aws_ec2_ssh_private_key_file |
+  default('', true) | length > 0) else omit }}
+rocm_setup_skip_reboot: false
+rocm_setup_install_kernel_driver: true
+rocm_setup_extra_kernel_packages:
+  - linux-modules-extra-aws
+expected_gpu_count: 1
+expected_nvme_count: 1
+rocm_xio_setup_perf_endpoint: nvme-ep
+rocm_xio_setup_gpu_count: 1
+rocm_xio_setup_perf_nvme_controllers:
+  - /dev/nvme1n1
