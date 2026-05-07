@@ -49,8 +49,8 @@
     state: absent
   become: true
   when:
-    - rocm_xio_setup_install_dependencies
-    - rocm_xio_setup_remove_distro_hsa_runtime_dev
+    - rocm_xio_setup_install_dependencies | bool
+    - rocm_xio_setup_remove_distro_hsa_runtime_dev | bool
 
 - name: Install rocm-xio build dependencies
   ansible.builtin.package:
@@ -67,7 +67,7 @@
       - pciutils
     state: present
   become: true
-  when: rocm_xio_setup_install_dependencies
+  when: rocm_xio_setup_install_dependencies | bool
 
 - name: Clone rocm-xio repository
   ansible.builtin.git:
@@ -83,8 +83,10 @@
       cmake -S {{ rocm_xio_setup_source_dir }} -B {{
       rocm_xio_setup_source_dir }}/build
       -DCMAKE_BUILD_TYPE={{ rocm_xio_setup_build_type }}
-      -DBUILD_CLIENTS={{ 'ON' if rocm_xio_setup_build_clients else 'OFF' }}
-      -DBUILD_TESTING={{ 'ON' if rocm_xio_setup_build_testing else 'OFF' }}
+      -DBUILD_CLIENTS={{
+      rocm_xio_setup_build_clients | bool | ternary('ON', 'OFF') }}
+      -DBUILD_TESTING={{
+      rocm_xio_setup_build_testing | bool | ternary('ON', 'OFF') }}
   changed_when: false
 
 - name: Build rocm-xio
@@ -101,14 +103,14 @@
       --prefix {{ rocm_xio_setup_install_prefix }}
   changed_when: false
   become: true
-  when: rocm_xio_setup_install
+  when: rocm_xio_setup_install | bool
 
 - name: Gather package facts for dependency checks
   ansible.builtin.package_facts:
     manager: auto
   when:
-    - rocm_xio_setup_install_dependencies
-    - rocm_xio_setup_build_clients
+    - rocm_xio_setup_install_dependencies | bool
+    - rocm_xio_setup_build_clients | bool
 
 - name: Fail when CLI11 dependency package is missing
   ansible.builtin.fail:
@@ -116,14 +118,14 @@
       rocm_xio_setup_build_clients requires libcli11-dev. Either install the
       package or set rocm_xio_setup_build_clients=false.
   when:
-    - rocm_xio_setup_install_dependencies
-    - rocm_xio_setup_build_clients
+    - rocm_xio_setup_install_dependencies | bool
+    - rocm_xio_setup_build_clients | bool
     - "'libcli11-dev' not in ansible_facts.packages"
 
 - name: Run post-install rocm-xio checks
   ansible.builtin.import_tasks: rocm_xio_check.yml
-  when: rocm_xio_setup_run_basic_checks
+  when: rocm_xio_setup_run_basic_checks | bool
 
 - name: Run rocm-xio performance test path
   ansible.builtin.import_tasks: rocm_xio_perf.yml
-  when: rocm_xio_setup_run_perf_tests
+  when: rocm_xio_setup_run_perf_tests | bool

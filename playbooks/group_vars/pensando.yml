@@ -9,3 +9,4 @@ user_setup_motd: true
 user_setup_home_parent: /local-homes
 user_setup_create: true
 user_setup_ssh_key_src_dir: /home/stebates/.ssh
+rocm_hipfile_setup_build_testing: false

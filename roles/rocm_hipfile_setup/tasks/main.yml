@@ -13,7 +13,8 @@
   ansible.builtin.include_role:
     name: sbates130272.batesste.check_platform
   vars:
-    calling_role_path: "{{ rocm_hipfile_setup_calling_role_path_fact }}"  # noqa var-naming
+    calling_role_path: >-  # noqa var-naming
+      {{ rocm_hipfile_setup_calling_role_path_fact }}
 
 - name: Stop role early if installation is disabled
   ansible.builtin.meta: end_host
@@ -78,6 +79,8 @@
       cmake -S . -B "{{ rocm_hipfile_setup_hipfile_build_dir }}"
       -DCMAKE_BUILD_TYPE={{ rocm_hipfile_setup_hipfile_build_type }}
       -DCMAKE_HIP_PLATFORM={{ rocm_hipfile_setup_hip_platform }}
+      -DBUILD_TESTING={{
+      rocm_hipfile_setup_build_testing | ternary('ON', 'OFF') }}
       -DROCM_PATH={{ rocm_hipfile_setup_rocm_path }}
   environment:
     LD_LIBRARY_PATH: "{{ rocm_hipfile_setup_ld_library_path }}"
@@ -164,7 +167,8 @@
 
 - name: Check fio has libhipfile engine
   ansible.builtin.command:
-    cmd: "{{ rocm_hipfile_setup_fio_install_dir }}/bin/fio --enghelp=libhipfile"
+    cmd: >-
+      {{ rocm_hipfile_setup_fio_install_dir }}/bin/fio --enghelp=libhipfile
   environment:
     LD_LIBRARY_PATH: "{{ rocm_hipfile_setup_ld_library_path }}"
   register: rocm_hipfile_setup_fio_engine_check
@@ -175,6 +179,9 @@
 - name: Show hipFile setup verification output
   ansible.builtin.debug:
     msg:
-      - "ais-check rc={{ rocm_hipfile_setup_ais_check.rc | default('skipped') }}"
-      - "fio libhipfile check rc={{ rocm_hipfile_setup_fio_engine_check.rc | default('skipped') }}"
+      - >-
+        ais-check rc={{ rocm_hipfile_setup_ais_check.rc | default('skipped') }}
+      - >-
+        fio libhipfile check rc={{
+        rocm_hipfile_setup_fio_engine_check.rc | default('skipped') }}
   when: rocm_hipfile_setup_run_checks | bool

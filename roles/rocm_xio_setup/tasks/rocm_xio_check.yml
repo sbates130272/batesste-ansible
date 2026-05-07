@@ -9,20 +9,28 @@
   ansible.builtin.command:
     cmd: rocminfo
   changed_when: false
-  when: rocm_xio_setup_check_rocminfo
+  when: rocm_xio_setup_check_rocminfo | bool
+
+- name: Check whether xio-tester was built
+  ansible.builtin.stat:
+    path: "{{ rocm_xio_setup_source_dir }}/build/xio-tester"
+  register: rocm_xio_setup_xio_tester_stat
 
 - name: Check xio-tester endpoint registration
   ansible.builtin.command:
     cmd: ./build/xio-tester --list-endpoints
     chdir: "{{ rocm_xio_setup_source_dir }}"
   changed_when: false
+  when:
+    - rocm_xio_setup_build_clients | bool
+    - rocm_xio_setup_xio_tester_stat.stat.exists
 
 - name: Run rocm-xio unit tests with ctest
   ansible.builtin.command:
     cmd: ctest --test-dir build -L unit --output-on-failure
     chdir: "{{ rocm_xio_setup_source_dir }}"
   changed_when: false
-  when: rocm_xio_setup_run_unit_tests
+  when: rocm_xio_setup_run_unit_tests | bool
 
 - name: Run xio-tester test endpoint
   ansible.builtin.command:
@@ -38,4 +46,7 @@
       {{ '1' if rocm_xio_setup_force_fine_grain_pcie else omit }}
   changed_when: false
   become: true
-  when: rocm_xio_setup_run_test_endpoint
+  when:
+    - rocm_xio_setup_run_test_endpoint | bool
+    - rocm_xio_setup_build_clients | bool
+    - rocm_xio_setup_xio_tester_stat.stat.exists
