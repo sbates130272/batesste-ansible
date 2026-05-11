@@ -19,6 +19,43 @@ rocm_xio_setup_install: false
 rocm_xio_setup_install_prefix: "/opt/rocm"
 rocm_xio_setup_parallel_jobs: "{{ ansible_processor_vcpus | default(4) }}"
 
+# Optional rocm-xio-enabled fio build/install.
+rocm_xio_setup_install_fio: false
+rocm_xio_setup_fio_repo_url: "https://github.com/ROCm/fio.git"
+rocm_xio_setup_fio_repo_version: "master"
+rocm_xio_setup_fio_source_dir: "{{ ansible_env.HOME }}/Projects/fio-rocm-xio"
+rocm_xio_setup_fio_install_dir: "/opt/fio-rocm-xio"
+rocm_xio_setup_fio_force_clone: false
+rocm_xio_setup_fio_configure_args: []
+rocm_xio_setup_fio_extra_cflags: >-
+  -I{{ rocm_xio_setup_install_prefix }}/include
+  -I{{ rocm_xio_setup_source_dir }}/src/include
+rocm_xio_setup_fio_extra_ldflags: >-
+  -L{{ rocm_xio_setup_install_prefix }}/lib
+  -L{{ rocm_xio_setup_source_dir }}/build
+  -Wl,-rpath,{{ rocm_xio_setup_install_prefix }}/lib
+rocm_xio_setup_fio_check_engine: ""
+
+# Optional ROCm/DMABUF-enabled RDMA perftest build/install.
+rocm_xio_setup_install_rdma_perftest: false
+rocm_xio_setup_rdma_perftest_repo_url: >-
+  https://github.com/ROCm/rdma-perftest.git
+rocm_xio_setup_rdma_perftest_repo_version: "master"
+rocm_xio_setup_rdma_perftest_source_dir: >-
+  {{ ansible_env.HOME }}/Projects/rdma-perftest-rocm-xio
+rocm_xio_setup_rdma_perftest_install_dir: "/opt/rdma-perftest-rocm-xio"
+rocm_xio_setup_rdma_perftest_force_clone: false
+rocm_xio_setup_rdma_perftest_configure_args:
+  - --enable-rocm
+  - --enable-rocm-dmabuf
+  - --with-rocm={{ rocm_xio_setup_install_prefix }}
+rocm_xio_setup_rdma_perftest_extra_cppflags: >-
+  -I{{ rocm_xio_setup_install_prefix }}/include
+rocm_xio_setup_rdma_perftest_extra_ldflags: >-
+  -L{{ rocm_xio_setup_install_prefix }}/lib
+  -Wl,-rpath,{{ rocm_xio_setup_install_prefix }}/lib
+rocm_xio_setup_rdma_perftest_check_binary: ib_write_bw
+
 # Run install validation checks after build.
 rocm_xio_setup_run_basic_checks: true
 rocm_xio_setup_check_rocminfo: true

@@ -1,0 +1,84 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Build and install a rocm-xio-enabled fio branch.
+
+- name: Ensure rocm-xio fio source parent directory exists
+  ansible.builtin.file:
+    path: "{{ rocm_xio_setup_fio_source_dir | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Ensure rocm-xio fio install directory exists
+  ansible.builtin.file:
+    path: "{{ rocm_xio_setup_fio_install_dir }}"
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Checkout rocm-xio fio repository
+  ansible.builtin.git:
+    repo: "{{ rocm_xio_setup_fio_repo_url }}"
+    dest: "{{ rocm_xio_setup_fio_source_dir }}"
+    accept_newhostkey: true
+    force: "{{ rocm_xio_setup_fio_force_clone }}"
+    version: "{{ rocm_xio_setup_fio_repo_version }}"
+  register: rocm_xio_setup_fio_clone
+  failed_when:
+    - rocm_xio_setup_fio_clone.failed
+    - >-
+      'Local modifications exist in the destination'
+      not in rocm_xio_setup_fio_clone.msg
+
+- name: Configure rocm-xio fio
+  ansible.builtin.command:
+    chdir: "{{ rocm_xio_setup_fio_source_dir }}"
+    cmd: >-
+      ./configure --prefix="{{ rocm_xio_setup_fio_install_dir }}"
+      {{ rocm_xio_setup_fio_configure_args | join(' ') }}
+  environment:
+    CFLAGS: "{{ rocm_xio_setup_fio_extra_cflags }}"
+    LDFLAGS: "{{ rocm_xio_setup_fio_extra_ldflags }}"
+    LD_LIBRARY_PATH: >-
+      {{ rocm_xio_setup_install_prefix }}/lib:{{
+      ansible_env.LD_LIBRARY_PATH | default('') }}
+    PKG_CONFIG_PATH: >-
+      {{ rocm_xio_setup_install_prefix }}/lib/pkgconfig:{{
+      ansible_env.PKG_CONFIG_PATH | default('') }}
+    PATH: "{{ rocm_xio_setup_install_prefix }}/bin:{{ ansible_env.PATH }}"
+  changed_when: false
+
+- name: Build rocm-xio fio
+  ansible.builtin.command:
+    chdir: "{{ rocm_xio_setup_fio_source_dir }}"
+    cmd: make -j {{ rocm_xio_setup_parallel_jobs }}
+  environment:
+    LD_LIBRARY_PATH: >-
+      {{ rocm_xio_setup_install_prefix }}/lib:{{
+      ansible_env.LD_LIBRARY_PATH | default('') }}
+  changed_when: false
+
+- name: Install rocm-xio fio
+  ansible.builtin.command:
+    chdir: "{{ rocm_xio_setup_fio_source_dir }}"
+    cmd: make install
+  become: true
+  environment:
+    LD_LIBRARY_PATH: >-
+      {{ rocm_xio_setup_install_prefix }}/lib:{{
+      ansible_env.LD_LIBRARY_PATH | default('') }}
+  changed_when: false
+
+- name: Check rocm-xio fio engine
+  ansible.builtin.command:
+    cmd: >-
+      {{ rocm_xio_setup_fio_install_dir }}/bin/fio
+      --enghelp={{ rocm_xio_setup_fio_check_engine }}
+  environment:
+    LD_LIBRARY_PATH: >-
+      {{ rocm_xio_setup_install_prefix }}/lib:{{
+      ansible_env.LD_LIBRARY_PATH | default('') }}
+  changed_when: false
+  when: rocm_xio_setup_fio_check_engine | length > 0

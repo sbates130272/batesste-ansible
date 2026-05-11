@@ -105,6 +105,14 @@
   become: true
   when: rocm_xio_setup_install | bool
 
+- name: Install rocm-xio-enabled fio
+  ansible.builtin.import_tasks: rocm_xio_fio.yml
+  when: rocm_xio_setup_install_fio | bool
+
+- name: Install rocm-xio-enabled RDMA perftest
+  ansible.builtin.import_tasks: rocm_xio_rdma_perftest.yml
+  when: rocm_xio_setup_install_rdma_perftest | bool
+
 - name: Gather package facts for dependency checks
   ansible.builtin.package_facts:
     manager: auto

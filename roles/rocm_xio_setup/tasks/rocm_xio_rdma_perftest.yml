@@ -1,0 +1,84 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Build and install ROCm/DMABUF-enabled RDMA perftest.
+
+- name: Ensure rocm-xio RDMA perftest source parent directory exists
+  ansible.builtin.file:
+    path: "{{ rocm_xio_setup_rdma_perftest_source_dir | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Ensure rocm-xio RDMA perftest install directory exists
+  ansible.builtin.file:
+    path: "{{ rocm_xio_setup_rdma_perftest_install_dir }}"
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Checkout rocm-xio RDMA perftest repository
+  ansible.builtin.git:
+    repo: "{{ rocm_xio_setup_rdma_perftest_repo_url }}"
+    dest: "{{ rocm_xio_setup_rdma_perftest_source_dir }}"
+    accept_newhostkey: true
+    force: "{{ rocm_xio_setup_rdma_perftest_force_clone }}"
+    version: "{{ rocm_xio_setup_rdma_perftest_repo_version }}"
+  register: rocm_xio_setup_rdma_perftest_clone
+  failed_when:
+    - rocm_xio_setup_rdma_perftest_clone.failed
+    - >-
+      'Local modifications exist in the destination'
+      not in rocm_xio_setup_rdma_perftest_clone.msg
+
+- name: Generate rocm-xio RDMA perftest configure script
+  ansible.builtin.command:
+    chdir: "{{ rocm_xio_setup_rdma_perftest_source_dir }}"
+    cmd: ./autogen.sh
+  changed_when: false
+
+- name: Configure rocm-xio RDMA perftest
+  ansible.builtin.command:
+    chdir: "{{ rocm_xio_setup_rdma_perftest_source_dir }}"
+    cmd: >-
+      ./configure
+      --prefix="{{ rocm_xio_setup_rdma_perftest_install_dir }}"
+      {{ rocm_xio_setup_rdma_perftest_configure_args | join(' ') }}
+  environment:
+    CPPFLAGS: "{{ rocm_xio_setup_rdma_perftest_extra_cppflags }}"
+    LDFLAGS: "{{ rocm_xio_setup_rdma_perftest_extra_ldflags }}"
+    LD_LIBRARY_PATH: >-
+      {{ rocm_xio_setup_install_prefix }}/lib:{{
+      ansible_env.LD_LIBRARY_PATH | default('') }}
+    PATH: "{{ rocm_xio_setup_install_prefix }}/bin:{{ ansible_env.PATH }}"
+  changed_when: false
+
+- name: Build rocm-xio RDMA perftest
+  ansible.builtin.command:
+    chdir: "{{ rocm_xio_setup_rdma_perftest_source_dir }}"
+    cmd: make -j {{ rocm_xio_setup_parallel_jobs }}
+  environment:
+    LD_LIBRARY_PATH: >-
+      {{ rocm_xio_setup_install_prefix }}/lib:{{
+      ansible_env.LD_LIBRARY_PATH | default('') }}
+  changed_when: false
+
+- name: Install rocm-xio RDMA perftest
+  ansible.builtin.command:
+    chdir: "{{ rocm_xio_setup_rdma_perftest_source_dir }}"
+    cmd: make install
+  become: true
+  environment:
+    LD_LIBRARY_PATH: >-
+      {{ rocm_xio_setup_install_prefix }}/lib:{{
+      ansible_env.LD_LIBRARY_PATH | default('') }}
+  changed_when: false
+
+- name: Check rocm-xio RDMA perftest binary
+  ansible.builtin.command:
+    cmd: >-
+      {{ rocm_xio_setup_rdma_perftest_install_dir }}/bin/{{
+      rocm_xio_setup_rdma_perftest_check_binary }} --help
+  changed_when: false
+  when: rocm_xio_setup_rdma_perftest_check_binary | length > 0
