@@ -18,6 +18,8 @@
   ansible.builtin.package:
     update_cache: true
     name:
+      - ansible
+      - ansible-lint
       - aspell
       - bmon
       - build-essential
