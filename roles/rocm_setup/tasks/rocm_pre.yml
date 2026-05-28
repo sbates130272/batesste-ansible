@@ -143,7 +143,7 @@
 
 - name: Populate rocm_setup_amdgpu_version variable (wsl)
   ansible.builtin.set_fact:
-    rocm_setup_amdgpu_version: "{{ amdgpu_latest_wsl_version.stdout }}"
+    rocm_setup_amdgpu_version: "{{ rocm_setup_rocm_version }}"
   when: rocm_setup_amdgpu_version == 'latest' and rocm_setup_wsl_install
 
 - name: Populate rocm_setup_graphics_version variable

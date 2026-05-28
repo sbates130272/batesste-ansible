@@ -9,9 +9,7 @@
 
 - name: Configure hosts with the selected setup recipe
   hosts: "{{ targets }}"
-  gather_facts: true
-  tags:
-    - always
+  gather_facts: false
   vars:
     setup_recipe_name: "{{ setup_recipe | default(recipe | default('newmachine')) }}"
     setup_recipes:
@@ -86,6 +84,11 @@
       tags:
         - always
 
+    - name: Gather facts for tagged roles
+      ansible.builtin.setup:
+      tags:
+        - always
+
   tasks:
     - name: Run user_setup
       ansible.builtin.include_role:
@@ -96,7 +99,6 @@
             - user_setup
       when: "'user_setup' in setup_selected_roles"
       tags:
-        - always
         - user_setup
 
     - name: Run fave_packages
@@ -108,7 +110,6 @@
             - fave_packages
       when: "'fave_packages' in setup_selected_roles"
       tags:
-        - always
         - fave_packages
 
     - name: Run nvme_exporter_setup
@@ -120,7 +121,6 @@
             - nvme_exporter_setup
       when: "'nvme_exporter_setup' in setup_selected_roles"
       tags:
-        - always
         - nvme_exporter_setup
 
     - name: Run git_setup
@@ -132,7 +132,6 @@
             - git_setup
       when: "'git_setup' in setup_selected_roles"
       tags:
-        - always
         - git_setup
 
     - name: Run rdma_setup
@@ -146,7 +145,6 @@
         rocm_setup_user: "{{ username }}"  # noqa var-naming
       when: "'rdma_setup' in setup_selected_roles"
       tags:
-        - always
         - rdma_setup
 
     - name: Run rocm_setup
@@ -160,7 +158,6 @@
         rocm_setup_user: "{{ username }}"  # noqa var-naming
       when: "'rocm_setup' in setup_selected_roles"
       tags:
-        - always
         - rocm_setup
 
     - name: Run uprof_setup
@@ -172,7 +169,6 @@
             - uprof_setup
       when: "'uprof_setup' in setup_selected_roles"
       tags:
-        - always
         - uprof_setup
 
     - name: Run cloud_setup
@@ -187,7 +183,6 @@
         - ansible_facts['distribution'] == "Ubuntu"
         - ansible_facts['distribution_release'] in ['noble', 'resolute']
       tags:
-        - always
         - cloud_setup
 
     - name: Run consul_setup
@@ -202,7 +197,6 @@
         - ansible_facts['distribution'] == "Ubuntu"
         - ansible_facts['distribution_release'] in ['noble', 'resolute']
       tags:
-        - always
         - consul_setup
 
     - name: Run aws_grub
@@ -216,7 +210,6 @@
         - "'aws_grub' in setup_selected_roles"
         - inventory_hostname in groups.get('awsmachines', [])
       tags:
-        - always
         - aws_grub
 
     - name: Run rocm_hipfile_setup
@@ -228,7 +221,6 @@
             - rocm_hipfile_setup
       when: "'rocm_hipfile_setup' in setup_selected_roles"
       tags:
-        - always
         - rocm_hipfile_setup
 
     - name: Run rocm_xio_setup
@@ -242,7 +234,6 @@
         rocm_setup_user: "{{ username }}"  # noqa var-naming
       when: "'rocm_xio_setup' in setup_selected_roles"
       tags:
-        - always
         - rocm_xio_setup
 
     - name: Run tmux_scripts
@@ -254,7 +245,6 @@
             - tmux_scripts
       when: "'tmux_scripts' in setup_selected_roles"
       tags:
-        - always
         - tmux_scripts
 
     - name: Run mutt_setup
@@ -266,7 +256,6 @@
             - mutt_setup
       when: "'mutt_setup' in setup_selected_roles"
       tags:
-        - always
         - mutt_setup
 
     - name: Run kernel_setup
@@ -278,7 +267,6 @@
             - kernel_setup
       when: "'kernel_setup' in setup_selected_roles"
       tags:
-        - always
         - kernel_setup
 
     - name: Run fio_devel
@@ -290,7 +278,6 @@
             - fio_devel
       when: "'fio_devel' in setup_selected_roles"
       tags:
-        - always
         - fio_devel
 
     - name: Run docker_setup
@@ -305,7 +292,6 @@
           - "{{ username }}"
       when: "'docker_setup' in setup_selected_roles"
       tags:
-        - always
         - docker_setup
 
     - name: Run qemu_setup
@@ -320,7 +306,6 @@
         - inventory_hostname not in groups.get('localvms', [])
         - inventory_hostname not in groups.get('runners', [])
       tags:
-        - always
         - qemu_setup
 
     - name: Run vm_create
@@ -335,7 +320,6 @@
         - inventory_hostname not in groups.get('localvms', [])
         - inventory_hostname not in groups.get('runners', [])
       tags:
-        - always
         - vm_create
 
     - name: Run nfs_rdma_setup
@@ -347,7 +331,6 @@
             - nfs_rdma_setup
       when: "'nfs_rdma_setup' in setup_selected_roles"
       tags:
-        - always
         - nfs_rdma_setup
 
     - name: Run nvmeof_setup
@@ -359,7 +342,6 @@
             - nvmeof_setup
       when: "'nvmeof_setup' in setup_selected_roles"
       tags:
-        - always
         - nvmeof_setup
 
     - name: Run aws_ec2_setup
@@ -371,5 +353,4 @@
             - aws_ec2_setup
       when: "'aws_ec2_setup' in setup_selected_roles"
       tags:
-        - always
         - aws_ec2_setup
