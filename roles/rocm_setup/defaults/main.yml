@@ -40,8 +40,26 @@ rocm_setup_install_kernel_driver: true
 # linux-image-*-aw only.
 rocm_setup_extra_kernel_packages: []
 
-# State if this is a Windows Subsystem for Linux (WSL) install or not.
+# WSL install mode: false (Linux), legacy (roc4wsl), or rocdxg (librocdxg).
+rocm_setup_wsl: false
+
+# Deprecated: true maps to legacy when rocm_setup_wsl is false.
 rocm_setup_wsl_install: false
+
+# ROCDXG (rocm_setup_wsl: rocdxg) settings.
+rocm_setup_wsl_librocdxg_repo: https://github.com/ROCm/librocdxg.git
+rocm_setup_wsl_librocdxg_version: develop
+rocm_setup_wsl_librocdxg_src_dir: /usr/local/src/librocdxg
+rocm_setup_wsl_win_sdk_path: ""
+rocm_setup_wsl_install_win_sdk: true
+rocm_setup_wsl_win_sdk_winget_id: Microsoft.WindowsSDK.10.0.26100
+rocm_setup_wsl_hsa_enable_dxg_detection: true
+rocm_setup_wsl_hsa_override_gfx_version: ""
+rocm_setup_wsl_librocdxg_force: false
+
+# Run rocminfo when rocm_setup_run_checks is true (skipped for legacy WSL).
+# For rocdxg, optionally compile and run the HIP hello-world test too.
+rocm_setup_wsl_run_hip_check: true
 
 # Run ROCm checks (rocminfo and HIP compilation)
 # Set to false in CI or when no AMD GPUs are present

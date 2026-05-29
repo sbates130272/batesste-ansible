@@ -1,19 +1,64 @@
-- name: Check that rocminfo works
+- name: Validate ROCm installation with rocminfo
   ansible.builtin.shell:
-    cmd: rocminfo
+    cmd: |
+      set -o pipefail
+      {% if rocm_setup_wsl_mode == 'rocdxg' %}
+      if [ -f "$HOME/.config/rocm/wsl-env.sh" ]; then
+        set -a
+        . "$HOME/.config/rocm/wsl-env.sh"
+        set +a
+      fi
+      {% endif %}
+      rocminfo
+    executable: /bin/bash
+  become: "{{ rocm_setup_wsl_mode == 'rocdxg' }}"
+  become_user: "{{ rocm_setup_user if rocm_setup_wsl_mode == 'rocdxg' else omit }}"
   changed_when: false
-  when: not rocm_setup_wsl_install
+  when: rocm_setup_wsl_mode != 'legacy'
 
 - name: Copy test HIP program to target
   ansible.builtin.copy:
     src: ./files/hip-hello-world.cpp
-    dest: /tmp/
+    dest: /tmp/hip-hello-world.cpp
     owner: "{{ rocm_setup_user }}"
     group: "{{ rocm_setup_user }}"
     mode: '0644'
   become: true
+  when:
+    - rocm_setup_wsl_mode != 'legacy'
+    - rocm_setup_wsl_mode != 'rocdxg' or rocm_setup_wsl_run_hip_check | default(true)
 
-- name: Check that we can compile a very simple program
+- name: Compile and run HIP hello-world check
   ansible.builtin.shell:
-    cmd: hipcc -o /tmp/hip-hello-world /tmp/hip-hello-world.cpp
+    cmd: |
+      set -o pipefail
+      {% if rocm_setup_wsl_mode == 'rocdxg' %}
+      if [ -f "$HOME/.config/rocm/wsl-env.sh" ]; then
+        set -a
+        . "$HOME/.config/rocm/wsl-env.sh"
+        set +a
+      fi
+      {% endif %}
+      hipcc -o /tmp/hip-hello-world /tmp/hip-hello-world.cpp
+      /tmp/hip-hello-world
+    executable: /bin/bash
+  become: "{{ rocm_setup_wsl_mode == 'rocdxg' }}"
+  become_user: "{{ rocm_setup_user if rocm_setup_wsl_mode == 'rocdxg' else omit }}"
+  register: rocm_setup_hip_check
   changed_when: false
+  when:
+    - rocm_setup_wsl_mode != 'legacy'
+    - rocm_setup_wsl_mode != 'rocdxg' or rocm_setup_wsl_run_hip_check | default(true)
+
+- name: Confirm HIP hello-world ran on the GPU
+  ansible.builtin.assert:
+    that:
+      - "'Hello, World from GPU!' in rocm_setup_hip_check.stdout"
+      - "'Kernel execution finished.' in rocm_setup_hip_check.stdout"
+    fail_msg: >-
+      HIP hello-world did not report successful GPU execution. Output was:
+      {{ rocm_setup_hip_check.stdout | default('') }}
+      {{ rocm_setup_hip_check.stderr | default('') }}
+  when:
+    - rocm_setup_hip_check is defined
+    - not rocm_setup_hip_check.skipped | default(false)

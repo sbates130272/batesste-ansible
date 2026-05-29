@@ -1,0 +1,253 @@
+---
+# ROCDXG (librocdxg) setup for WSL2 HIP compute.
+
+- name: Assert /dev/dxg is present for ROCDXG
+  ansible.builtin.stat:
+    path: /dev/dxg
+  register: rocm_setup_wsl_dxg_device
+
+- name: Fail when /dev/dxg is missing
+  ansible.builtin.fail:
+    msg: >-
+      /dev/dxg is not available. Install Adrenalin 26.2.2+ on Windows and
+      ensure WSL2 GPU support is enabled before using rocm_setup_wsl: rocdxg.
+  when: not rocm_setup_wsl_dxg_device.stat.exists
+
+- name: Assert libdxcore.so is present for ROCDXG
+  ansible.builtin.stat:
+    path: /usr/lib/wsl/lib/libdxcore.so
+  register: rocm_setup_wsl_libdxcore
+
+- name: Fail when libdxcore.so is missing
+  ansible.builtin.fail:
+    msg: >-
+      /usr/lib/wsl/lib/libdxcore.so is not available. This host does not
+      appear to be a WSL2 environment with DXCore GPU support.
+  when: not rocm_setup_wsl_libdxcore.stat.exists
+
+- name: Check whether Windows SDK include path is already present
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      for base in \
+        "/mnt/c/Program Files (x86)/Windows Kits/10/Include" \
+        "/mnt/c/Program Files/Windows Kits/10/Include"; do
+        if [ -d "$base" ]; then
+          find "$base" -maxdepth 1 -type d -name '10.0.*' 2>/dev/null
+        fi
+      done | sort -V | tail -n 1
+    executable: /bin/bash
+  register: rocm_setup_wsl_win_sdk_precheck
+  changed_when: false
+  when: rocm_setup_wsl_win_sdk_path | default('') | length == 0
+
+- name: Install Windows SDK on the Windows host via winget
+  ansible.builtin.command:
+    argv:
+      - powershell.exe
+      - -NoProfile
+      - -NonInteractive
+      - -Command
+      - >-
+        winget install --id {{ rocm_setup_wsl_win_sdk_winget_id }}
+        --accept-package-agreements --accept-source-agreements
+        --disable-interactivity
+  register: rocm_setup_wsl_win_sdk_winget
+  changed_when: >-
+    'Successfully installed' in (rocm_setup_wsl_win_sdk_winget.stdout | default(''))
+    or 'Successfully installed' in (rocm_setup_wsl_win_sdk_winget.stderr | default(''))
+  failed_when: false
+  when:
+    - rocm_setup_wsl_install_win_sdk | default(true)
+    - rocm_setup_wsl_win_sdk_path | default('') | length == 0
+    - rocm_setup_wsl_win_sdk_precheck.stdout | trim | length == 0
+
+- name: Report Windows SDK winget install result
+  ansible.builtin.debug:
+    msg: >-
+      winget install {{ rocm_setup_wsl_win_sdk_winget_id }}:
+      {{ rocm_setup_wsl_win_sdk_winget.stdout | default('') }}
+      {{ rocm_setup_wsl_win_sdk_winget.stderr | default('') }}
+  when:
+    - rocm_setup_wsl_win_sdk_winget is defined
+    - not rocm_setup_wsl_win_sdk_winget.skipped | default(false)
+    - rocm_setup_wsl_win_sdk_winget is changed
+      or (rocm_setup_wsl_win_sdk_winget.rc | default(0)) != 0
+
+- name: Search for Windows SDK include path
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      for base in \
+        "/mnt/c/Program Files (x86)/Windows Kits/10/Include" \
+        "/mnt/c/Program Files/Windows Kits/10/Include"; do
+        if [ -d "$base" ]; then
+          find "$base" -maxdepth 1 -type d -name '10.0.*' 2>/dev/null
+        fi
+      done | sort -V | tail -n 1
+    executable: /bin/bash
+  register: rocm_setup_wsl_win_sdk_shell
+  changed_when: false
+  when: rocm_setup_wsl_win_sdk_path | default('') | length == 0
+
+- name: Set Windows SDK include path from search
+  ansible.builtin.set_fact:
+    rocm_setup_wsl_win_sdk_include: "{{ rocm_setup_wsl_win_sdk_shell.stdout | trim }}"
+  when: rocm_setup_wsl_win_sdk_path | default('') | length == 0
+
+- name: Use configured Windows SDK include path
+  ansible.builtin.set_fact:
+    rocm_setup_wsl_win_sdk_include: "{{ rocm_setup_wsl_win_sdk_path | trim }}"
+  when: rocm_setup_wsl_win_sdk_path | default('') | length > 0
+
+- name: Fail when Windows SDK include path is not found
+  ansible.builtin.fail:
+    msg: >-
+      Windows SDK include path not found under /mnt/c/Program Files/Windows
+      Kits/10/Include or /mnt/c/Program Files (x86)/Windows Kits/10/Include.
+      Install the SDK on the Windows host (elevated PowerShell):
+      winget install {{ rocm_setup_wsl_win_sdk_winget_id }}
+      --accept-package-agreements --accept-source-agreements
+      Or download from https://developer.microsoft.com/windows/downloads/windows-sdk/
+      Then re-run the playbook, or set rocm_setup_wsl_win_sdk_path in inventory
+      to the Include/10.0.x.x directory. Set
+      rocm_setup_wsl_install_win_sdk: false to skip automatic winget install.
+  when: rocm_setup_wsl_win_sdk_include | default('') | length == 0
+
+- name: Install librocdxg build dependencies
+  ansible.builtin.package:
+    name:
+      - build-essential
+      - cmake
+      - git
+    state: present
+    update_cache: true
+  become: true
+
+- name: Check if librocdxg is already installed
+  ansible.builtin.find:
+    paths:
+      - /opt/rocm/lib
+      - /opt/rocm/lib64
+    patterns:
+      - librocdxg.so*
+    file_type: file
+  register: rocm_setup_wsl_librocdxg_find
+
+- name: Set librocdxg installed fact
+  ansible.builtin.set_fact:
+    rocm_setup_wsl_librocdxg_installed: >-
+      {{ (rocm_setup_wsl_librocdxg_find.files | default([]) | length) > 0 }}
+
+- name: Clone librocdxg repository
+  ansible.builtin.git:
+    repo: "{{ rocm_setup_wsl_librocdxg_repo }}"
+    dest: "{{ rocm_setup_wsl_librocdxg_src_dir }}"
+    version: "{{ rocm_setup_wsl_librocdxg_version }}"
+    force: "{{ rocm_setup_wsl_librocdxg_force }}"
+  become: true
+  when: >-
+    rocm_setup_wsl_librocdxg_force
+    or not rocm_setup_wsl_librocdxg_installed
+
+- name: Remove stale librocdxg build directory
+  ansible.builtin.file:
+    path: "{{ rocm_setup_wsl_librocdxg_src_dir }}/build"
+    state: absent
+  become: true
+  when: >-
+    rocm_setup_wsl_librocdxg_force
+    or not rocm_setup_wsl_librocdxg_installed
+
+- name: Build and install librocdxg
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      set -e
+      mkdir -p build
+      cd build
+      cmake .. -DWIN_SDK="{{ rocm_setup_wsl_win_sdk_include }}/shared"
+      make -j"$(nproc)"
+      make install
+    chdir: "{{ rocm_setup_wsl_librocdxg_src_dir }}"
+    executable: /bin/bash
+  become: true
+  register: rocm_setup_wsl_librocdxg_build
+  changed_when: >-
+    rocm_setup_wsl_librocdxg_force | bool
+    or not rocm_setup_wsl_librocdxg_installed | bool
+  when: >-
+    rocm_setup_wsl_librocdxg_force
+    or not rocm_setup_wsl_librocdxg_installed
+
+- name: Verify librocdxg library was installed
+  ansible.builtin.find:
+    paths:
+      - /opt/rocm/lib
+      - /opt/rocm/lib64
+    patterns:
+      - librocdxg.so*
+    file_type: file
+  register: rocm_setup_wsl_librocdxg_verify
+
+- name: Fail when librocdxg library is missing after build
+  ansible.builtin.fail:
+    msg: >-
+      librocdxg build finished but no librocdxg.so was found under
+      /opt/rocm/lib or /opt/rocm/lib64. Check build output in
+      {{ rocm_setup_wsl_librocdxg_src_dir }}/build and re-run with
+      rocm_setup_wsl_librocdxg_force: true.
+  when: rocm_setup_wsl_librocdxg_verify.files | default([]) | length == 0
+
+- name: Determine if HSA_ENABLE_DXG_DETECTION is required
+  ansible.builtin.set_fact:
+    rocm_setup_wsl_needs_dxg_detection: >-
+      {{
+        rocm_setup_wsl_hsa_enable_dxg_detection
+        and (rocm_setup_rocm_version | string) is version('7.13', '<')
+      }}
+
+- name: Look up rocm_setup user home directory
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ rocm_setup_user }}"
+
+- name: Set rocm_setup user home directory fact
+  ansible.builtin.set_fact:
+    rocm_setup_wsl_user_home: "{{ ansible_facts.getent_passwd[rocm_setup_user][4] }}"
+
+- name: Ensure ROCm config directory exists for user
+  ansible.builtin.file:
+    path: "{{ rocm_setup_wsl_user_home }}/.config/rocm"
+    state: directory
+    owner: "{{ rocm_setup_user }}"
+    mode: '0755'
+  become: true
+
+- name: Install ROCDXG environment script for user
+  ansible.builtin.template:
+    src: rocm-wsl-env.sh.j2
+    dest: "{{ rocm_setup_wsl_user_home }}/.config/rocm/wsl-env.sh"
+    owner: "{{ rocm_setup_user }}"
+    mode: '0644'
+  become: true
+
+- name: Source ROCDXG environment from user shell startup files
+  ansible.builtin.blockinfile:
+    path: "{{ rocm_setup_wsl_shell_file }}"
+    marker_begin: BEGIN (rocm_setup wsl)
+    marker_end: END (rocm_setup wsl)
+    block: |
+      if [ -f "$HOME/.config/rocm/wsl-env.sh" ]; then
+        . "$HOME/.config/rocm/wsl-env.sh"
+      fi
+    create: true
+    owner: "{{ rocm_setup_user }}"
+    mode: '0644'
+  become: true
+  loop:
+    - "{{ rocm_setup_wsl_user_home }}/.bashrc"
+    - "{{ rocm_setup_wsl_user_home }}/.profile"
+  loop_control:
+    loop_var: rocm_setup_wsl_shell_file
+    label: "{{ rocm_setup_wsl_shell_file }}"

@@ -3,12 +3,18 @@ rocm_servers:
     snoc-think-vm:
         ansible_host: snoc-think
         ansible_port: 2222
-    stebates-amd-laptop:
+    stebates-amd-laptop-legacy:
         ansible_connection: local
-        rocm_setup_wsl_install: true
+        rocm_setup_wsl: legacy
         rocm_setup_rocm_version: 6.4.4
         rocm_setup_amdgpu_version: "{{ rocm_setup_rocm_version }}"
         rocm_setup_version_force: true
+    stebates-amd-laptop-rocdxg:
+        ansible_connection: local
+        rocm_setup_wsl: rocdxg
+        rocm_setup_rocm_version: "7.2"
+        rocm_setup_install_metrics_exporter: false
+        rocm_setup_run_checks: true
   vars:
     ansible_user: stebates
     rocm_setup_user: "{{ ansible_user }}"

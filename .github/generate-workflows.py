@@ -28,7 +28,7 @@ ROLE_CONFIGS = {
     "rocm_setup": {
         "free_disk_space": True,
         "extra_vars": {
-            "rocm_setup_wsl_install": False,
+            "rocm_setup_wsl": False,
             "rocm_setup_rocm_version": "latest",
             "rocm_setup_amdgpu_version": "latest",
             "rocm_setup_run_checks": False,
@@ -45,7 +45,7 @@ ROLE_CONFIGS = {
     "rocm_xio_setup": {
         "free_disk_space": True,
         "extra_vars": {
-            "rocm_setup_wsl_install": False,
+            "rocm_setup_wsl": False,
             "rocm_setup_rocm_version": "latest",
             "rocm_setup_amdgpu_version": "latest",
             "rocm_setup_run_checks": False,
@@ -65,16 +65,18 @@ ROLE_CONFIGS = {
         "needs_vault": True,
     },
     "rocm_hipfile_setup": {
-        "free_disk_space": False,
+        "free_disk_space": True,
         "extra_vars": {
             "rocm_hipfile_setup_install": True,
             "rocm_hipfile_setup_run_checks": False,
             "rocm_setup_rocm_version": "latest",
             "rocm_setup_amdgpu_version": "latest",
-            "rocm_setup_wsl_install": False,
+            "rocm_setup_wsl": False,
             "rocm_setup_run_checks": False,
             "rocm_setup_install_metrics_exporter": False,
+            "rocm_setup_install_kernel_driver": False,
             "rocm_setup_skip_reboot": True,
+            "rocm_setup_skip_system_upgrade": True,
         },
         "verification_commands": [],
         "needs_vault": False,

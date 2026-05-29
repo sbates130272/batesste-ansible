@@ -13,6 +13,21 @@
   vars:
     calling_role_path: "{{ rocm_setup_calling_role_path_fact }}"  # noqa var-naming
 
+- name: Resolve WSL install mode
+  ansible.builtin.set_fact:
+    rocm_setup_wsl_mode: >-
+      {{
+        'legacy' if (rocm_setup_wsl_install | default(false)
+                     and rocm_setup_wsl | default(false) in [false, none, ''])
+        else rocm_setup_wsl | default(false)
+      }}
+    rocm_setup_wsl_enabled: >-
+      {{
+        ('legacy' if (rocm_setup_wsl_install | default(false)
+                       and rocm_setup_wsl | default(false) in [false, none, ''])
+         else rocm_setup_wsl | default(false)) in ['legacy', 'rocdxg']
+      }}
+
 - name: Run the rocm_setup prerequisite steps
   ansible.builtin.import_tasks:
     file: rocm_pre.yml
@@ -77,9 +92,10 @@
     rocm_setup_packages: >-
       {{
         ['libstdc++-14-dev']
-        + ([rocm_setup_rocm_meta_pkg] if not rocm_setup_wsl_install else [])
+        + ([rocm_setup_rocm_meta_pkg]
+           if rocm_setup_wsl_mode in [false, 'rocdxg'] else [])
         + (['hsa-runtime-rocr4wsl-amdgpu', 'rocm-core', 'rocm-dev']
-           if rocm_setup_wsl_install else [])
+           if rocm_setup_wsl_mode == 'legacy' else [])
       }}
 
 - name: Install ROCm packages
@@ -129,7 +145,7 @@
       - amdgpu-dkms
     state: latest
   when:
-    - not rocm_setup_wsl_install
+    - not rocm_setup_wsl_enabled
     - rocm_setup_install_kernel_driver
   become: true
   register: rocm_setup_amdgpu_dkms_install
@@ -139,7 +155,7 @@
 - name: Display amdgpu-dkms version installed
   ansible.builtin.debug:
     msg: "amdgpu-dkms has been installed/upgraded"
-  when: not rocm_setup_wsl_install and rocm_setup_amdgpu_dkms_install.changed
+  when: not rocm_setup_wsl_enabled and rocm_setup_amdgpu_dkms_install.changed
 
 - name: Perform a reboot to allow changes to take effect
   ansible.builtin.reboot:
@@ -147,8 +163,13 @@
   become: true
   when:
     - ansible_connection != 'local'
-    - not rocm_setup_wsl_install
+    - not rocm_setup_wsl_enabled
     - not rocm_setup_skip_reboot
+
+- name: Install ROCDXG WSL bridge and environment
+  ansible.builtin.import_tasks:
+    file: rocm_rocdxg.yml
+  when: rocm_setup_wsl_mode == 'rocdxg'
 
 - name: Run the rocm checks to ensure install worked
   ansible.builtin.import_tasks:
@@ -158,4 +179,6 @@
 - name: Install and configure AMD Device Metrics Exporter
   ansible.builtin.import_tasks:
     file: metrics_exporter.yml
-  when: rocm_setup_install_metrics_exporter
+  when:
+    - rocm_setup_install_metrics_exporter
+    - not rocm_setup_wsl_enabled

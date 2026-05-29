@@ -1,0 +1,12 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+minor_changes:
+  - >-
+    rocm_setup — add ``rocm_setup_wsl`` enum (``false``, ``legacy``,
+    ``rocdxg``) for WSL installs. The ``rocdxg`` mode installs standard ROCm
+    packages, builds librocdxg from source, and configures ROCDXG environment
+    variables for HIP workloads on WSL2. ``rocm_setup_wsl_install`` remains as
+    a deprecated alias for ``legacy``.

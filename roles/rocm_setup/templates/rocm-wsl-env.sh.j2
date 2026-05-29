@@ -1,0 +1,11 @@
+# ROCm WSL (ROCDXG) environment for {{ rocm_setup_user }}
+# Managed by Ansible rocm_setup role.
+
+{% if rocm_setup_wsl_needs_dxg_detection | default(false) %}
+export HSA_ENABLE_DXG_DETECTION=1
+{% endif %}
+{% if rocm_setup_wsl_hsa_override_gfx_version | default('') | length > 0 %}
+export HSA_OVERRIDE_GFX_VERSION={{ rocm_setup_wsl_hsa_override_gfx_version }}
+{% endif %}
+export PATH=/opt/rocm/bin:${PATH}
+export LD_LIBRARY_PATH=/opt/rocm/lib:/opt/rocm/lib64:/usr/lib/wsl/lib:${LD_LIBRARY_PATH:-}
