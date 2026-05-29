@@ -9,6 +9,7 @@ name: Collection Build and Publish
     paths:
       - galaxy.yml
       - roles/**
+      - tests/**
   push:
     tags:
       - "v*"
