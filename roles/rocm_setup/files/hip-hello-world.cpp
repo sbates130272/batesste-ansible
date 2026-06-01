@@ -12,7 +12,12 @@ int main() {
     hello_world_kernel<<<1, 1>>>();
 
     // Synchronize to make sure the kernel has finished executing before exiting
-    hipDeviceSynchronize();
+    hipError_t err = hipDeviceSynchronize();
+    if (err != hipSuccess) {
+        std::cerr << "hipDeviceSynchronize failed: "
+                  << hipGetErrorString(err) << std::endl;
+        return 1;
+    }
 
     // Print a confirmation from the host (CPU)
     std::cout << "Kernel execution finished." << std::endl;

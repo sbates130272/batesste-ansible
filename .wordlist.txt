@@ -66,17 +66,21 @@ Passthrough
 Pre
 Qwen
 Prometheus
+PowerShell
 RDMA
 README
 ROCm
+ROCDXG
 RTX
 Radeon
 RoCE
 SMI
+SDK
 SSDs
 SSD
 Subnet
 UFW
+UAC
 UI
 URI
 VM
@@ -127,6 +131,7 @@ dmesg
 dnsmasq
 dri
 driverctl
+dxg
 eideticom
 elpa
 emacs
@@ -151,6 +156,7 @@ gpg
 gpu
 gpus
 grafana
+gfx
 hardcode
 hardcoded
 hardcoding
@@ -180,6 +186,7 @@ libpci
 libssl
 liburing
 libvirt
+librocdxg
 lemonade
 llamacpp
 llm
@@ -239,6 +246,8 @@ rdma
 rebase
 repo
 repos
+roc
+rocdxg
 rf
 rocm
 rocminfo
@@ -249,6 +258,7 @@ sbates
 scrapable
 scrape
 scraping
+sdk
 sha
 signingkey
 signup
@@ -293,7 +303,9 @@ vm
 workflow
 workflows
 WiFi
+WindowsSDK
 wifi
+winget
 wsl
 xio
 XIO

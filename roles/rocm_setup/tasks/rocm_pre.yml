@@ -1,16 +1,18 @@
-- name: Check if wslinfo works if rocm_setup_wsl_install is set
+- name: Check if wslinfo works for legacy WSL install
   ansible.builtin.command:
     cmd: wslinfo --version
   register: wslinfo
   changed_when: false
   failed_when: false
-  when: rocm_setup_wsl_install
+  when: rocm_setup_wsl_mode == 'legacy'
 
-- name: Check if wslinfo works if rocm_setup_wsl_install is set
+- name: Fail when wslinfo is unavailable for legacy WSL install
   ansible.builtin.fail:
     msg: |
-      "wslinfo not working. WSL install requested. Aborting!"
-  when: wslinfo.rc | default(0) != 0 and rocm_setup_wsl_install
+      "wslinfo not working. Legacy WSL install requested. Aborting!"
+  when:
+    - rocm_setup_wsl_mode == 'legacy'
+    - wslinfo.rc | default(0) != 0
 
 - name: Copy the rocm-latest script to the host
   ansible.builtin.copy:
@@ -27,12 +29,12 @@
       {{ rocm_setup_rocm_version == 'latest' }}
     rocm_setup_need_amdgpu_latest: >-
       {{
-        (not rocm_setup_wsl_install)
+        (rocm_setup_wsl_mode != 'legacy')
         and (rocm_setup_amdgpu_version == 'latest')
       }}
     rocm_setup_need_graphics_latest: >-
       {{
-        (not rocm_setup_wsl_install)
+        (not rocm_setup_wsl_enabled)
         and (rocm_setup_graphics_version == 'latest')
       }}
     rocm_setup_need_metrics_exporter_latest: >-
@@ -51,9 +53,9 @@
   changed_when: false
   when:
     - rocm_setup_need_rocm_latest
-    - not rocm_setup_wsl_install
+    - rocm_setup_wsl_mode != 'legacy'
 
-- name: Run the rocm-latest script and register results (wsl)
+- name: Run the rocm-latest script and register results (legacy wsl)
   ansible.builtin.command:
     cmd: rocm-latest
   environment:
@@ -64,7 +66,7 @@
   changed_when: false
   when:
     - rocm_setup_need_rocm_latest
-    - rocm_setup_wsl_install
+    - rocm_setup_wsl_mode == 'legacy'
 
 - name: Run the rocm-latest script and register results
   ansible.builtin.command:
@@ -101,14 +103,14 @@
     msg: "rocm latest_version: {{ rocm_latest_version.stdout }}"
   when:
     - rocm_setup_need_rocm_latest
-    - not rocm_setup_wsl_install
+    - rocm_setup_wsl_mode != 'legacy'
 
-- name: Print the rocm package version (wsl)
+- name: Print the rocm package version (legacy wsl)
   ansible.builtin.debug:
     msg: "rocm latest_wsl_version: {{ rocm_latest_wsl_version.stdout }}"
   when:
     - rocm_setup_need_rocm_latest
-    - rocm_setup_wsl_install
+    - rocm_setup_wsl_mode == 'legacy'
 
 - name: Print the amdgpu package version
   ansible.builtin.debug:
@@ -129,27 +131,37 @@
 - name: Populate rocm_setup_rocm_version variable
   ansible.builtin.set_fact:
     rocm_setup_rocm_version: "{{ rocm_latest_version.stdout }}"
-  when: rocm_setup_rocm_version == 'latest' and not rocm_setup_wsl_install
+  when:
+    - rocm_setup_rocm_version == 'latest'
+    - rocm_setup_wsl_mode != 'legacy'
 
-- name: Populate rocm_setup_rocm_version variable (wsl)
+- name: Populate rocm_setup_rocm_version variable (legacy wsl)
   ansible.builtin.set_fact:
     rocm_setup_rocm_version: "{{ rocm_latest_wsl_version.stdout }}"
-  when: rocm_setup_rocm_version == 'latest' and rocm_setup_wsl_install
+  when:
+    - rocm_setup_rocm_version == 'latest'
+    - rocm_setup_wsl_mode == 'legacy'
 
 - name: Populate rocm_setup_amdgpu_version variable
   ansible.builtin.set_fact:
     rocm_setup_amdgpu_version: "{{ amdgpu_latest_version.stdout }}"
-  when: rocm_setup_amdgpu_version == 'latest' and not rocm_setup_wsl_install
+  when:
+    - rocm_setup_amdgpu_version == 'latest'
+    - rocm_setup_wsl_mode != 'legacy'
 
-- name: Populate rocm_setup_amdgpu_version variable (wsl)
+- name: Populate rocm_setup_amdgpu_version variable (legacy wsl)
   ansible.builtin.set_fact:
     rocm_setup_amdgpu_version: "{{ rocm_setup_rocm_version }}"
-  when: rocm_setup_amdgpu_version == 'latest' and rocm_setup_wsl_install
+  when:
+    - rocm_setup_amdgpu_version == 'latest'
+    - rocm_setup_wsl_mode == 'legacy'
 
 - name: Populate rocm_setup_graphics_version variable
   ansible.builtin.set_fact:
     rocm_setup_graphics_version: "{{ graphics_latest_version.stdout }}"
-  when: rocm_setup_graphics_version == 'latest' and not rocm_setup_wsl_install
+  when:
+    - rocm_setup_graphics_version == 'latest'
+    - not rocm_setup_wsl_enabled
 
 - name: Populate rocm_setup_metrics_exporter_version variable
   ansible.builtin.set_fact:
@@ -164,15 +176,15 @@
     msg: "You are not requesting the latest rocm version!"
   when:
     - rocm_setup_need_rocm_latest
-    - not rocm_setup_wsl_install
+    - rocm_setup_wsl_mode != 'legacy'
     - rocm_latest_version.stdout != rocm_setup_rocm_version
 
-- name: Fail if rocm_latest_wsl_version does not match rocm_setup_version (wsl)
+- name: Fail if rocm_latest_wsl_version does not match rocm_setup_version (legacy wsl)
   ansible.builtin.fail:
     msg: "You are not requesting the latest rocm version!"
   when:
     - rocm_setup_need_rocm_latest
-    - rocm_setup_wsl_install
+    - rocm_setup_wsl_mode == 'legacy'
     - rocm_latest_wsl_version.stdout | default('none') != rocm_setup_rocm_version
 
 - name: Fail if amdgpu_latest_version does not match rocm_setup_amdgpu_version
@@ -229,7 +241,7 @@
   become: true
   when:
     - ansible_connection != 'local'
-    - not rocm_setup_wsl_install
+    - not rocm_setup_wsl_enabled
     - not rocm_setup_skip_reboot
 
 - name: Update ansible_kernel as it may have changed
@@ -251,7 +263,7 @@
   register: rocm_setup_modules_extra_check
   changed_when: false
   failed_when: false
-  when: not rocm_setup_wsl_install
+  when: not rocm_setup_wsl_enabled
 
 - name: Install the kernel header and extra modules
   ansible.builtin.package:
@@ -263,7 +275,7 @@
             else []) }}
   become: true
   when:
-    - not rocm_setup_wsl_install
+    - not rocm_setup_wsl_enabled
     - rocm_setup_install_kernel_driver
 
 - name: Ensure the video and render groups exist

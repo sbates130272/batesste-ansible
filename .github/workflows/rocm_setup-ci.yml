@@ -51,7 +51,7 @@ jobs:
                 localhost:
                   ansible_connection: local
                   ansible_user: runner
-                  rocm_setup_wsl_install: false
+                  rocm_setup_wsl: false
                   rocm_setup_rocm_version: latest
                   rocm_setup_amdgpu_version: latest
                   rocm_setup_run_checks: false

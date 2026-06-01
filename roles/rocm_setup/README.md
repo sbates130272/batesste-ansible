@@ -35,8 +35,22 @@ rocm_setup_reboot_timeout: 300
 # Skip reboot steps (useful for CI, containers, or manual control)
 rocm_setup_skip_reboot: true
 
-# Windows Subsystem for Linux installation
+# WSL install mode: false (Linux), legacy (roc4wsl), or rocdxg (librocdxg)
+rocm_setup_wsl: false
+
+# Deprecated: true maps to legacy when rocm_setup_wsl is false
 rocm_setup_wsl_install: false
+
+# ROCDXG settings (when rocm_setup_wsl: rocdxg)
+rocm_setup_wsl_librocdxg_repo: https://github.com/ROCm/librocdxg.git
+rocm_setup_wsl_librocdxg_version: develop
+rocm_setup_wsl_win_sdk_path: ""
+rocm_setup_wsl_install_win_sdk: true
+rocm_setup_wsl_win_sdk_winget_id: Microsoft.WindowsSDK.10.0.26100
+rocm_setup_wsl_hsa_enable_dxg_detection: true
+rocm_setup_wsl_hsa_override_gfx_version: ""
+rocm_setup_wsl_librocdxg_force: false
+rocm_setup_wsl_run_hip_check: true
 
 # Run ROCm checks (rocminfo and HIP compilation)
 # Set to false in CI or when no AMD GPUs are present
@@ -57,6 +71,88 @@ rocm_setup_extra_kernel_packages: []
 Set `rocm_setup_extra_kernel_packages` from inventory when a target host needs
 kernel-specific packages before `amdgpu-dkms`, such as `linux-modules-extra-aws`
 on EC2.
+
+## WSL support
+
+Set `rocm_setup_wsl` to choose how ROCm is installed on
+[WSL-based systems][ref-wsl]:
+
+| Value | Description |
+| ----- | ----------- |
+| `false` | Standard Linux install (default) |
+| `legacy` | Legacy roc4wsl packages (`hsa-runtime-rocr4wsl-amdgpu`) |
+| `rocdxg` | ROCDXG path: standard ROCm apt packages plus [librocdxg][ref-librocdxg] |
+
+For new WSL hosts, prefer `rocm_setup_wsl: rocdxg`. This follows AMD's
+[ROCDXG WSL guide][ref-wsl-rocdxg]: install Adrenalin 26.2.2+ on Windows,
+then let the role install the Windows SDK (via winget), build librocdxg, and
+configure `HSA_ENABLE_DXG_DETECTION` (for ROCm releases before 7.13).
+
+### Windows SDK (ROCDXG only)
+
+[librocdxg][ref-librocdxg] needs Windows SDK **headers** on the Windows host
+(not a Linux package). The role can install them from WSL by calling
+`powershell.exe winget install` when `rocm_setup_wsl_install_win_sdk` is
+`true` (default).
+
+**Manual install** (elevated PowerShell on Windows):
+
+```powershell
+winget install Microsoft.WindowsSDK.10.0.26100 `
+  --accept-package-agreements --accept-source-agreements
+```
+
+Or download the installer from the [Windows SDK page][ref-win-sdk].
+
+**From WSL** (same command, works if winget is on PATH in PowerShell):
+
+```bash
+powershell.exe -Command "winget install Microsoft.WindowsSDK.10.0.26100 --accept-package-agreements --accept-source-agreements"
+```
+
+winget usually needs an **elevated** Windows session. If the role's automatic
+install fails (common over SSH with no UAC prompt), run the command once in
+"Run as administrator" PowerShell on Windows, then re-run Ansible.
+
+Override the winget package id or disable auto-install:
+
+```yaml
+rocm_setup_wsl_install_win_sdk: true
+rocm_setup_wsl_win_sdk_winget_id: Microsoft.WindowsSDK.10.0.26100
+# Or pin the detected Include path after manual install:
+# rocm_setup_wsl_win_sdk_path: >-
+#   /mnt/c/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0
+```
+
+`rocm_setup_wsl_install: true` remains supported but is deprecated; it maps to
+`legacy` when `rocm_setup_wsl` is unset.
+
+Example inventory for a WSL laptop with HIP workloads:
+
+```yaml
+amd-laptop:
+  ansible_host: 10.0.0.107
+  ansible_user: stebates
+  rocm_setup_wsl: rocdxg
+  rocm_setup_install_metrics_exporter: false
+  # Optional for some APUs (e.g. Strix Halo):
+  # rocm_setup_wsl_hsa_override_gfx_version: "11.0.0"
+```
+
+ROCDXG installs are not exercised in CI (no `/dev/dxg` or Windows SDK on
+runners). Validate manually with `rocminfo` and `hipcc` on the WSL host.
+
+The role installs `~/.config/rocm/wsl-env.sh` and sources it from both
+`~/.bashrc` and `~/.profile` for the configured `rocm_setup_user`, so new
+interactive and login shells pick up `PATH`, `LD_LIBRARY_PATH`, and
+`HSA_ENABLE_DXG_DETECTION` without manual `source`.
+
+When `rocm_setup_run_checks` is true (default), the role runs `rocminfo` after
+ROCDXG setup. On `rocdxg` hosts, set `rocm_setup_wsl_run_hip_check: true`
+(default) to also compile and run the bundled HIP hello-world test using the
+same `wsl-env.sh` path as interactive shells. Set it to `false` to skip the
+HIP compile/run step (for example on hosts without a usable GPU at playbook
+time).
 
 ## Version Management
 
@@ -229,3 +325,6 @@ author, licensing and other details.
 [ref-instinct]: https://www.amd.com/en/products/accelerators/instinct.html
 [ref-install]: https://rocm.docs.amd.com/projects/install-on-linux/en/latest/index.html
 [ref-wsl]: https://learn.microsoft.com/en-us/windows/wsl/install
+[ref-wsl-rocdxg]: https://rocm.docs.amd.com/projects/radeon-ryzen/en/latest/docs/install/installryz/wsl/howto_wsl.html
+[ref-librocdxg]: https://github.com/ROCm/librocdxg
+[ref-win-sdk]: https://developer.microsoft.com/windows/downloads/windows-sdk/

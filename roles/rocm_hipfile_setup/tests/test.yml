@@ -6,7 +6,9 @@
       become: false
       rocm_setup_run_checks: false
       rocm_setup_install_metrics_exporter: false
+      rocm_setup_install_kernel_driver: false
       rocm_setup_skip_reboot: true
+      rocm_setup_skip_system_upgrade: true
     - role: rocm_hipfile_setup
       become: false
       rocm_hipfile_setup_run_checks: false
