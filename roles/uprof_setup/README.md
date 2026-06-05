@@ -13,6 +13,8 @@ time and provide its path to the role.
 - Copies the user-supplied `.deb` from the Ansible controller to
   the target host
 - Installs the package and cleans up the staged file
+- Creates a symbolic link for `AMDuProfCLI` in `/usr/local/bin`
+  (the `.deb` installs under `/opt/AMDuProf_*` only)
 - Verifies the installation by running `AMDuProfCLI --version`
 
 ## Requirements
@@ -34,6 +36,10 @@ uprof_setup_install_dir: /tmp
 
 # Skip the AMD CPU vendor check (useful for CI or non-AMD hosts).
 uprof_setup_skip_amd_check: false
+
+# Create a symbolic link for AMDuProfCLI in /usr/local/bin when
+# installed under /opt.
+uprof_setup_link_cli: true
 ```
 
 ## Dependencies

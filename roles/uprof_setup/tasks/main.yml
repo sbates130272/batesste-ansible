@@ -85,9 +85,60 @@
         state: absent
       become: true
 
+- name: Locate AMDuProfCLI from the amduprof package
+  ansible.builtin.command:
+    cmd: dpkg -L amduprof
+  register: uprof_setup_package_files
+  changed_when: false
+  failed_when: false
+
+- name: Set AMDuProfCLI path from package file list
+  ansible.builtin.set_fact:
+    uprof_setup_cli_path: >-
+      {{
+        uprof_setup_package_files.stdout_lines
+        | select('match', '.*/bin/AMDuProfCLI$')
+        | list
+        | first
+        | default('', true)
+      }}
+
+- name: Locate AMDuProfCLI on PATH when not in package
+  ansible.builtin.command:
+    cmd: command -v AMDuProfCLI
+  register: uprof_setup_cli_which
+  changed_when: false
+  failed_when: false
+  when: uprof_setup_cli_path | length == 0
+
+- name: Set AMDuProfCLI path from PATH lookup
+  ansible.builtin.set_fact:
+    uprof_setup_cli_path: "{{ uprof_setup_cli_which.stdout }}"
+  when:
+    - uprof_setup_cli_path | length == 0
+    - uprof_setup_cli_which.rc == 0
+
+- name: Fail when AMDuProfCLI cannot be located
+  ansible.builtin.fail:
+    msg: >-
+      amduprof is installed but AMDuProfCLI was not found under
+      /opt/AMDuProf_*/bin/AMDuProfCLI or on PATH.
+  when: uprof_setup_cli_path | length == 0
+
+- name: Ensure AMDuProfCLI is on PATH via /usr/local/bin symlink
+  ansible.builtin.file:
+    src: "{{ uprof_setup_cli_path }}"
+    dest: /usr/local/bin/AMDuProfCLI
+    state: link
+    force: true
+  become: true
+  when:
+    - uprof_setup_link_cli | bool
+    - "'/opt/AMDuProf_' in uprof_setup_cli_path"
+
 - name: Verify AMD uProf installation
   ansible.builtin.command:
-    cmd: AMDuProfCLI --version
+    cmd: "{{ uprof_setup_cli_path }} --version"
   register: uprof_setup_version_check
   changed_when: false
 
