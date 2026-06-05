@@ -1,0 +1,18 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+minor_changes:
+  - >-
+    playbooks/run-ansible — auto-install the local
+    sbates130272.batesste collection when missing. Set
+    FORCE_LOCAL=1 to rebuild and reinstall from the
+    checkout before each run.
+
+bugfixes:
+  - >-
+    uprof_setup — resolve AMDuProfCLI from the amduprof
+    package under /opt/AMDuProf_* and add a symbolic link
+    in /usr/local/bin; the .deb does not add the CLI to
+    PATH.
