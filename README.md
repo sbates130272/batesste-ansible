@@ -76,11 +76,22 @@ ansible-galaxy collection install -r requirements.yml
 
 ### Local Collection Install
 
-To install the collection from your local checkout:
+Roles included from playbooks use short names from `roles/`, but internal
+`include_role` calls use the collection FQCN (for example
+`sbates130272.batesste.check_platform`). `playbooks/run-ansible` installs the
+local collection automatically when it is missing. To rebuild and reinstall from
+your checkout after role changes, set `FORCE_LOCAL=1`:
 
 ```
+FORCE_LOCAL=1 playbooks/run-ansible
+```
+
+Manual install (same steps `run-ansible` runs):
+
+```
+ansible-galaxy collection install -r requirements.yml -p collections
 ansible-galaxy collection build --force
-ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force
+ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force -p collections
 ```
 
 ## Example Usage
@@ -209,12 +220,13 @@ need vault or a sudo password file on disk, set
 
 There is a simple bash script at `playbooks/run-ansible` that can call
 `ansible-playbook` for you. It sets `ANSIBLE_ROLES_PATH` to this checkout's
-`roles/` directory by default so setup playbooks use local role sources instead
-of the installed collection. By default it expects `vault-password` and
-`sudo-password` in the `playbooks/` directory. To omit the vault file (for
-example when no vault is used), set `RUN_ANSIBLE_NO_VAULT=1`. To omit the become
-password file (for example when sudo is passwordless), set
-`RUN_ANSIBLE_NO_SUDO_PASS=1`.
+`roles/` directory and ensures the local `sbates130272.batesste` collection is
+installed under `collections/` (see **Local Collection Install**). Set
+`FORCE_LOCAL=1` to rebuild and reinstall that collection from the checkout
+before each run. By default it expects `vault-password` and `sudo-password` in
+the `playbooks/` directory. To omit the vault file (for example when no vault
+is used), set `RUN_ANSIBLE_NO_VAULT=1`. To omit the become password file (for
+example when sudo is passwordless), set `RUN_ANSIBLE_NO_SUDO_PASS=1`.
 
 Otherwise you typically create:
 

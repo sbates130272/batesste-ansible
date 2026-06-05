@@ -15,8 +15,43 @@ TAGS=${TAGS:-}
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 REPO_ROOT=$(cd -- "${SCRIPT_DIR}/.." && pwd)
+COLLECTIONS_DIR="${REPO_ROOT}/collections"
+LOCAL_COLLECTION_MARKER="${COLLECTIONS_DIR}/ansible_collections/sbates130272/batesste/MANIFEST.json"
 ANSIBLE_ROLES_PATH=${ANSIBLE_ROLES_PATH:-"${REPO_ROOT}/roles"}
 export ANSIBLE_ROLES_PATH
+export ANSIBLE_COLLECTIONS_PATH="${COLLECTIONS_DIR}:${ANSIBLE_COLLECTIONS_PATH:-${HOME}/.ansible/collections:/usr/share/ansible/collections}"
+
+install_local_collection() {
+    mkdir -p "${COLLECTIONS_DIR}"
+
+    echo "Installing collection dependencies from requirements.yml..."
+    ansible-galaxy collection install -r "${REPO_ROOT}/requirements.yml" -p "${COLLECTIONS_DIR}"
+
+    echo "Building local sbates130272.batesste collection..."
+    (cd "${REPO_ROOT}" && ansible-galaxy collection build --force)
+
+    local tarball
+    tarball=$(ls -t "${REPO_ROOT}"/sbates130272-batesste-*.tar.gz 2>/dev/null | head -1)
+    if [ -z "${tarball}" ] || [ ! -f "${tarball}" ]; then
+        echo "Failed to find sbates130272-batesste collection tarball after build." >&2
+        exit 1
+    fi
+
+    echo "Installing ${tarball} into ${COLLECTIONS_DIR}..."
+    ansible-galaxy collection install "${tarball}" --force -p "${COLLECTIONS_DIR}"
+}
+
+ensure_local_collection() {
+    if [ "${FORCE_LOCAL:-}" = "1" ]; then
+        echo "FORCE_LOCAL=1: rebuilding local sbates130272.batesste collection..."
+        install_local_collection
+    elif [ ! -f "${LOCAL_COLLECTION_MARKER}" ]; then
+        echo "Local sbates130272.batesste collection not installed; installing from checkout..."
+        install_local_collection
+    fi
+}
+
+ensure_local_collection
 
 if [ ! -f "${HOSTS}" ]; then
     echo "${HOSTS} does not exist. Exiting!"
