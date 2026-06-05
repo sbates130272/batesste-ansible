@@ -4,6 +4,29 @@ sbates130272.batesste Release Notes
 
 .. contents:: Topics
 
+v1.5.0
+======
+
+Release Summary
+----------------
+Auto-install the local collection from
+``playbooks/run-ansible`` and fix AMD uProf CLI discovery
+after ``.deb`` install.
+
+Minor Changes
+--------------
+- ``playbooks/run-ansible`` — auto-install the local
+  ``sbates130272.batesste`` collection when missing. Set
+  ``FORCE_LOCAL=1`` to rebuild and reinstall from the
+  checkout before each run.
+
+Bugfixes
+---------
+- ``uprof_setup`` — resolve ``AMDuProfCLI`` from the
+  ``amduprof`` package under ``/opt/AMDuProf_*`` and add
+  a symbolic link in ``/usr/local/bin``; the ``.deb`` does
+  not add the CLI to PATH.
+
 v1.0.0
 ======
 
