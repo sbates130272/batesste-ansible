@@ -1,0 +1,23 @@
+---
+# Apply the kernel boot parameters needed for the GPU-passthrough NVMe test path.
+# The Ubuntu cloud image overwrites GRUB_CMDLINE_LINUX_DEFAULT in
+# /etc/default/grub via 50-cloudimg-settings.cfg, so the override must live in a
+# grub.d drop-in to survive. Params (pci=realloc, iommu=pt, nvme.poll_queues=1)
+# mitigate the BAR-realloc + NVMe QID-wedge issues documented for this config.
+- name: Write rocm-xio GRUB drop-in
+  ansible.builtin.copy:
+    dest: /etc/default/grub.d/99-rocm-xio.cfg
+    content: |
+      GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT {{ rocm_xio_setup_grub_cmdline }}"
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  register: rocm_xio_grub_dropin
+
+- name: Regenerate GRUB config
+  ansible.builtin.command:
+    cmd: update-grub
+  become: true
+  when: rocm_xio_grub_dropin.changed
+  changed_when: true

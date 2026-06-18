@@ -1,0 +1,29 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Inventory for the PR #177 KV GUEST provisioning playbook
+# (rocm-xio-kv-guest.yml).
+#
+# The guest is the VM launched on the host via run-vm-modified with the
+# container's vfio-user KV socket + a passthrough GPU attached. Reach it over
+# the forwarded SSH port. The container's gen-vm step overrides ansible_port and
+# ansible_user at runtime (SSH_PORT defaults to 2223); adjust ansible_port /
+# ansible_host / ansible_user here if driving the play by hand.
+
+all:
+  children:
+    rocm_xio_kv:
+      hosts:
+        kv-guest:
+          ansible_host: 127.0.0.1
+          ansible_port: 2223
+          ansible_user: ubuntu
+          ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+          ansible_ssh_common_args: >-
+            -o StrictHostKeyChecking=no
+            -o UserKnownHostsFile=/dev/null
+          # Guest has passwordless sudo (rocm-passthrough image convention).
+          ansible_become: true
+          ansible_become_method: sudo
