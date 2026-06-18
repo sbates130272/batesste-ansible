@@ -16,3 +16,6 @@ rdma_exporter_listen_address: ":9879"
 rdma_exporter_metrics_path: "/metrics"
 rdma_exporter_health_path: "/health"
 rdma_exporter_exclude_devices: ""
+
+# Optional: install rdmatop RDMA monitoring tool
+rdma_setup_install_rdmatop: true

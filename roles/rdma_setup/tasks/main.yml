@@ -149,3 +149,18 @@
 - name: Install and configure rdma_exporter (optional)
   ansible.builtin.include_tasks: rdma_exporter.yml
   when: rdma_setup_install_rdma_exporter | default(false) | bool
+
+- name: Add rdmatop PPA repository
+  ansible.builtin.apt_repository:
+    repo: ppa:crazyguitar/rdmatop
+    state: present
+  become: true
+  when: rdma_setup_install_rdmatop | default(true) | bool
+
+- name: Install rdmatop
+  ansible.builtin.package:
+    name: rdmatop
+    state: present
+    update_cache: true
+  become: true
+  when: rdma_setup_install_rdmatop | default(true) | bool

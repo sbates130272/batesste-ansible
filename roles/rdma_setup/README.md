@@ -63,6 +63,24 @@ Device:  mlx5_0
 ==========================================
 ```
 
+## Optional: rdmatop
+
+When enabled (default: true), the role installs
+[rdmatop](https://uccl-project.github.io/posts/rdma-monitoring/), an RDMA
+monitoring tool distributed via the `crazyguitar/rdmatop` PPA.
+
+Variables (defaults in `defaults/main.yml`):
+
+- `rdma_setup_install_rdmatop` – enable installer (default: true)
+
+Example to disable:
+
+```yaml
+- role: rdma_setup
+  vars:
+    rdma_setup_install_rdmatop: false
+```
+
 ## Optional: Prometheus rdma_exporter
 
 When enabled, the role can install the [rdma_exporter](https://github.com/yuuki/rdma_exporter)
@@ -142,6 +160,7 @@ The role installs the following packages:
 - Performance testing: `perftest`
 - PCI utilities: `pciutils`
 - Kernel modules: `linux-modules-extra-{{ ansible_kernel }}`
+- RDMA monitoring: `rdmatop` (via `ppa:crazyguitar/rdmatop`, enabled by default)
 
 ## Author and License Information
 
