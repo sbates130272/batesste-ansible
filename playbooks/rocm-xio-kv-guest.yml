@@ -4,16 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Provision a GUEST VM to build + run rocm-xio on Kyle's GPU-initiated NVMe
-# Key-Value branch (PR #177, mmgaggle/rocm-xio @ nvme-kv).
-#
-# This is the GUEST half of the PR #177 stack. The host-side KV target
-# (Ceph + SPDK kvdev_rados, exposed as a vfio-user socket) is provided by the
-# container under rocm-xio/deploy/. QEMU + GPU passthrough that attaches the
-# socket into this VM is a manual host step. See rocm-xio/deploy/README.md.
-#
-# It reuses the existing rocm_xio_setup role unchanged, only pointing the repo
-# URL/branch at the KV fork and disabling hardware perf runs (the KV smoke test
-# needs /dev/nvme0 from an attached vfio-user socket, which is a manual step).
 #
 # This is the GENERAL-PURPOSE play: machine specifics are required parameters
 # with no author defaults. Supply them on the command line, e.g.:
@@ -37,32 +27,15 @@
     # Pull the branch tip even if the dir already exists (re-runs stay current).
     rocm_xio_setup_force_clone: true
 
-    # Build xio-tester (with --kv-op) + the rocm-xio kmod -> /dev/nvme0 path
-    # needs the kmod; the KV smoke test in the guest drives /dev/nvme0.
+    # Build xio-tester (with --kv-op) + the rocm-xio kmod.
     rocm_xio_setup_build_clients: true
     rocm_xio_setup_build_testing: true
     rocm_xio_setup_install_kmod: true
 
-    # The qcow is built in a GPU-less builder VM but RUN against a passed-through
-    # GPU. Pin the HIP code-object target so the binary matches the runtime GPU.
-    # REQUIRED: there is no author default here. Without a correct arch, CMake
-    # falls back to gfx906 and every kernel launch segfaults on the runtime GPU.
-    # Supply via -e guest_gpu_arch=<arch> (e.g. RX 6900 XT = gfx1030,
-    # RX 9070 XT = gfx1201). The assert below fails loudly if it is unset.
     rocm_xio_setup_offload_arch: "{{ guest_gpu_arch }}"
 
-    # GPU-passthrough boot params (BAR realloc + NVMe QID-wedge mitigation),
-    # applied via a GRUB drop-in that survives the cloud image's grub overwrite.
-    # The IOMMU flag is derived from the guest CPU vendor (Intel vs AMD) rather
-    # than hardcoded, so the same play works on both host families.
-    # NOTE: nvme.poll_queues=1 is a CHEAT that papers over an NVMe QID-wedge
-    # defect; it is preserved deliberately. See PR177 cheat inventory.
-    guest_iommu_param: >-
-      {{ 'intel_iommu=on'
-         if (ansible_processor[1] | default('') is search('Intel'))
-         else 'amd_iommu=on' }}
     rocm_xio_setup_grub_cmdline: >-
-      pci=realloc=on {{ guest_iommu_param }} iommu=pt nvme.poll_queues=1
+      pci=realloc=on
 
     # Baseline functional checks are fine in the guest (rocminfo, endpoint list,
     # unit tests incl. the new KV CLI unit tests, emulated test endpoint).
@@ -72,8 +45,7 @@
     rocm_xio_setup_test_endpoint_emulate: true
 
     # Hardware perf is OFF: the live KV Store/Retrieve against /dev/nvme0 needs
-    # an attached vfio-user controller (manual host QEMU step), so it is a
-    # documented manual follow-up rather than part of provisioning.
+    # an attached vfio-user controller (manual host QEMU step).
     rocm_xio_setup_run_perf_tests: false
 
     # rocm_setup needs the target user; default to the connecting user.
@@ -86,8 +58,7 @@
           - guest_gpu_arch | default('') | length > 0
         fail_msg: >-
           guest_gpu_arch is required. Set it to the HIP code-object target of
-          the GPU this guest will run against (e.g. gfx1030 for RX 6900 XT,
-          gfx1201 for RX 9070 XT). Pass it with
+          the GPU this guest will run against (e.g. gfx1030) Pass it with
           '-e guest_gpu_arch=<arch>'. In the container, set GPU_ARCH on
           'docker run -e GPU_ARCH=<arch>'.
   roles:

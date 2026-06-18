@@ -3,10 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Inventory for the PR #177 KV GUEST provisioning playbook
-# (rocm-xio-kv-guest.yml).
-#
-# The guest is the VM launched on the host via run-vm-modified with the
+# The guest is the VM launched on the host via run-vm with the
 # container's vfio-user KV socket + a passthrough GPU attached. Reach it over
 # the forwarded SSH port. The container's gen-vm step overrides ansible_port and
 # ansible_user at runtime (SSH_PORT defaults to 2223); adjust ansible_port /
