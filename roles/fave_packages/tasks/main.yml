@@ -34,6 +34,7 @@
       - libaio-dev
       - liburing-dev
       - linux-generic
+      - npm
       - prometheus-node-exporter
       - prometheus-node-exporter-collectors
       - python-is-python3
@@ -73,6 +74,119 @@
   when:
     - ansible_facts['distribution'] == "Ubuntu"
     - ansible_facts['distribution_release'] in ['noble', 'resolute']
+
+- name: Install uv via pip
+  ansible.builtin.pip:
+    name: uv
+    state: present
+  become: true
+
+- name: Set ptop architecture for GitHub asset
+  ansible.builtin.set_fact:
+    fave_packages_ptop_arch: >-
+      {{ 'amd64' if ansible_architecture == 'x86_64'
+         else 'arm64' if ansible_architecture == 'aarch64'
+         else '' }}
+
+- name: Fail on unsupported architecture for ptop
+  ansible.builtin.fail:
+    msg: "ptop not available for arch {{ ansible_architecture }}"
+  when: fave_packages_ptop_arch == ''
+
+- name: Get latest ptop version from GitHub API
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/trentas/ptop/releases/latest
+    return_content: true
+  register: fave_packages_ptop_latest_release
+  changed_when: false
+
+- name: Set ptop resolved version
+  ansible.builtin.set_fact:
+    fave_packages_ptop_resolved_version: >-
+      {{ fave_packages_ptop_latest_release.json.tag_name | regex_replace('^v', '') }}
+
+- name: Check if ptop binary is present
+  ansible.builtin.stat:
+    path: /usr/local/bin/ptop
+  register: fave_packages_ptop_binary_stat
+
+- name: Check if ptop version file is present
+  ansible.builtin.stat:
+    path: /usr/local/bin/.ptop_version
+  register: fave_packages_ptop_version_file_stat
+
+- name: Read installed ptop version
+  ansible.builtin.slurp:
+    src: /usr/local/bin/.ptop_version
+  register: fave_packages_ptop_version_content
+  when: fave_packages_ptop_version_file_stat.stat.exists
+  become: true
+
+- name: Set current ptop version fact
+  ansible.builtin.set_fact:
+    fave_packages_ptop_current_version: >-
+      {{ fave_packages_ptop_version_content.content | b64decode | trim }}
+  when: >-
+    fave_packages_ptop_version_file_stat.stat.exists and
+    not (fave_packages_ptop_version_content.failed | default(false))
+
+- name: Set ptop download URL
+  ansible.builtin.set_fact:
+    fave_packages_ptop_download_url: >-
+      {{ 'https://github.com/trentas/ptop/releases/download/v'
+         ~ fave_packages_ptop_resolved_version
+         ~ '/ptop-' ~ fave_packages_ptop_resolved_version
+         ~ '-linux-' ~ fave_packages_ptop_arch ~ '.tar.gz' }}
+
+- name: Download and install ptop binary
+  when: >-
+    not fave_packages_ptop_binary_stat.stat.exists or
+    not fave_packages_ptop_version_file_stat.stat.exists or
+    (fave_packages_ptop_current_version | default('')) != fave_packages_ptop_resolved_version
+  block:
+    - name: Create temporary directory for ptop download
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: ptop
+      register: fave_packages_ptop_temp_dir
+
+    - name: Download ptop release tarball
+      ansible.builtin.get_url:
+        url: "{{ fave_packages_ptop_download_url }}"
+        dest: "{{ fave_packages_ptop_temp_dir.path }}/ptop.tar.gz"
+        mode: '0644'
+
+    - name: Unarchive ptop tarball
+      ansible.builtin.unarchive:
+        src: "{{ fave_packages_ptop_temp_dir.path }}/ptop.tar.gz"
+        dest: "{{ fave_packages_ptop_temp_dir.path }}"
+        remote_src: true
+      become: true
+
+    - name: Copy ptop binary to install directory
+      ansible.builtin.copy:
+        src: "{{ fave_packages_ptop_temp_dir.path }}/ptop"
+        dest: /usr/local/bin/ptop
+        mode: '0755'
+        owner: root
+        group: root
+        remote_src: true
+      become: true
+
+    - name: Write ptop version file
+      ansible.builtin.copy:
+        content: "{{ fave_packages_ptop_resolved_version }}\n"
+        dest: /usr/local/bin/.ptop_version
+        mode: '0644'
+        owner: root
+        group: root
+      become: true
+
+    - name: Remove temporary ptop directory
+      ansible.builtin.file:
+        path: "{{ fave_packages_ptop_temp_dir.path }}"
+        state: absent
+      become: true
 
 - name: Configure node exporter extra collectors
   ansible.builtin.template:
