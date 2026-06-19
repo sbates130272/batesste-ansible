@@ -132,7 +132,7 @@
     (rocm_xio_setup_env_nvme_device | length > 0)
     or (rocm_xio_setup_env_tmpdir | length > 0)
 
-- name: Apply GPU-passthrough kernel boot parameters (GRUB drop-in)
+- name: Apply GRUB parameters
   ansible.builtin.import_tasks: rocm_xio_grub.yml
   when: rocm_xio_setup_grub_cmdline | length > 0
 

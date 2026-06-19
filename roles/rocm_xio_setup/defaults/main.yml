@@ -15,13 +15,7 @@ rocm_xio_setup_remove_distro_hsa_runtime_dev: true
 rocm_xio_setup_build_type: "Release"
 rocm_xio_setup_build_clients: true
 rocm_xio_setup_build_testing: true
-# GPU code-object target for the HIP build. Set explicitly when the build host
-# has no GPU to auto-detect (e.g. a gen-vm builder VM), otherwise CMake falls
-# back to gfx906 and the binary segfaults on a different GPU at runtime. Empty
-# string keeps CMake's auto-detection (use on a GPU-present build host).
 rocm_xio_setup_offload_arch: ""
-# Kernel boot params for the GPU-passthrough NVMe test path, applied via a GRUB
-# drop-in (empty string skips the GRUB task entirely).
 rocm_xio_setup_grub_cmdline: ""
 rocm_xio_setup_install: false
 rocm_xio_setup_install_prefix: "/opt/rocm"
@@ -54,11 +48,7 @@ rocm_xio_setup_perf_extra_args: ""
 # Use HSA_FORCE_FINE_GRAIN_PCIE=1 in endpoint checks and perf tests.
 rocm_xio_setup_force_fine_grain_pcie: true
 
-# Persist ROCXIO_NVME_DEVICE / NVME_DEVICE system-wide so plain `sudo ctest`
-# picks them up without needing a wrapper script to re-export across the sudo
-# boundary. Writes a /etc/profile.d snippet and a /etc/sudoers.d env_keep
-# fragment. Runs when rocm_xio_setup_env_nvme_device is non-empty; defaults to
-# the first entry of rocm_xio_setup_perf_nvme_controllers if that is set.
+# Persist environment variables even when used by sudo.
 rocm_xio_setup_env_nvme_device: >-
   {{ (rocm_xio_setup_perf_nvme_controllers | first)
      if (rocm_xio_setup_perf_nvme_controllers | length > 0)
@@ -66,16 +56,9 @@ rocm_xio_setup_env_nvme_device: >-
 rocm_xio_setup_env_profile_path: "/etc/profile.d/rocm-xio.sh"
 rocm_xio_setup_env_sudoers_path: "/etc/sudoers.d/rocm-xio"
 
-# Optional: persist TMPDIR system-wide (and across sudo) so hipFile ctest puts
-# scratch files on the emulated NVMe instead of the virtio-blk root, where the
-# HIP write path can wedge the VM. Empty disables; the directory is created
-# when set.
+# Optional: persist TMPDIR system-wide (and across sudo) to write to emulated NVMe
 rocm_xio_setup_env_tmpdir: ""
 
 # Build, install, and load the rocm-xio kernel module from kernel/rocm-xio.
-# /dev/rocm-xio must exist for endpoints that register hardware queues
-# (notably nvme-ep). The role uses the in-tree Kbuild Makefile and reloads
-# the running module only when its srcversion differs from the just-installed
-# one, so re-runs are cheap when nothing changed.
 rocm_xio_setup_install_kmod: true
 rocm_xio_setup_kmod_dir: "{{ rocm_xio_setup_source_dir }}/kernel/rocm-xio"
