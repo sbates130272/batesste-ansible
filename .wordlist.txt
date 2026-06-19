@@ -55,6 +55,7 @@ NQNs
 NUMA
 NVMe
 NPU
+npm
 OCP
 OAuth
 OpenAI
