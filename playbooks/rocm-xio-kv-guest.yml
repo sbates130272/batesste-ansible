@@ -34,9 +34,6 @@
 
     rocm_xio_setup_offload_arch: "{{ guest_gpu_arch }}"
 
-    rocm_xio_setup_grub_cmdline: >-
-      pci=realloc=on
-
     # Baseline functional checks are fine in the guest (rocminfo, endpoint list,
     # unit tests incl. the new KV CLI unit tests, emulated test endpoint).
     rocm_xio_setup_run_basic_checks: true

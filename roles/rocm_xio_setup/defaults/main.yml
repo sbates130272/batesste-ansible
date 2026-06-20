@@ -16,7 +16,6 @@ rocm_xio_setup_build_type: "Release"
 rocm_xio_setup_build_clients: true
 rocm_xio_setup_build_testing: true
 rocm_xio_setup_offload_arch: ""
-rocm_xio_setup_grub_cmdline: ""
 rocm_xio_setup_install: false
 rocm_xio_setup_install_prefix: "/opt/rocm"
 rocm_xio_setup_parallel_jobs: "{{ ansible_processor_vcpus | default(4) }}"

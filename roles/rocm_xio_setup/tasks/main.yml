@@ -132,10 +132,6 @@
     (rocm_xio_setup_env_nvme_device | length > 0)
     or (rocm_xio_setup_env_tmpdir | length > 0)
 
-- name: Apply GRUB parameters
-  ansible.builtin.import_tasks: rocm_xio_grub.yml
-  when: rocm_xio_setup_grub_cmdline | length > 0
-
 - name: Run post-install rocm-xio checks
   ansible.builtin.import_tasks: rocm_xio_check.yml
   when: rocm_xio_setup_run_basic_checks
