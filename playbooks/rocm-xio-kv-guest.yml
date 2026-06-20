@@ -21,6 +21,7 @@
   gather_facts: true
   vars:
     # The KV branch lives on Kyle's fork; track the PR head.
+    # TODO: change this once changes are upstreamed
     rocm_xio_setup_repo_url: "https://github.com/mmgaggle/rocm-xio.git"
     rocm_xio_setup_repo_version: "nvme-kv"
     rocm_xio_setup_source_dir: "{{ ansible_env.HOME }}/src/rocm-xio"
