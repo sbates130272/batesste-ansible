@@ -1,0 +1,63 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Provision a GUEST VM to build + run rocm-xio on Kyle's GPU-initiated NVMe
+#
+# This is the GENERAL-PURPOSE play: machine specifics are required parameters
+# with no author defaults. Supply them on the command line, e.g.:
+#   ansible-playbook -i playbooks/rocm-xio-kv-hosts.yml \
+#       playbooks/rocm-xio-kv-guest.yml -e guest_gpu_arch=gfx1030
+#
+# Dry runs (no remote changes; what this task validated):
+#   ansible-playbook -i playbooks/rocm-xio-kv-hosts.yml \
+#       playbooks/rocm-xio-kv-guest.yml -e guest_gpu_arch=gfx1030 --syntax-check
+#   ansible-playbook -i playbooks/rocm-xio-kv-hosts.yml \
+#       playbooks/rocm-xio-kv-guest.yml -e guest_gpu_arch=gfx1030 --check
+
+- name: Build and validate rocm-xio KV branch inside the guest VM
+  hosts: "{{ targets | default('rocm_xio_kv') }}"
+  gather_facts: true
+  vars:
+    # The KV branch lives on Kyle's fork; track the PR head.
+    # TODO: change this once changes are upstreamed
+    rocm_xio_setup_repo_url: "https://github.com/mmgaggle/rocm-xio.git"
+    rocm_xio_setup_repo_version: "nvme-kv"
+    rocm_xio_setup_source_dir: "{{ ansible_env.HOME }}/src/rocm-xio"
+    # Pull the branch tip even if the dir already exists (re-runs stay current).
+    rocm_xio_setup_force_clone: true
+
+    # Build xio-tester (with --kv-op) + the rocm-xio kmod.
+    rocm_xio_setup_build_clients: true
+    rocm_xio_setup_build_testing: true
+    rocm_xio_setup_install_kmod: true
+
+    rocm_xio_setup_offload_arch: "{{ guest_gpu_arch }}"
+
+    # Baseline functional checks are fine in the guest (rocminfo, endpoint list,
+    # unit tests incl. the new KV CLI unit tests, emulated test endpoint).
+    rocm_xio_setup_run_basic_checks: true
+    rocm_xio_setup_run_unit_tests: true
+    rocm_xio_setup_run_test_endpoint: true
+    rocm_xio_setup_test_endpoint_emulate: true
+
+    # Hardware perf is OFF: the live KV Store/Retrieve against /dev/nvme0 needs
+    # an attached vfio-user controller (manual host QEMU step).
+    rocm_xio_setup_run_perf_tests: false
+
+    # rocm_setup needs the target user; default to the connecting user.
+    rocm_setup_user: "{{ ansible_user | default(ansible_env.USER) }}"
+  pre_tasks:
+    - name: Require guest_gpu_arch (no author default; wrong arch segfaults at runtime)
+      ansible.builtin.assert:
+        that:
+          - guest_gpu_arch is defined
+          - guest_gpu_arch | default('') | length > 0
+        fail_msg: >-
+          guest_gpu_arch is required. Set it to the HIP code-object target of
+          the GPU this guest will run against (e.g. gfx1030) Pass it with
+          '-e guest_gpu_arch=<arch>'. In the container, set GPU_ARCH on
+          'docker run -e GPU_ARCH=<arch>'.
+  roles:
+    - role: rocm_xio_setup

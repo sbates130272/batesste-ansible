@@ -1,0 +1,114 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Build, install, and load the rocm-xio kernel module so /dev/rocm-xio exists
+# for endpoints that register hardware queues (notably nvme-ep).
+
+- name: Install kernel-module build dependencies
+  ansible.builtin.package:
+    update_cache: true
+    name:
+      - build-essential
+      - "linux-headers-{{ ansible_kernel }}"
+    state: present
+  become: true
+
+- name: Check for kernel-tree vmlinux (needed for module BTF generation)
+  ansible.builtin.stat:
+    path: "/lib/modules/{{ ansible_kernel }}/build/vmlinux"
+  register: rocm_xio_setup_kmod_vmlinux
+
+- name: Check for runtime BTF vmlinux
+  ansible.builtin.stat:
+    path: /sys/kernel/btf/vmlinux
+  register: rocm_xio_setup_kmod_btf
+
+- name: Symlink kernel-tree vmlinux to runtime BTF for module BTF generation
+  ansible.builtin.file:
+    src: /sys/kernel/btf/vmlinux
+    dest: "/lib/modules/{{ ansible_kernel }}/build/vmlinux"
+    state: link
+    force: false
+  become: true
+  when:
+    - not rocm_xio_setup_kmod_vmlinux.stat.exists
+    - rocm_xio_setup_kmod_btf.stat.exists
+
+- name: Build rocm-xio kernel module (incremental; no-op when up-to-date)
+  community.general.make:
+    chdir: "{{ rocm_xio_setup_kmod_dir }}"
+    jobs: "{{ rocm_xio_setup_parallel_jobs }}"
+
+- name: Install rocm-xio kernel module to /lib/modules
+  community.general.make:
+    chdir: "{{ rocm_xio_setup_kmod_dir }}"
+    target: install
+  become: true
+
+- name: Read srcversion of installed rocm-xio module
+  ansible.builtin.command: modinfo -F srcversion rocm-xio
+  register: rocm_xio_setup_kmod_installed_srcversion
+  changed_when: false
+  failed_when: rocm_xio_setup_kmod_installed_srcversion.rc != 0
+
+- name: Stat /sys/module/rocm_xio/srcversion (running module, if loaded)
+  ansible.builtin.stat:
+    path: /sys/module/rocm_xio/srcversion
+  register: rocm_xio_setup_kmod_running_path
+
+- name: Read srcversion of currently-loaded rocm-xio module
+  ansible.builtin.slurp:
+    src: /sys/module/rocm_xio/srcversion
+  register: rocm_xio_setup_kmod_running_srcversion
+  when: rocm_xio_setup_kmod_running_path.stat.exists
+
+- name: Compute whether reload is required
+  ansible.builtin.set_fact:
+    rocm_xio_setup_kmod_reload_required: >-
+      {{
+        rocm_xio_setup_kmod_running_path.stat.exists
+        and (rocm_xio_setup_kmod_running_srcversion.content
+             | b64decode | trim)
+            != (rocm_xio_setup_kmod_installed_srcversion.stdout | trim)
+      }}
+
+- name: Unload outdated rocm-xio module before reload
+  community.general.modprobe:
+    name: rocm-xio
+    state: absent
+  become: true
+  when: rocm_xio_setup_kmod_reload_required
+
+- name: Persist rocm-xio module loading across reboots
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/rocm-xio.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # Managed by batesste rocm_xio_setup role.
+      # systemd-modules-load.service reads this at boot.
+      rocm-xio
+  become: true
+
+- name: Load rocm-xio kernel module (no-op if already loaded)
+  community.general.modprobe:
+    name: rocm-xio
+    state: present
+  become: true
+
+- name: Confirm /dev/rocm-xio character device exists
+  ansible.builtin.stat:
+    path: /dev/rocm-xio
+  register: rocm_xio_setup_kmod_devnode
+
+- name: Fail when /dev/rocm-xio is missing after modprobe
+  ansible.builtin.fail:
+    msg: >-
+      modprobe rocm-xio succeeded but /dev/rocm-xio is missing. Check
+      `dmesg | tail` for module init errors and verify devtmpfs/udev are
+      creating device nodes. Manual fallback:
+      sudo mknod /dev/rocm-xio c $(grep rocm-xio /proc/devices | awk '{print $1}') 0
+  when: not rocm_xio_setup_kmod_devnode.stat.exists
