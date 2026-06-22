@@ -322,6 +322,9 @@ useful for APU systems with unified memory.
 The binary is downloaded from the project's GitHub releases page (prebuilt
 glibc build; no Rust toolchain required on the target host).
 
+> **Note:** `xrocmtop` relies on the `amdgpu` kernel driver and will **not**
+> work on WSL2-based Linux environments, where that driver is unavailable.
+
 To install (default):
 ```yaml
 rocm_setup_install_xrocmtop: true
