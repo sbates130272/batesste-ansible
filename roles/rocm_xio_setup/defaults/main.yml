@@ -59,5 +59,9 @@ rocm_xio_setup_env_sudoers_path: "/etc/sudoers.d/rocm-xio"
 rocm_xio_setup_env_tmpdir: ""
 
 # Build, install, and load the rocm-xio kernel module from kernel/rocm-xio.
-rocm_xio_setup_install_kmod: true
+# Opt-in: enable in playbooks that need /dev/rocm-xio (e.g. rocm-xio-kv-guest).
+# Off by default so a plain rocm_xio_setup run does not build/load a kmod or
+# write to /etc/modules-load.d, and so CI against tags without kernel/rocm-xio
+# (e.g. v0.1.0) stays green.
+rocm_xio_setup_install_kmod: false
 rocm_xio_setup_kmod_dir: "{{ rocm_xio_setup_source_dir }}/kernel/rocm-xio"
