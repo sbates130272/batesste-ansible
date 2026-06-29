@@ -186,4 +186,6 @@
 - name: Install xrocmtop AMD GPU monitoring tool
   ansible.builtin.import_tasks:
     file: xrocmtop.yml
-  when: rocm_setup_install_xrocmtop
+  when:
+    - rocm_setup_install_xrocmtop
+    - not rocm_setup_wsl_enabled
