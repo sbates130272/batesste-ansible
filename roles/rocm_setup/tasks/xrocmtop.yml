@@ -71,6 +71,16 @@
     remote_src: true
   when: rocm_setup_xrocmtop_needs_update
 
+- name: Ensure xrocmtop install directory exists
+  ansible.builtin.file:
+    path: "{{ rocm_setup_xrocmtop_install_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+  when: rocm_setup_xrocmtop_needs_update
+
 - name: Install xrocmtop binary
   ansible.builtin.copy:
     src: "/tmp/{{ rocm_setup_xrocmtop_tarball_dir }}/xrocmtop"
