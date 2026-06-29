@@ -11,6 +11,7 @@
       Accept: application/vnd.github.v3+json
   register: rocm_setup_xrocmtop_latest_release
   when: rocm_setup_xrocmtop_version == 'latest'
+  changed_when: false
 
 - name: Set resolved xrocmtop version from latest API response
   ansible.builtin.set_fact:
