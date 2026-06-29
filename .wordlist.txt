@@ -2,6 +2,8 @@ AE
 AES
 AMDuProf
 AMDuProfCLI
+APU
+APUs
 Ansible
 CFA
 CLI
@@ -76,6 +78,7 @@ RTX
 Radeon
 RoCE
 SMI
+SMU
 SDK
 SSDs
 SSD
@@ -103,6 +106,7 @@ backend
 batesste
 bindings
 bmon
+btop
 buildx
 cd
 ce
@@ -150,6 +154,7 @@ fstab
 gh
 ghp
 github
+glibc
 gmail
 gnupgp
 gnuplot
@@ -236,6 +241,7 @@ playbook
 playbooks
 ppa
 pre
+prebuilt
 preload
 profiling
 prometheus
@@ -279,6 +285,7 @@ systemd
 tcp
 tmp
 tmux
+toolchain
 torvalds
 tray
 traddr
@@ -312,6 +319,7 @@ wsl
 xio
 XIO
 xlarge
+xrocmtop
 hipfile
 ernic
 bnxt

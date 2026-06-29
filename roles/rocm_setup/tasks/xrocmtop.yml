@@ -1,0 +1,103 @@
+---
+# Install xrocmtop - a btop-style terminal UI for AMD ROCm and
+# Vulkan GPU monitoring. https://github.com/argakiig/xrocmtop
+# Prebuilt glibc binaries are fetched from GitHub releases.
+
+- name: Query GitHub API for latest xrocmtop release
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/argakiig/xrocmtop/releases/latest
+    return_content: true
+    headers:
+      Accept: application/vnd.github.v3+json
+  register: rocm_setup_xrocmtop_latest_release
+  when: rocm_setup_xrocmtop_version == 'latest'
+  changed_when: false
+
+- name: Set resolved xrocmtop version from latest API response
+  ansible.builtin.set_fact:
+    rocm_setup_xrocmtop_resolved_version: >-
+      {{ rocm_setup_xrocmtop_latest_release.json.tag_name
+         | regex_replace('^v', '') }}
+  when: rocm_setup_xrocmtop_version == 'latest'
+
+- name: Set resolved xrocmtop version from configured value
+  ansible.builtin.set_fact:
+    rocm_setup_xrocmtop_resolved_version: >-
+      {{ rocm_setup_xrocmtop_version | regex_replace('^v', '') }}
+  when: rocm_setup_xrocmtop_version != 'latest'
+
+- name: Set xrocmtop download facts
+  ansible.builtin.set_fact:
+    rocm_setup_xrocmtop_tarball_name: >-
+      xrocmtop-v{{ rocm_setup_xrocmtop_resolved_version
+      }}-x86_64-unknown-linux-gnu.tar.gz
+    rocm_setup_xrocmtop_tarball_dir: >-
+      xrocmtop-v{{ rocm_setup_xrocmtop_resolved_version
+      }}-x86_64-unknown-linux-gnu
+    rocm_setup_xrocmtop_download_url: >-
+      https://github.com/argakiig/xrocmtop/releases/download/v{{
+      rocm_setup_xrocmtop_resolved_version
+      }}/xrocmtop-v{{ rocm_setup_xrocmtop_resolved_version
+      }}-x86_64-unknown-linux-gnu.tar.gz
+
+- name: Check currently installed xrocmtop version
+  ansible.builtin.command:
+    cmd: "{{ rocm_setup_xrocmtop_install_dir }}/xrocmtop --version"
+  register: rocm_setup_xrocmtop_installed_version
+  changed_when: false
+  failed_when: false
+
+- name: Set xrocmtop needs update fact
+  ansible.builtin.set_fact:
+    rocm_setup_xrocmtop_needs_update: >-
+      {{
+        rocm_setup_xrocmtop_installed_version.rc != 0
+        or rocm_setup_xrocmtop_resolved_version not in
+           (rocm_setup_xrocmtop_installed_version.stdout | default(''))
+      }}
+
+- name: Download xrocmtop tarball
+  ansible.builtin.get_url:
+    url: "{{ rocm_setup_xrocmtop_download_url }}"
+    dest: "/tmp/{{ rocm_setup_xrocmtop_tarball_name }}"
+    mode: '0644'
+    checksum: "sha256:{{ rocm_setup_xrocmtop_download_url }}.sha256"
+  when: rocm_setup_xrocmtop_needs_update
+
+- name: Extract xrocmtop tarball to temp directory
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ rocm_setup_xrocmtop_tarball_name }}"
+    dest: /tmp
+    remote_src: true
+  when: rocm_setup_xrocmtop_needs_update
+
+- name: Ensure xrocmtop install directory exists
+  ansible.builtin.file:
+    path: "{{ rocm_setup_xrocmtop_install_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+  when: rocm_setup_xrocmtop_needs_update
+
+- name: Install xrocmtop binary
+  ansible.builtin.copy:
+    src: "/tmp/{{ rocm_setup_xrocmtop_tarball_dir }}/xrocmtop"
+    dest: "{{ rocm_setup_xrocmtop_install_dir }}/xrocmtop"
+    remote_src: true
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+  when: rocm_setup_xrocmtop_needs_update
+
+- name: Verify xrocmtop installation
+  ansible.builtin.command:
+    cmd: "{{ rocm_setup_xrocmtop_install_dir }}/xrocmtop --version"
+  register: rocm_setup_xrocmtop_verify
+  changed_when: false
+
+- name: Display installed xrocmtop version
+  ansible.builtin.debug:
+    msg: "xrocmtop installed: {{ rocm_setup_xrocmtop_verify.stdout }}"

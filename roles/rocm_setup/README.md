@@ -64,6 +64,11 @@ rocm_setup_metrics_exporter_port: 5000
 rocm_setup_metrics_exporter_config_path: /etc/metrics/config.json
 rocm_setup_metrics_exporter_open_firewall: true
 
+# xrocmtop: btop-style terminal UI for AMD ROCm and Vulkan GPU monitoring
+rocm_setup_install_xrocmtop: true
+rocm_setup_xrocmtop_version: latest
+rocm_setup_xrocmtop_install_dir: /usr/local/bin
+
 # Extra kernel packages installed before amdgpu-dkms
 rocm_setup_extra_kernel_packages: []
 ```
@@ -304,6 +309,35 @@ journalctl -u device-metrics-exporter -n 50
 If you prefer not to install the exporter on systems without AMD hardware:
 ```yaml
 rocm_setup_install_metrics_exporter: false
+```
+
+## xrocmtop
+
+This role can optionally install [xrocmtop](https://github.com/argakiig/xrocmtop),
+a `btop`-style terminal UI for monitoring AMD ROCm and Vulkan GPUs from the
+CLI. It provides live gauges, scrolling history graphs, a per-process GPU
+table, a Vulkan device panel, and an SMU metrics panel. It is particularly
+useful for APU systems with unified memory.
+
+The binary is downloaded from the project's GitHub releases page (prebuilt
+glibc build; no Rust toolchain required on the target host).
+
+> **Note:** `xrocmtop` relies on the `amdgpu` kernel driver and will **not**
+> work on WSL2-based Linux environments, where that driver is unavailable.
+
+To install (default):
+```yaml
+rocm_setup_install_xrocmtop: true
+```
+
+To disable:
+```yaml
+rocm_setup_install_xrocmtop: false
+```
+
+To pin a specific version instead of always pulling the latest:
+```yaml
+rocm_setup_xrocmtop_version: "0.2.0"
 ```
 
 # Testing

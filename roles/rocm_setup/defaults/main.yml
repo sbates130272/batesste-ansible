@@ -65,6 +65,13 @@ rocm_setup_wsl_run_hip_check: true
 # Set to false in CI or when no AMD GPUs are present
 rocm_setup_run_checks: true
 
+# xrocmtop - btop-style terminal UI for AMD ROCm and Vulkan GPU monitoring
+# https://github.com/argakiig/xrocmtop
+# Install by default; set to false to skip.
+rocm_setup_install_xrocmtop: true
+rocm_setup_xrocmtop_version: latest
+rocm_setup_xrocmtop_install_dir: /usr/local/bin
+
 # AMD Device Metrics Exporter configuration
 # Install and configure AMD Device Metrics Exporter for Prometheus metrics
 # https://github.com/ROCm/device-metrics-exporter
