@@ -21,7 +21,8 @@
 
 - name: Set resolved xrocmtop version from configured value
   ansible.builtin.set_fact:
-    rocm_setup_xrocmtop_resolved_version: "{{ rocm_setup_xrocmtop_version }}"
+    rocm_setup_xrocmtop_resolved_version: >-
+      {{ rocm_setup_xrocmtop_version | regex_replace('^v', '') }}
   when: rocm_setup_xrocmtop_version != 'latest'
 
 - name: Set xrocmtop download facts
