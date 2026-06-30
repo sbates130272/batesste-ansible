@@ -7,10 +7,19 @@
 # Node.js >= 18 is required by the Claude CLI.
 claude_setup_install_nodejs: true
 
-# The base URL of the LLM reverse proxy that the Claude CLI
-# will route API requests through. On AMD systems this
-# typically points to a local Lemonade server instance.
-claude_setup_api_base_url: "http://localhost:8000"
+# Port that the local nginx reverse proxy listens on.
+# The Claude CLI is configured to connect here.
+claude_setup_proxy_port: 8080
+
+# Upstream URL that nginx forwards requests to.
+# Set this to the URL of the LLM serving backend (e.g. a
+# Lemonade server on this host or a remote proxy node).
+claude_setup_proxy_upstream: "http://localhost:8000"
+
+# Base URL written into the Claude CLI settings as
+# ANTHROPIC_BASE_URL.  By default this points at the local
+# nginx proxy defined above.
+claude_setup_api_base_url: "http://localhost:{{ claude_setup_proxy_port }}"
 
 # API key for the LLM serving backend.
 # This should be sourced from an Ansible Vault-encrypted

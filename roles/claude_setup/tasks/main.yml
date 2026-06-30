@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Install the Claude CLI and configure it to route through
-# a local LLM reverse proxy (e.g. a Lemonade server instance).
+# a local nginx reverse proxy that tunnels requests to the
+# configured LLM backend (e.g. a remote Lemonade server).
 #
 # See this Role's README.md for more information.
 
@@ -34,6 +35,40 @@
     global: true
     state: present
   become: true
+
+- name: Install nginx for the LLM reverse proxy
+  ansible.builtin.package:
+    name: nginx
+    state: present
+  become: true
+
+- name: Deploy the Claude reverse proxy nginx site config
+  ansible.builtin.template:
+    src: claude-proxy.conf.j2
+    dest: /etc/nginx/sites-available/claude-proxy
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: Reload nginx
+
+- name: Enable the Claude reverse proxy nginx site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/claude-proxy
+    dest: /etc/nginx/sites-enabled/claude-proxy
+    state: link
+  become: true
+  notify: Reload nginx
+
+- name: Ensure nginx is started and enabled
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true
+  become: true
+
+- name: Flush handlers to apply nginx config
+  ansible.builtin.meta: flush_handlers
 
 - name: Create the Claude configuration directory
   ansible.builtin.file:

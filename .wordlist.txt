@@ -5,6 +5,8 @@ anthropic
 ANTHROPIC
 Claude
 claude
+nginx
+upstream
 AMDuProf
 AMDuProfCLI
 APU

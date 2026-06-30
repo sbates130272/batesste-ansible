@@ -226,6 +226,22 @@ ROLE_CONFIGS = {
         "needs_github_token": False,
         "workflow_dispatch_only": True,
     },
+    "claude_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "vault_claude_setup_api_key": "test_ci_api_key_placeholder",
+            "claude_setup_proxy_upstream": "http://localhost:8000",
+        },
+        "verification_commands": [
+            "node --version || true",
+            "npm --version || true",
+            "which claude || npm list -g @anthropic-ai/claude-code || true",
+            "nginx -v || true",
+            "systemctl status nginx || true",
+            "cat ~/.claude/settings.json || true",
+        ],
+        "needs_vault": False,
+    },
 }
 
 # Roles in this list only run on workflow_dispatch (manual); they do not
