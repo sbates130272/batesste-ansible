@@ -1,0 +1,26 @@
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+---
+galaxy_info:
+  author: Stephen Bates
+  company: Raithlin Semiconductors
+  role_name: claude_setup
+  description: >-
+    Install the Claude CLI and configure it to route through
+    a local LLM reverse proxy on AMD systems
+  license: Apache-2.0
+  min_ansible_version: "2.15.0"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+        - resolute
+  galaxy_tags:
+    - llm
+    - ai
+    - claude
+    - anthropic
+    - amd
+
+dependencies: []

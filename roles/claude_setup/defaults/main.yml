@@ -1,0 +1,27 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Whether to install Node.js and npm as prerequisites.
+# Node.js >= 18 is required by the Claude CLI.
+claude_setup_install_nodejs: true
+
+# Port that the local nginx reverse proxy listens on.
+# The Claude CLI is configured to connect here.
+claude_setup_proxy_port: 8888
+
+# Upstream URL that nginx forwards requests to.
+# Set this to the URL of the LLM serving backend (e.g. a
+# Lemonade server on this host or a remote proxy node).
+claude_setup_proxy_upstream: "http://localhost:8000"
+
+# Base URL written into the Claude CLI settings as
+# ANTHROPIC_BASE_URL.  By default this points at the local
+# nginx proxy defined above.
+claude_setup_api_base_url: "http://localhost:{{ claude_setup_proxy_port }}"
+
+# API key for the LLM serving backend.
+# This should be sourced from an Ansible Vault-encrypted
+# variable in your inventory or group_vars.
+claude_setup_api_key: "{{ vault_claude_setup_api_key }}"

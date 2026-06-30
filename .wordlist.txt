@@ -1,5 +1,12 @@
 AE
 AES
+Anthropic
+anthropic
+ANTHROPIC
+Claude
+claude
+nginx
+upstream
 AMDuProf
 AMDuProfCLI
 APU
@@ -181,6 +188,7 @@ ip
 ipv
 hsa
 journalctl
+js
 json
 kfd
 libaio

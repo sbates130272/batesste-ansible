@@ -37,6 +37,7 @@
         - rocm_hipfile_setup
         - rocm_xio_setup
         - uprof_setup
+        - claude_setup
       nfs_rdma:
         - nfs_rdma_setup
       nvmeof:
@@ -170,6 +171,17 @@
       when: "'uprof_setup' in setup_selected_roles"
       tags:
         - uprof_setup
+
+    - name: Run claude_setup
+      ansible.builtin.include_role:
+        name: claude_setup
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - claude_setup
+      when: "'claude_setup' in setup_selected_roles"
+      tags:
+        - claude_setup
 
     - name: Run cloud_setup
       ansible.builtin.include_role:
