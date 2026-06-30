@@ -26,10 +26,13 @@
     update_cache: true
   become: true
 
-- name: Ensure rocm-systems package (hipFile provider) is installed
+- name: Ensure hipFile provider packages are installed when available
   ansible.builtin.package:
     name: "{{ rocm_hipfile_setup_system_packages }}"
     state: present
+  register: rocm_hipfile_setup_system_packages_install
+  failed_when: false
+  when: rocm_hipfile_setup_system_packages | default([]) | length > 0
   become: true
 
 - name: Resolve runtime linker path for build and checks
@@ -58,8 +61,9 @@
 - name: Stop when hipFile from rocm-systems is not available
   ansible.builtin.fail:
     msg: >-
-      hipFile is now provided by rocm-systems. Missing
-      {{ rocm_hipfile_setup_rocm_path }}/bin/ais-check.
+      Missing {{ rocm_hipfile_setup_rocm_path }}/bin/ais-check.
+      Ensure hipFile tooling is present from rocm-systems or an equivalent ROCm
+      package in your configured repository.
   when: not rocm_hipfile_setup_ais_check_stat.stat.exists
 
 - name: Ensure Projects folder exists
