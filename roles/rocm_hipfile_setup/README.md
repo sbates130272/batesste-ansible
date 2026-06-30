@@ -1,12 +1,12 @@
 # ROCm HIP file setup role
 
-Build and install HIP file and HIP file-enabled fio from source on Ubuntu
-hosts where `rocm_setup` has already been run.
+Configure HIP file-enabled fio on Ubuntu hosts where `rocm_setup` has
+already been run.
 
 This role follows upstream guidance from the [ROCm HIP file
 repository][rocm-hip-file] and [ROCm/fio][rocm-fio]:
 
-- The HIP file library is built with CMake against an existing ROCm install.
+- The HIP file library is provided by `rocm-systems`.
 - fio is built from the ROCm/fio `hipFile` branch with `--enable-libhipfile`.
 - Runtime link paths include both ROCm and AIS library directories.
 
@@ -26,14 +26,12 @@ rocm_hipfile_setup_run_checks: true
 
 # Source and install paths
 rocm_hipfile_setup_projects_dir: "{{ ansible_env.HOME }}/Projects"
-rocm_hipfile_setup_hipfile_src_dir: "{{ rocm_hipfile_setup_projects_dir }}/hipFile"
-rocm_hipfile_setup_hipfile_build_dir: "{{ rocm_hipfile_setup_hipfile_src_dir }}/build"
 rocm_hipfile_setup_fio_src_dir: "{{ rocm_hipfile_setup_projects_dir }}/fio-hipfile"
 rocm_hipfile_setup_fio_install_dir: "/opt/fio-hipfile"
 
-# Repositories and pinned refs
-rocm_hipfile_setup_hipfile_repo: "https://github.com/ROCm/hipFile.git"
-rocm_hipfile_setup_hipfile_version: "<pinned-hipfile-commit>"
+# System package and pinned refs
+rocm_hipfile_setup_system_packages:
+  - rocm-systems
 rocm_hipfile_setup_fio_repo: "https://github.com/ROCm/fio.git"
 rocm_hipfile_setup_fio_version: "<pinned-fio-hipfile-commit>"
 
@@ -59,20 +57,18 @@ rocm_hipfile_setup_ais_include_path: "/opt/rocs-ais/include"
 
 1. Validates supported Ubuntu release via `check_platform`.
 2. Verifies ROCm exists (`/opt/rocm/bin/hipcc`) and fails otherwise.
-3. Installs build dependencies for hipFile and fio.
-4. Clones and builds ROCm HIP file from a pinned commit.
-5. Installs the HIP file library to the ROCm path.
-6. Clones and builds ROCm/fio from the `hipFile` branch commit with
+3. Installs build dependencies and `rocm-systems`.
+4. Verifies `ais-check` is available from the ROCm install.
+5. Clones and builds ROCm/fio from the `hipFile` branch commit with
    `--enable-libhipfile`.
-7. Installs fio to `/opt/fio-hipfile` by default.
-8. Optionally runs `ais-check` and `fio --enghelp=libhipfile`.
+6. Installs fio to `/opt/fio-hipfile` by default.
+7. Optionally runs `ais-check` and `fio --enghelp=libhipfile`.
 
 ## Notes
 
 - The upstream HIP file project is now marked as deprecated in favor of
-  [ROCm/rocm-systems][rocm-systems], but this role tracks the requested
-  ROCm HIP file repository and current ROCm/fio `hipFile` integration
-  branch.
+  [ROCm/rocm-systems][rocm-systems], and this role now uses the
+  `rocm-systems` package as the hipFile provider.
 - This role assumes `rocm_setup` is already applied and does not install
   ROCm itself.
 
