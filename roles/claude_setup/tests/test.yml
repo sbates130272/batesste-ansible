@@ -1,0 +1,9 @@
+---
+# Test playbook for claude_setup role
+- name: Test claude_setup role
+  hosts: all
+
+  tasks:
+    - name: Include claude_setup role
+      ansible.builtin.include_role:
+        name: claude_setup

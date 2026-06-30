@@ -1,5 +1,10 @@
 AE
 AES
+Anthropic
+anthropic
+ANTHROPIC
+Claude
+claude
 AMDuProf
 AMDuProfCLI
 APU

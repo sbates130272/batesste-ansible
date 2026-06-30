@@ -1,0 +1,65 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Install the Claude CLI and configure it to route through
+# a local LLM reverse proxy (e.g. a Lemonade server instance).
+#
+# See this Role's README.md for more information.
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    claude_setup_calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.check_platform
+  vars:
+    calling_role_path: "{{ claude_setup_calling_role_path_fact }}"
+
+- name: Install Node.js and npm
+  ansible.builtin.package:
+    name:
+      - nodejs
+      - npm
+    state: present
+    update_cache: true
+  become: true
+  when: claude_setup_install_nodejs
+
+- name: Install the Claude CLI via npm
+  community.general.npm:
+    name: "@anthropic-ai/claude-code"
+    global: true
+    state: present
+  become: true
+
+- name: Create the Claude configuration directory
+  ansible.builtin.file:
+    path: "~/.claude"
+    state: directory
+    mode: "0755"
+
+- name: Template the Claude settings file
+  ansible.builtin.template:
+    src: claude-settings.json.j2
+    dest: "~/.claude/settings.json"
+    mode: "0644"
+
+- name: Template the Claude secrets file
+  ansible.builtin.template:
+    src: claude-secrets.sh.j2
+    dest: "~/.claude/secrets.sh"
+    mode: "0600"
+  no_log: true
+
+- name: Configure Claude environment in .bashrc
+  ansible.builtin.blockinfile:
+    path: "~/.bashrc"
+    state: present
+    marker_begin: BEGIN (claude_setup)
+    marker_end: END (claude_setup)
+    block: |
+      # Source Claude CLI secrets (API key and proxy URL)
+      [ -f ~/.claude/secrets.sh ] && source ~/.claude/secrets.sh

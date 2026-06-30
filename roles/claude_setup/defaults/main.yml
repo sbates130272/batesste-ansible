@@ -1,0 +1,18 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Whether to install Node.js and npm as prerequisites.
+# Node.js >= 18 is required by the Claude CLI.
+claude_setup_install_nodejs: true
+
+# The base URL of the LLM reverse proxy that the Claude CLI
+# will route API requests through. On AMD systems this
+# typically points to a local Lemonade server instance.
+claude_setup_api_base_url: "http://localhost:8000"
+
+# API key for the LLM serving backend.
+# This should be sourced from an Ansible Vault-encrypted
+# variable in your inventory or group_vars.
+claude_setup_api_key: "{{ vault_claude_setup_api_key }}"
