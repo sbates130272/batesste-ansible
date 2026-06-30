@@ -231,6 +231,7 @@ ROLE_CONFIGS = {
         "extra_vars": {
             "vault_claude_setup_api_key": "test_ci_api_key_placeholder",
             "claude_setup_proxy_upstream": "http://localhost:8000",
+            "claude_setup_proxy_port": 8888,
         },
         "verification_commands": [
             "node --version || true",
@@ -239,6 +240,8 @@ ROLE_CONFIGS = {
             "nginx -v || true",
             "systemctl status nginx || true",
             "cat ~/.claude/settings.json || true",
+            "ss -tlnp | grep 8888",
+            "curl -v --proxy http://127.0.0.1:8888 https://llm-api.amd.com/Anthropic || true",
         ],
         "needs_vault": False,
     },

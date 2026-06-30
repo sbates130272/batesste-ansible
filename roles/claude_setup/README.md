@@ -27,7 +27,7 @@ per host or group.
 | Variable                         | Default                                          | Description                                       |
 |---------------------------------|--------------------------------------------------|---------------------------------------------------|
 | `claude_setup_install_nodejs`   | `true`                                           | Install Node.js and npm before the CLI install    |
-| `claude_setup_proxy_port`       | `8080`                                           | Port the local nginx reverse proxy listens on     |
+| `claude_setup_proxy_port`       | `8888`                                           | Port the local nginx reverse proxy listens on     |
 | `claude_setup_proxy_upstream`   | `"http://localhost:8000"`                        | Upstream LLM backend URL nginx forwards to        |
 | `claude_setup_api_base_url`     | `"http://localhost:{{ claude_setup_proxy_port }}"` | ANTHROPIC_BASE_URL written into Claude settings  |
 | `claude_setup_api_key`          | `"{{ vault_claude_setup_api_key }}"`             | API key for the LLM serving backend (secret)      |

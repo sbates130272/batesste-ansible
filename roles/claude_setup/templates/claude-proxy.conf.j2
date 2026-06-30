@@ -2,7 +2,7 @@
 {# SPDX-License-Identifier: Apache-2.0                        #}
 {# Managed by Ansible — do not edit manually.                  #}
 server {
-    listen {{ claude_setup_proxy_port }};
+    listen 127.0.0.1:{{ claude_setup_proxy_port }};
     server_name localhost;
 
     location / {

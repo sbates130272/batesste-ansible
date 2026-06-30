@@ -51,6 +51,7 @@ jobs:
                   ansible_user: runner
                   vault_claude_setup_api_key: test_ci_api_key_placeholder
                   claude_setup_proxy_upstream: http://localhost:8000
+                  claude_setup_proxy_port: 8888
 
       - name: Run the test playbook against the local runner
         run: ansible-playbook -v -i hosts-ci ./tests/test.yml
@@ -66,3 +67,5 @@ jobs:
           nginx -v || true
           systemctl status nginx || true
           cat ~/.claude/settings.json || true
+          ss -tlnp | grep 8888
+          curl -v --proxy http://127.0.0.1:8888 https://llm-api.amd.com/Anthropic || true
