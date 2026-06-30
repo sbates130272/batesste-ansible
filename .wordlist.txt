@@ -188,6 +188,7 @@ ip
 ipv
 hsa
 journalctl
+js
 json
 kfd
 libaio
