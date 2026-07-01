@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Build and install hipFile and hipFile-enabled fio from source.
+# Configure hipFile-enabled fio using hipFile from rocm-systems.
 
 - name: Set a fact containing the current roles' path
   ansible.builtin.set_fact:
@@ -26,6 +26,15 @@
     update_cache: true
   become: true
 
+- name: Ensure hipFile provider packages are installed when available
+  ansible.builtin.package:
+    name: "{{ rocm_hipfile_setup_system_packages }}"
+    state: present
+  register: rocm_hipfile_setup_system_packages_install
+  failed_when: false
+  when: rocm_hipfile_setup_system_packages | default([]) | length > 0
+  become: true
+
 - name: Resolve runtime linker path for build and checks
   ansible.builtin.set_fact:
     rocm_hipfile_setup_ld_library_path: >-
@@ -44,6 +53,19 @@
       {{ rocm_hipfile_setup_rocm_path }}/bin/hipcc.
   when: not rocm_hipfile_setup_hipcc_stat.stat.exists
 
+- name: Verify hipFile tooling from rocm-systems is available
+  ansible.builtin.stat:
+    path: "{{ rocm_hipfile_setup_rocm_path }}/bin/ais-check"
+  register: rocm_hipfile_setup_ais_check_stat
+
+- name: Stop when hipFile from rocm-systems is not available
+  ansible.builtin.fail:
+    msg: >-
+      Missing {{ rocm_hipfile_setup_rocm_path }}/bin/ais-check.
+      Ensure hipFile tooling is present from rocm-systems or an equivalent ROCm
+      package in your configured repository.
+  when: not rocm_hipfile_setup_ais_check_stat.stat.exists
+
 - name: Ensure Projects folder exists
   ansible.builtin.file:
     path: "{{ rocm_hipfile_setup_projects_dir }}"
@@ -56,53 +78,6 @@
     state: directory
     mode: "0755"
   become: true
-
-- name: Checkout hipFile repository
-  ansible.builtin.git:
-    repo: "{{ rocm_hipfile_setup_hipfile_repo }}"
-    dest: "{{ rocm_hipfile_setup_hipfile_src_dir }}"
-    accept_newhostkey: true
-    force: "{{ rocm_hipfile_setup_hipfile_force }}"
-    version: "{{ rocm_hipfile_setup_hipfile_version }}"
-  register: rocm_hipfile_setup_hipfile_clone
-  failed_when:
-    - rocm_hipfile_setup_hipfile_clone.failed
-    - >-
-      'Local modifications exist in the destination'
-      not in rocm_hipfile_setup_hipfile_clone.msg
-
-- name: Configure hipFile CMake build
-  ansible.builtin.command:
-    chdir: "{{ rocm_hipfile_setup_hipfile_src_dir }}"
-    cmd: >-
-      cmake -S . -B "{{ rocm_hipfile_setup_hipfile_build_dir }}"
-      -DCMAKE_BUILD_TYPE={{ rocm_hipfile_setup_hipfile_build_type }}
-      -DCMAKE_HIP_PLATFORM={{ rocm_hipfile_setup_hip_platform }}
-      -DROCM_PATH={{ rocm_hipfile_setup_rocm_path }}
-  environment:
-    LD_LIBRARY_PATH: "{{ rocm_hipfile_setup_ld_library_path }}"
-  register: rocm_hipfile_setup_hipfile_configure
-  changed_when: false
-
-- name: Build hipFile
-  ansible.builtin.command:
-    chdir: "{{ rocm_hipfile_setup_hipfile_src_dir }}"
-    cmd: >-
-      cmake --build "{{ rocm_hipfile_setup_hipfile_build_dir }}"
-      --parallel {{ rocm_hipfile_setup_parallel_jobs }}
-  environment:
-    LD_LIBRARY_PATH: "{{ rocm_hipfile_setup_ld_library_path }}"
-  register: rocm_hipfile_setup_hipfile_build
-  changed_when: false
-
-- name: Install hipFile into ROCm path
-  ansible.builtin.command:
-    chdir: "{{ rocm_hipfile_setup_hipfile_src_dir }}"
-    cmd: cmake --install "{{ rocm_hipfile_setup_hipfile_build_dir }}"
-  environment:
-    LD_LIBRARY_PATH: "{{ rocm_hipfile_setup_ld_library_path }}"
-  become: true
-  changed_when: false
 
 - name: Checkout ROCm fio hipFile branch
   ansible.builtin.git:

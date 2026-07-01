@@ -4,7 +4,7 @@ galaxy_info:
   company: Raithlin Semiconductors
   role_name: rocm_hipfile_setup
   description: >-
-    Build and install hipFile and hipFile-enabled fio from source
+    Configure hipFile-enabled fio using hipFile from rocm-systems
   license: Apache-2.0
   min_ansible_version: "2.15.0"
   platforms:

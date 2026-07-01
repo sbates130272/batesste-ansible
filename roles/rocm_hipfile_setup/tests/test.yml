@@ -6,6 +6,7 @@
       become: false
       rocm_setup_run_checks: false
       rocm_setup_install_metrics_exporter: false
+      rocm_setup_install_xrocmtop: false
       rocm_setup_install_kernel_driver: false
       rocm_setup_skip_reboot: true
       rocm_setup_skip_system_upgrade: true
