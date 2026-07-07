@@ -1,12 +1,12 @@
-# ROCm HIP file setup role
+# ROCm hipFile setup role
 
-Configure HIP file-enabled fio on Ubuntu hosts where `rocm_setup` has
+Configure hipFile-enabled fio on Ubuntu hosts where `rocm_setup` has
 already been run.
 
-This role follows upstream guidance from the [ROCm HIP file
+This role follows upstream guidance from the [ROCm hipFile
 repository][rocm-hip-file] and [ROCm/fio][rocm-fio]:
 
-- The HIP file library is provided by `rocm-systems`.
+- The hipFile library is provided by `rocm-systems`.
 - fio is built from the ROCm/fio `hipFile` branch with `--enable-libhipfile`.
 - Runtime link paths include both ROCm and AIS library directories.
 
@@ -58,7 +58,8 @@ rocm_hipfile_setup_ais_include_path: "/opt/rocs-ais/include"
 1. Validates supported Ubuntu release via `check_platform`.
 2. Verifies ROCm exists (`/opt/rocm/bin/hipcc`) and fails otherwise.
 3. Installs build dependencies and `rocm-systems`.
-4. Verifies `ais-check` is available from the ROCm install.
+4. Verifies hipFile tooling is available from the ROCm install by checking
+   for `ais-check` and/or the AIS library path.
 5. Clones and builds ROCm/fio from the `hipFile` branch commit with
    `--enable-libhipfile`.
 6. Installs fio to `/opt/fio-hipfile` by default.
@@ -66,7 +67,7 @@ rocm_hipfile_setup_ais_include_path: "/opt/rocs-ais/include"
 
 ## Notes
 
-- The upstream HIP file project is now marked as deprecated in favor of
+- The upstream hipFile project is now marked as deprecated in favor of
   [ROCm/rocm-systems][rocm-systems], and this role now uses the
   `rocm-systems` package as the hipFile provider.
 - This role assumes `rocm_setup` is already applied and does not install

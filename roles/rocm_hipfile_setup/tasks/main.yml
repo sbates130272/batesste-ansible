@@ -58,13 +58,21 @@
     path: "{{ rocm_hipfile_setup_rocm_path }}/bin/ais-check"
   register: rocm_hipfile_setup_ais_check_stat
 
+- name: Verify hipFile AIS libraries are available
+  ansible.builtin.stat:
+    path: "{{ rocm_hipfile_setup_ais_lib_path }}"
+  register: rocm_hipfile_setup_ais_lib_stat
+
 - name: Stop when hipFile from rocm-systems is not available
   ansible.builtin.fail:
     msg: >-
-      Missing {{ rocm_hipfile_setup_rocm_path }}/bin/ais-check.
-      Ensure hipFile tooling is present from rocm-systems or an equivalent ROCm
+      Missing both {{ rocm_hipfile_setup_rocm_path }}/bin/ais-check and
+      {{ rocm_hipfile_setup_ais_lib_path }}. Ensure hipFile tooling is present
+      from rocm-systems or an equivalent ROCm
       package in your configured repository.
-  when: not rocm_hipfile_setup_ais_check_stat.stat.exists
+  when:
+    - not rocm_hipfile_setup_ais_check_stat.stat.exists
+    - not rocm_hipfile_setup_ais_lib_stat.stat.exists
 
 - name: Ensure Projects folder exists
   ansible.builtin.file:
