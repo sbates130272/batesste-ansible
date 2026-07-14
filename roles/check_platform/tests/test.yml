@@ -4,8 +4,8 @@
 - name: The test playbook for the check_platform role
   hosts: all
   tasks:
-    - name: Run check_platform via aws_grub (which calls it internally)
+    - name: Run check_platform with check_platform's own meta as the calling role
       ansible.builtin.include_role:
-        name: sbates130272.batesste.aws_grub
+        name: sbates130272.batesste.check_platform
       vars:
-        calling_role_path: "{{ playbook_dir }}/../aws_grub"
+        calling_role_path: "{{ playbook_dir }}/.."
