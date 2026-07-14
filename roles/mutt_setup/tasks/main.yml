@@ -13,13 +13,13 @@
 
 - name: Set a fact containing the current roles' path
   ansible.builtin.set_fact:
-    calling_role_path_fact: "{{ role_path }}"
+    mutt_setup_calling_role_path_fact: "{{ role_path }}"
 
 - name: Test the host platform to see if it can support this role
   ansible.builtin.include_role:
     name: sbates130272.batesste.check_platform
   vars:
-    calling_role_path: "{{ calling_role_path_fact }}"
+    calling_role_path: "{{ mutt_setup_calling_role_path_fact }}"  # noqa var-naming
 
 - name: Create the mutt headers folder for raithlin
   ansible.builtin.file:

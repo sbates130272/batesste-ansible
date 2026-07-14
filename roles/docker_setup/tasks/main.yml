@@ -7,14 +7,14 @@
 
 - name: Set a fact containing the current roles' path
   ansible.builtin.set_fact:
-    calling_role_path_fact: "{{ role_path | default('') }}"
+    docker_setup_calling_role_path_fact: "{{ role_path | default('') }}"
 
 - name: Test the host platform
   ansible.builtin.include_role:
     name: sbates130272.batesste.check_platform
   vars:
-    calling_role_path: "{{ calling_role_path_fact }}"
-  when: calling_role_path_fact | length > 0
+    calling_role_path: "{{ docker_setup_calling_role_path_fact }}"  # noqa var-naming
+  when: docker_setup_calling_role_path_fact | length > 0
 
 - name: Remove obsolete Docker packages
   ansible.builtin.apt:

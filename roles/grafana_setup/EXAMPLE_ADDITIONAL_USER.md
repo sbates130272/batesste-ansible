@@ -4,7 +4,7 @@ This example shows how to create an additional user `stebates` alongside the def
 
 ## Update your inventory file
 
-Edit `hosts-grafana-setup`:
+Edit `../../playbooks/inventories/hosts-grafana-setup`:
 
 ```yaml
 monitoring_servers:
@@ -28,7 +28,7 @@ monitoring_servers:
 
 ```bash
 cd /home/stebates/Projects/batesste-ansible/roles/grafana_setup
-ANSIBLE_ROLES_PATH=../ ansible-playbook -i hosts-grafana-setup ./tests/test.yml
+ANSIBLE_ROLES_PATH=../ ansible-playbook -i ../../playbooks/inventories/hosts-grafana-setup ./tests/test.yml
 ```
 
 ## Login credentials
@@ -69,6 +69,6 @@ vault_grafana_setup_user_password: your_secure_user_password
 Then remove the passwords from the inventory file and run with:
 
 ```bash
-ansible-playbook -i hosts-grafana-setup ./tests/test.yml --ask-vault-pass
+ansible-playbook -i ../../playbooks/inventories/hosts-grafana-setup ./tests/test.yml --ask-vault-pass
 ```
 

@@ -1,6 +1,6 @@
 Types: deb
-URIs: https://repo.radeon.com/rocm/apt/{{ rocm_setup_rocm_version }}
-  https://repo.radeon.com/amdgpu/{{ rocm_setup_amdgpu_version }}/ubuntu
+URIs: https://{{ rocm_setup_repo_base_url }}/rocm/apt/{{ rocm_setup_rocm_version }}
+  https://{{ rocm_setup_repo_base_url }}/amdgpu/{{ rocm_setup_amdgpu_version }}/ubuntu
 Suites: {{ ansible_distribution_release }}
 Components: main
 Architectures: amd64
@@ -8,7 +8,7 @@ Signed-By: /etc/apt/keyrings/rocm.gpg
 
 {% if not rocm_setup_wsl_enabled %}
 Types: deb
-URIs: https://repo.radeon.com/graphics/{{ rocm_setup_graphics_version }}/ubuntu
+URIs: https://{{ rocm_setup_repo_base_url }}/graphics/{{ rocm_setup_graphics_version }}/ubuntu
 Suites: {{ ansible_distribution_release }}
 Components: main
 Architectures: amd64

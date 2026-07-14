@@ -8,13 +8,13 @@
 
 - name: Set a fact containing the current roles' path
   ansible.builtin.set_fact:
-    calling_role_path_fact: "{{ role_path }}"
+    aws_grub_calling_role_path_fact: "{{ role_path }}"
 
 - name: Test the host platform to see if it can support this role
   ansible.builtin.include_role:
     name: sbates130272.batesste.check_platform
   vars:
-    calling_role_path: "{{ calling_role_path_fact }}"
+    calling_role_path: "{{ aws_grub_calling_role_path_fact }}"  # noqa var-naming
 
 - name: Copy grub settings for AWS console access
   ansible.builtin.copy:

@@ -6,21 +6,26 @@
 
 - name: Set a fact containing the current roles' path
   ansible.builtin.set_fact:
-    calling_role_path_fact: "{{ role_path }}"
+    cloud_setup_calling_role_path_fact: "{{ role_path }}"
 
 - name: Test the host platform to see if it can support this role
   ansible.builtin.include_role:
     name: sbates130272.batesste.check_platform
   vars:
-    calling_role_path: "{{ calling_role_path_fact }}"
+    calling_role_path: "{{ cloud_setup_calling_role_path_fact }}"  # noqa var-naming
 
-- name: Install packages for GitHub CLI and pip (for AWS CLI)
+- name: Install GitHub CLI
   ansible.builtin.package:
     update_cache: true
     state: present
-    name:
-      - gh
-      - python3-pip
+    name: gh
+  become: true
+  when: cloud_setup_install_gh
+
+- name: Install pip (for AWS CLI)
+  ansible.builtin.package:
+    state: present
+    name: python3-pip
   become: true
 
 # awscli was removed from Ubuntu 24.04 (noble) repos; install via pip

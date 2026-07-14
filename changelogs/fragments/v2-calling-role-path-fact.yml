@@ -1,0 +1,9 @@
+bugfixes:
+  - >-
+    Rename the internal calling_role_path_fact variable to
+    <rolename>_calling_role_path_fact in 18 roles (aws_grub, cloud_setup,
+    consul_setup, docker_setup, eideticom_scripts, fave_packages, fio_devel,
+    git_setup, github_runner, grafana_setup, kernel_setup, mutt_setup,
+    nfs_rdma_setup, nvmeof_setup, qemu_setup, tmux_scripts, user_setup,
+    vm_create) to eliminate a latent fact-clobbering collision when multiple
+    roles run in the same play.

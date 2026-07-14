@@ -1,0 +1,6 @@
+breaking_changes:
+  - >-
+    Drop Ubuntu 22.04 (jammy) support from fave_packages, git_setup,
+    nvme_exporter_setup, and user_setup roles. All roles now uniformly
+    require Ubuntu 24.04 (noble) or 26.04 (resolute), matching the
+    collection's stated platform policy.

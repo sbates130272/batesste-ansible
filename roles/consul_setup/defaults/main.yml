@@ -1,4 +1,7 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 # defaults file for consul_setup
 consul_setup_server: false
 consul_setup_server_node: derry

@@ -346,7 +346,7 @@ Run the following from the folder this README resides in.
 ```
 ANSIBLE_ROLES_PATH=../ ansible-playbook -i <host_file> ./tests/test.yml
 ```
-There is an [example hosts file](./hosts-rocm-setup) that users can
+There is an [example hosts file](../../playbooks/inventories/hosts-rocm-setup) that users can
 use as a template for their testing.
 
 # Author and License Information

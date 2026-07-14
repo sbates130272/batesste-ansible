@@ -1,0 +1,9 @@
+release_summary: |
+  Major version 2.0.0. Broad cleanup across all 28 roles: drop Ubuntu 22.04
+  (jammy) support, fix variable namespace collisions in 18 roles, consolidate
+  CI by removing legacy duplicate jobs, standardize SPDX copyright headers
+  across all defaults and meta files, move example inventory files to
+  playbooks/inventories/, guard the gh CLI installation in cloud_setup, delete
+  a stale unsupported-platforms file from github_runner, add defaults/main.yml
+  to mutt_setup, add CI coverage for aws_grub, check_platform, and
+  eideticom_scripts, and document prometheus-node-exporter overlap across roles.

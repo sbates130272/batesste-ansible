@@ -43,7 +43,7 @@
   ansible.builtin.shell:
     cmd: |
       set -o pipefail
-      wget -qO- https://repo.radeon.com/rocm/rocm.gpg.key \
+      wget -qO- https://{{ rocm_setup_repo_base_url }}/rocm/rocm.gpg.key \
         | gpg --dearmor \
         | tee /etc/apt/keyrings/rocm.gpg > /dev/null
   args:
@@ -64,7 +64,7 @@
   ansible.builtin.copy:
     content: |
       Package: *
-      Pin: release o=repo.radeon.com
+      Pin: release o={{ rocm_setup_repo_pin_origin }}
       Pin-Priority: 600
     dest: /etc/apt/preferences.d/rocm-pin-600
     owner: root
@@ -188,4 +188,11 @@
     file: xrocmtop.yml
   when:
     - rocm_setup_install_xrocmtop
+    - not rocm_setup_wsl_enabled
+
+- name: Install hipFile and fio-libhipfile
+  ansible.builtin.import_tasks:
+    file: hipfile.yml
+  when:
+    - rocm_setup_install_hipfile
     - not rocm_setup_wsl_enabled

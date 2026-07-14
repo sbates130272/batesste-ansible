@@ -1,4 +1,7 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 # defaults file for rdma_setup
 rdma_setup_reboot: false
 rdma_setup_reboot_timeout: 60

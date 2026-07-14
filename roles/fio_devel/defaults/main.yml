@@ -1,4 +1,7 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 # fio tag/sha to checkout
 fio_devel_fio_force: false
 fio_devel_fio_sha: db7fc8d864dc4fb607a0379333a0db60431bd649

@@ -1,5 +1,16 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 # defaults file for rocm-setup
+
+# Base URL for all ROCm apt repositories. Override to switch CDN; e.g.
+# set to rocm.amd.com when AMD's new CDN becomes publicly available.
+rocm_setup_repo_base_url: repo.radeon.com
+
+# APT pin origin value. Defaults to the base URL but can be overridden
+# independently if the Origin: field in the repo Release file differs.
+rocm_setup_repo_pin_origin: "{{ rocm_setup_repo_base_url }}"
 
 # The version of ROCm to install. Set to latest to use rocm-latest
 # script to detect latest.
@@ -78,8 +89,18 @@ rocm_setup_xrocmtop_install_dir: /usr/local/bin
 rocm_setup_install_metrics_exporter: true
 rocm_setup_metrics_exporter_version: latest
 rocm_setup_metrics_exporter_repo_uri: >-
-  https://repo.radeon.com/device-metrics-exporter/apt/{{
+  https://{{ rocm_setup_repo_base_url }}/device-metrics-exporter/apt/{{
   rocm_setup_metrics_exporter_version }}
 rocm_setup_metrics_exporter_port: 5000
 rocm_setup_metrics_exporter_config_path: /etc/metrics/config.json
 rocm_setup_metrics_exporter_open_firewall: true
+
+# Install hipFile and fio-libhipfile via apt. These packages are expected
+# to land in the ROCm apt repo with ROCm 7.13/7.14 tech preview.
+# Adjust rocm_setup_hipfile_packages if the final package names differ.
+rocm_setup_install_hipfile: false
+rocm_setup_hipfile_packages:
+  - hipfile
+  - fio-libhipfile
+# Install path expected by inventory that previously used rocm_hipfile_setup.
+rocm_setup_hipfile_fio_install_dir: /opt/fio-hipfile

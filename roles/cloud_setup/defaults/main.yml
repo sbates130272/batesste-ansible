@@ -1,4 +1,9 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+cloud_setup_install_gh: true
+
 cloud_setup_raithlin_access_key_id: !vault |
   $ANSIBLE_VAULT;1.1;AES256
   62316564663966613164663763616263666166323564353031326661633661306461643339313337

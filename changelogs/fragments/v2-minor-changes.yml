@@ -1,0 +1,24 @@
+minor_changes:
+  - >-
+    Add SPDX copyright headers (Apache-2.0) to all defaults/main.yml and
+    meta/main.yml files that were missing them.
+  - >-
+    Add cloud_setup_install_gh variable (default true) to cloud_setup so the
+    gh CLI installation can be skipped when git_setup already installs it.
+  - >-
+    Add defaults/main.yml to mutt_setup, documenting the user-overridable
+    configuration surface alongside the vault-encrypted vars/main.yml.
+  - >-
+    Add tests/test.yml and standalone CI workflows for aws_grub,
+    check_platform, and eideticom_scripts, giving all roles at least minimal
+    CI coverage.
+  - >-
+    Remove legacy rocm_setup and grafana_setup duplicate jobs from the main
+    batesste-ansible-ci.yml workflow; coverage is now exclusively provided by
+    the auto-generated per-role workflow files.
+  - >-
+    Delete roles/github_runner/supported_platforms.yml, a stale file with no
+    Ansible consumer that duplicated information already in meta/main.yml.
+  - >-
+    Document prometheus-node-exporter overlap in fave_packages, grafana_setup,
+    and consul_setup READMEs.
