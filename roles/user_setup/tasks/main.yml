@@ -52,8 +52,6 @@
     user: "{{ username }}"
     state: present
     key: "{{ lookup('file', user_setup_ssh_key_src_dir ~ '/' ~ user_setup_ssh_key_name ~ '.pub') }}"
-  become: true
-  when: not user_setup_unprivileged | default(false)
 
 - name: Set user as passwordless sudoer
   ansible.builtin.blockinfile:
@@ -74,20 +72,14 @@
     force: true
     src: "{{ user_setup_ssh_key_src_dir }}/{{ user_setup_ssh_key_name }}"
     dest: "{{ user_setup_home }}/.ssh/{{ user_setup_ssh_key_name }}"
-    owner: "{{ username }}"
     mode: "0600"
-  become: true
-  when: not user_setup_unprivileged | default(false)
 
 - name: Copy SSH public key
   ansible.builtin.copy:
     force: true
     src: "{{ user_setup_ssh_key_src_dir }}/{{ user_setup_ssh_key_name }}.pub"
     dest: "{{ user_setup_home }}/.ssh/{{ user_setup_ssh_key_name }}.pub"
-    owner: "{{ username }}"
     mode: "0644"
-  become: true
-  when: not user_setup_unprivileged | default(false)
 
 - name: Ensure users can access dmesg without sudo # noqa: args[module]
   ansible.builtin.blockinfile:

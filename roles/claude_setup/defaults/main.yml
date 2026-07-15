@@ -28,4 +28,12 @@ claude_setup_api_key: "{{ vault_claude_setup_api_key | default('') }}"
 
 # Set to true to skip all tasks that require root/sudo (nginx install and
 # Claude CLI global install). User-space config (~/.claude/, .bashrc) still runs.
+# In unprivileged mode nvm is used to install Node.js and the Claude CLI without root.
 claude_setup_unprivileged: false
+
+# nvm version to install in unprivileged mode.
+claude_setup_nvm_version: "v0.40.3"
+
+# Node.js version alias to install via nvm in unprivileged mode.
+# Uses "node" (latest stable) since the lts/* alias requires network LTS index lookup.
+claude_setup_node_version: "node"

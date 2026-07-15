@@ -39,6 +39,26 @@
   become: true
   when: not claude_setup_unprivileged | default(false)
 
+- name: Install nvm (user-local, unprivileged)
+  ansible.builtin.shell:
+    cmd: >
+      curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/{{ claude_setup_nvm_version }}/install.sh | bash
+    creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+  when: claude_setup_unprivileged | default(false)
+
+- name: Install Node.js LTS and Claude CLI via nvm (user-local, unprivileged)
+  ansible.builtin.shell:
+    cmd: |
+      export NVM_DIR="{{ ansible_env.HOME }}/.nvm"
+      . "$NVM_DIR/nvm.sh"
+      nvm install {{ claude_setup_node_version }}
+      nvm use {{ claude_setup_node_version }}
+      nvm alias default {{ claude_setup_node_version }}
+      npm install -g @anthropic-ai/claude-code
+    executable: /bin/bash
+  changed_when: true
+  when: claude_setup_unprivileged | default(false)
+
 - name: Install nginx for the LLM reverse proxy
   ansible.builtin.package:
     name: nginx
@@ -106,3 +126,18 @@
     block: |
       # Source Claude CLI secrets (API key and proxy URL)
       [ -f ~/.claude/secrets.sh ] && source ~/.claude/secrets.sh
+  when: not claude_setup_unprivileged | default(false)
+
+- name: Configure Claude environment in .bashrc (unprivileged)
+  ansible.builtin.blockinfile:
+    path: "~/.bashrc"
+    state: present
+    marker_begin: BEGIN (claude_setup)
+    marker_end: END (claude_setup)
+    block: |
+      # Source Claude CLI secrets (API key and proxy URL)
+      [ -f ~/.claude/secrets.sh ] && source ~/.claude/secrets.sh
+      # nvm (Node Version Manager) - installed without root for Claude CLI
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  when: claude_setup_unprivileged | default(false)
