@@ -24,7 +24,9 @@
     name: gh
     state: present
   become: true
-  when: git_setup_install_gh | default(true)
+  when:
+    - git_setup_install_gh | default(true)
+    - not git_setup_unprivileged | default(false)
 
 - name: Check if GitHub token is available
   ansible.builtin.set_fact:

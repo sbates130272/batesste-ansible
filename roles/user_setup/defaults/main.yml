@@ -17,3 +17,8 @@ user_setup_ssh_key_name: id_rsa
 
 # Controller-side directory containing the SSH keys
 user_setup_ssh_key_src_dir: "{{ lookup('env', 'HOME') }}/.ssh"
+
+# Set to true to skip tasks that require root/sudo (user/group creation, SSH key
+# deployment, sudoers, sysctl, timezone, networking, fstab, MOTD). User-space
+# config (.bashrc, ~/.ssh/config, emacs files) still runs.
+user_setup_unprivileged: false

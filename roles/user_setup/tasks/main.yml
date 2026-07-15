@@ -24,6 +24,7 @@
     - users
     - admin
   become: true
+  when: not user_setup_unprivileged | default(false)
 
 - name: Create (or update) an account for the specified user
   ansible.builtin.user:
@@ -34,10 +35,17 @@
     shell: /bin/bash
   become: true
   register: user_setup_user_result
+  when: not user_setup_unprivileged | default(false)
 
 - name: Set target user home directory fact
   ansible.builtin.set_fact:
     user_setup_home: "{{ user_setup_user_result.home }}"
+  when: not user_setup_unprivileged | default(false)
+
+- name: Set user home fact from environment (unprivileged fallback)
+  ansible.builtin.set_fact:
+    user_setup_home: "{{ ansible_env.HOME }}"
+  when: user_setup_unprivileged | default(false)
 
 - name: Set authorized key for the user from local file
   ansible.posix.authorized_key:
@@ -45,6 +53,7 @@
     state: present
     key: "{{ lookup('file', user_setup_ssh_key_src_dir ~ '/' ~ user_setup_ssh_key_name ~ '.pub') }}"
   become: true
+  when: not user_setup_unprivileged | default(false)
 
 - name: Set user as passwordless sudoer
   ansible.builtin.blockinfile:
@@ -58,6 +67,7 @@
       # Added by Ansible
       {{ username }} ALL=(ALL) NOPASSWD:ALL
   become: true
+  when: not user_setup_unprivileged | default(false)
 
 - name: Copy SSH private key
   ansible.builtin.copy:
@@ -67,6 +77,7 @@
     owner: "{{ username }}"
     mode: "0600"
   become: true
+  when: not user_setup_unprivileged | default(false)
 
 - name: Copy SSH public key
   ansible.builtin.copy:
@@ -76,6 +87,7 @@
     owner: "{{ username }}"
     mode: "0644"
   become: true
+  when: not user_setup_unprivileged | default(false)
 
 - name: Ensure users can access dmesg without sudo # noqa: args[module]
   ansible.builtin.blockinfile:
@@ -87,12 +99,14 @@
     block: |
       kernel.dmesg_restrict = 0
   become: true
+  when: not user_setup_unprivileged | default(false)
 
 - name: Restart procps service so dmesg rule takes effect # noqa: args[module]
   ansible.builtin.service:
     service: procps
     state: restarted
   become: true
+  when: not user_setup_unprivileged | default(false)
 
 - name: Massively improve startup on certain systems
   ansible.builtin.lineinfile:
@@ -100,12 +114,14 @@
     search_string: ExecStart
     line: ExecStart=/lib/systemd/systemd-networkd-wait-online --any
   become: true
+  when: not user_setup_unprivileged | default(false)
 
 - name: Restart service # noqa: args[module]
   ansible.builtin.service:
     service: network-online.target
     state: restarted
   become: true
+  when: not user_setup_unprivileged | default(false)
 
 - name: Ensure package install is non-interactive
   ansible.builtin.blockinfile:
@@ -115,12 +131,12 @@
     marker_end: END (user_setup)
     block: |
       export DEBIAN_FRONTEND=noninteractive
-  become: true
 
 - name: Set the timezone of the system clock
   community.general.timezone:
     name: "{{ user_setup_timezone }}"
   become: true
+  when: not user_setup_unprivileged | default(false)
 
 - name: Ensure SSH config file exists for user and create a Host * when absent
   ansible.builtin.lineinfile:
@@ -128,9 +144,7 @@
     line: Host *
     state: present
     create: true
-    owner: "{{ username }}"
     mode: "0644"
-  become: true
 
 - name: Set important values in user's ssh config file
   ansible.builtin.lineinfile:
@@ -143,33 +157,26 @@
     - ServerAliveInterval 60
     - ServerAliveCountMax 30
     - StrictHostKeyChecking accept-new
-  become: true
 
 - name: Ensure .emacs.d folder exists
   ansible.builtin.file:
     path: "{{ user_setup_home }}/.emacs.d"
     state: directory
-    owner: "{{ username }}"
     mode: "0755"
-  become: true
 
 - name: Copy emacs config file from our files folder
   ansible.builtin.copy:
     force: true
     src: init.el
     dest: "{{ user_setup_home }}/.emacs.d/init.el"
-    owner: "{{ username }}"
     mode: "0644"
-  become: true
 
 - name: Copy emacs config file from our files folder
   ansible.builtin.copy:
     force: true
     src: .emacs
     dest: "{{ user_setup_home }}/.emacs"
-    owner: "{{ username }}"
     mode: "0644"
-  become: true
 
 - name: Check if Projects is already a mount point
   ansible.builtin.command:
@@ -188,6 +195,7 @@
   become: true
   when:
     - user_setup_vm_fstab
+    - not user_setup_unprivileged | default(false)
     - user_setup_projects_mountpoint.rc != 0
 
 - name: Add an entry in fstab for VM virtio-fs
@@ -196,7 +204,9 @@
     line: "hostfs {{ user_setup_home }}/Projects 9p trans=virtio,version=9p2000.L,nofail 0 1"
     state: present
   become: true
-  when: user_setup_vm_fstab
+  when:
+    - user_setup_vm_fstab
+    - not user_setup_unprivileged | default(false)
 
 - name: Perform a systemctl daemon-reload and start of mount
   ansible.builtin.service:
@@ -209,14 +219,18 @@
     - user_setup_mount_start_result is failed
     - "'already active' not in (user_setup_mount_start_result.msg | default('') | lower)"
     - "'not found' not in (user_setup_mount_start_result.msg | default('') | lower)"
-  when: user_setup_vm_fstab
+  when:
+    - user_setup_vm_fstab
+    - not user_setup_unprivileged | default(false)
 
 - name: Install driverctl for MOTD driver overrides display
   ansible.builtin.package:
     name: driverctl
     state: present
   become: true
-  when: user_setup_motd
+  when:
+    - user_setup_motd
+    - not user_setup_unprivileged | default(false)
 
 - name: Copy driver overrides MOTD script
   ansible.builtin.copy:
@@ -226,4 +240,6 @@
     group: root
     mode: '0755'
   become: true
-  when: user_setup_motd
+  when:
+    - user_setup_motd
+    - not user_setup_unprivileged | default(false)

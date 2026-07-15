@@ -24,4 +24,8 @@ claude_setup_api_base_url: "http://localhost:{{ claude_setup_proxy_port }}"
 # API key for the LLM serving backend.
 # This should be sourced from an Ansible Vault-encrypted
 # variable in your inventory or group_vars.
-claude_setup_api_key: "{{ vault_claude_setup_api_key }}"
+claude_setup_api_key: "{{ vault_claude_setup_api_key | default('') }}"
+
+# Set to true to skip all tasks that require root/sudo (nginx install and
+# Claude CLI global install). User-space config (~/.claude/, .bashrc) still runs.
+claude_setup_unprivileged: false

@@ -7,3 +7,4 @@ git_setup_enable_gpg_signing: true  # Set to false to disable GPG signing (e.g.,
 git_setup_install_gh: true
 git_setup_gh_token: ""  # Set this in vault to enable gh authentication
 git_setup_gh_authenticate: false  # Set to true to authenticate gh with token
+git_setup_unprivileged: false  # Set to true to skip tasks that require root/sudo
