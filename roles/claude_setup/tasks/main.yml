@@ -41,9 +41,12 @@
 
 - name: Install nvm (user-local, unprivileged)
   ansible.builtin.shell:
-    cmd: >
+    cmd: |
+      set -o pipefail
       curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/{{ claude_setup_nvm_version }}/install.sh | bash
     creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+  args:
+    executable: /bin/bash
   when: claude_setup_unprivileged | default(false)
 
 - name: Install Node.js LTS and Claude CLI via nvm (user-local, unprivileged)
