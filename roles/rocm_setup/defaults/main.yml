@@ -4,16 +4,27 @@
 # SPDX-License-Identifier: Apache-2.0
 # defaults file for rocm-setup
 
-# Base URL for all ROCm apt repositories. Override to switch CDN; e.g.
-# set to rocm.amd.com when AMD's new CDN becomes publicly available.
-rocm_setup_repo_base_url: repo.radeon.com
+# Repo stream: 'legacy' uses repo.radeon.com (ROCm 7.2.x production);
+# 'therock' uses repo.amd.com (ROCm 7.13+ / TheRock preview/release stream).
+rocm_setup_repo_stream: legacy
 
-# APT pin origin value. Defaults to the base URL but can be overridden
-# independently if the Origin: field in the repo Release file differs.
+# --- Legacy stream (repo.radeon.com) settings ---
+rocm_setup_repo_base_url: repo.radeon.com
+# APT pin origin matches the Origin: field in the repo's Release file.
 rocm_setup_repo_pin_origin: "{{ rocm_setup_repo_base_url }}"
 
-# The version of ROCm to install. Set to latest to use rocm-latest
-# script to detect latest.
+# --- TheRock stream (repo.amd.com) settings ---
+# Ubuntu 26.04 uses packages/ubuntu2604; 24.04 and 22.04 use packages-multi-arch/ubuntu{2404,2204}.
+rocm_setup_therock_repo_base_url: repo.amd.com
+rocm_setup_therock_gpg_url: "https://{{ rocm_setup_therock_repo_base_url }}/rocm/packages/gpg/rocm.gpg"
+rocm_setup_therock_keyring_path: /etc/apt/keyrings/amdrocm.gpg
+rocm_setup_therock_repo_path_map:
+  noble: packages-multi-arch/ubuntu2404
+  resolute: packages/ubuntu2604
+  jammy: packages-multi-arch/ubuntu2204
+
+# The version of ROCm to install (legacy stream only). Set to latest to
+# auto-detect via the rocm-latest script.
 rocm_setup_rocm_version: latest
 rocm_setup_amdgpu_version: latest
 rocm_setup_graphics_version: latest

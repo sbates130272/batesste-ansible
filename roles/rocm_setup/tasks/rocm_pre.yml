@@ -26,20 +26,26 @@
 - name: Determine if latest lookups are needed
   ansible.builtin.set_fact:
     rocm_setup_need_rocm_latest: >-
-      {{ rocm_setup_rocm_version == 'latest' }}
+      {{
+        rocm_setup_repo_stream != 'therock'
+        and rocm_setup_rocm_version == 'latest'
+      }}
     rocm_setup_need_amdgpu_latest: >-
       {{
-        (rocm_setup_wsl_mode != 'legacy')
+        rocm_setup_repo_stream != 'therock'
+        and (rocm_setup_wsl_mode != 'legacy')
         and (rocm_setup_amdgpu_version == 'latest')
       }}
     rocm_setup_need_graphics_latest: >-
       {{
-        (not rocm_setup_wsl_enabled)
+        rocm_setup_repo_stream != 'therock'
+        and (not rocm_setup_wsl_enabled)
         and (rocm_setup_graphics_version == 'latest')
       }}
     rocm_setup_need_metrics_exporter_latest: >-
       {{
-        (rocm_setup_install_metrics_exporter | default(false))
+        rocm_setup_repo_stream != 'therock'
+        and (rocm_setup_install_metrics_exporter | default(false))
         and (rocm_setup_metrics_exporter_version | default('latest') == 'latest')
       }}
 

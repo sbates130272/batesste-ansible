@@ -39,7 +39,7 @@
     mode: '0755'
   become: true
 
-- name: Install ROCm GPG key for ROCm repositories
+- name: Install ROCm GPG key (legacy stream — repo.radeon.com)
   ansible.builtin.shell:
     cmd: |
       set -o pipefail
@@ -50,6 +50,20 @@
     executable: /bin/bash
     creates: /etc/apt/keyrings/rocm.gpg
   become: true
+  when: rocm_setup_repo_stream != 'therock'
+
+- name: Install ROCm GPG key (therock stream — repo.amd.com)
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      wget -qO- {{ rocm_setup_therock_gpg_url }} \
+        | gpg --dearmor \
+        | tee {{ rocm_setup_therock_keyring_path }} > /dev/null
+  args:
+    executable: /bin/bash
+    creates: "{{ rocm_setup_therock_keyring_path }}"
+  become: true
+  when: rocm_setup_repo_stream == 'therock'
 
 - name: Write ROCm sources file
   ansible.builtin.template:
@@ -60,7 +74,7 @@
     mode: '0644'
   become: true
 
-- name: Create a rocm-pin-600 file to pin the repos want to install
+- name: Create APT pin file for legacy stream
   ansible.builtin.copy:
     content: |
       Package: *
@@ -71,13 +85,14 @@
     group: root
     mode: '0644'
   become: true
+  when: rocm_setup_repo_stream != 'therock'
 
 - name: Update apt cache after ROCm repos
   ansible.builtin.apt:
     update_cache: true
   become: true
 
-- name: Resolve ROCm meta package name
+- name: Resolve ROCm meta package name (legacy stream)
   ansible.builtin.set_fact:
     rocm_setup_rocm_meta_pkg: >-
       {{
@@ -86,6 +101,12 @@
           'rocm'
         )
       }}
+  when: rocm_setup_repo_stream != 'therock'
+
+- name: Resolve ROCm meta package name (therock stream)
+  ansible.builtin.set_fact:
+    rocm_setup_rocm_meta_pkg: rocm
+  when: rocm_setup_repo_stream == 'therock'
 
 - name: Build ROCm package list
   ansible.builtin.set_fact:
