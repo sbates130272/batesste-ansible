@@ -1,4 +1,7 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 galaxy_info:
   author: Stephen Bates
   company: Raithlin Semiconductors
@@ -18,10 +21,4 @@ galaxy_info:
     - fio
     - storage
 
-# Tag the dependency so `--tags rocm_hipfile_setup` does not re-run rocm_setup
-# (untagged dependencies always execute with the parent role). Playbooks that
-# build a full stack should still list rocm_setup before rocm_hipfile_setup.
-dependencies:
-  - role: rocm_setup
-    tags:
-      - rocm_setup
+dependencies: []

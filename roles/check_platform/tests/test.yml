@@ -1,0 +1,11 @@
+---
+# Smoke test: invoke check_platform directly on a supported platform (noble).
+# The role should complete without ending the host early.
+- name: The test playbook for the check_platform role
+  hosts: all
+  tasks:
+    - name: Run check_platform with check_platform's own meta as the calling role
+      ansible.builtin.include_role:
+        name: sbates130272.batesste.check_platform
+      vars:
+        calling_role_path: "{{ playbook_dir }}/.."

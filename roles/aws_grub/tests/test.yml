@@ -1,0 +1,6 @@
+---
+- name: The test playbook for the aws_grub role
+  hosts: all
+  roles:
+    - role: aws_grub
+      become: true

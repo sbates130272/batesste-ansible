@@ -11,20 +11,22 @@
 
 - name: Set a fact containing the current roles' path
   ansible.builtin.set_fact:
-    calling_role_path_fact: "{{ role_path }}"
+    git_setup_calling_role_path_fact: "{{ role_path }}"
 
 - name: Test the host platform to see if it can support this role
   ansible.builtin.include_role:
     name: sbates130272.batesste.check_platform
   vars:
-    calling_role_path: "{{ calling_role_path_fact }}"
+    calling_role_path: "{{ git_setup_calling_role_path_fact }}"  # noqa var-naming
 
 - name: Install GitHub CLI
   ansible.builtin.package:
     name: gh
     state: present
   become: true
-  when: git_setup_install_gh | default(true)
+  when:
+    - git_setup_install_gh | default(true)
+    - not git_setup_unprivileged | default(false)
 
 - name: Check if GitHub token is available
   ansible.builtin.set_fact:
@@ -124,8 +126,7 @@
     marker_begin: BEGIN (git_setup)
     marker_end: END (git_setup)
     block: |
-      GPG_TTY=$(tty)
-      export GPG_TTY
+      [ -t 1 ] && GPG_TTY=$(tty) && export GPG_TTY
   when: git_setup_enable_gpg_signing | default(true)
 
 - name: Setup default merge behaviour

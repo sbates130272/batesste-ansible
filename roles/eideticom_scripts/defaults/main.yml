@@ -1,3 +1,6 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 eideticom_scripts_force: false
 eideticom_scripts_sha: b39c2d73bc686e14a17eb5db79fdbcbe993eb197

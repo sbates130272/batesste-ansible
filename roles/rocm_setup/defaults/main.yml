@@ -1,8 +1,30 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 # defaults file for rocm-setup
 
-# The version of ROCm to install. Set to latest to use rocm-latest
-# script to detect latest.
+# Repo stream: 'legacy' uses repo.radeon.com (ROCm 7.2.x production);
+# 'therock' uses repo.amd.com (ROCm 7.13+ / TheRock preview/release stream).
+rocm_setup_repo_stream: legacy
+
+# --- Legacy stream (repo.radeon.com) settings ---
+rocm_setup_repo_base_url: repo.radeon.com
+# APT pin origin matches the Origin: field in the repo's Release file.
+rocm_setup_repo_pin_origin: "{{ rocm_setup_repo_base_url }}"
+
+# --- TheRock stream (repo.amd.com) settings ---
+# Ubuntu 26.04 uses packages/ubuntu2604; 24.04 and 22.04 use packages-multi-arch/ubuntu{2404,2204}.
+rocm_setup_therock_repo_base_url: repo.amd.com
+rocm_setup_therock_gpg_url: "https://{{ rocm_setup_therock_repo_base_url }}/rocm/packages/gpg/rocm.gpg"
+rocm_setup_therock_keyring_path: /etc/apt/keyrings/amdrocm.gpg
+rocm_setup_therock_repo_path_map:
+  noble: packages-multi-arch/ubuntu2404
+  resolute: packages/ubuntu2604
+  jammy: packages-multi-arch/ubuntu2204
+
+# The version of ROCm to install (legacy stream only). Set to latest to
+# auto-detect via the rocm-latest script.
 rocm_setup_rocm_version: latest
 rocm_setup_amdgpu_version: latest
 rocm_setup_graphics_version: latest
@@ -78,8 +100,18 @@ rocm_setup_xrocmtop_install_dir: /usr/local/bin
 rocm_setup_install_metrics_exporter: true
 rocm_setup_metrics_exporter_version: latest
 rocm_setup_metrics_exporter_repo_uri: >-
-  https://repo.radeon.com/device-metrics-exporter/apt/{{
+  https://{{ rocm_setup_repo_base_url }}/device-metrics-exporter/apt/{{
   rocm_setup_metrics_exporter_version }}
 rocm_setup_metrics_exporter_port: 5000
 rocm_setup_metrics_exporter_config_path: /etc/metrics/config.json
 rocm_setup_metrics_exporter_open_firewall: true
+
+# Install hipFile and fio-libhipfile via apt. These packages are expected
+# to land in the ROCm apt repo with ROCm 7.13/7.14 tech preview.
+# Adjust rocm_setup_hipfile_packages if the final package names differ.
+rocm_setup_install_hipfile: false
+rocm_setup_hipfile_packages:
+  - hipfile
+  - fio-libhipfile
+# Install path expected by inventory that previously used rocm_hipfile_setup.
+rocm_setup_hipfile_fio_install_dir: /opt/fio-hipfile

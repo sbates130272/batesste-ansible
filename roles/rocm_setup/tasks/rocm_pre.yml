@@ -26,20 +26,26 @@
 - name: Determine if latest lookups are needed
   ansible.builtin.set_fact:
     rocm_setup_need_rocm_latest: >-
-      {{ rocm_setup_rocm_version == 'latest' }}
+      {{
+        rocm_setup_repo_stream != 'therock'
+        and rocm_setup_rocm_version == 'latest'
+      }}
     rocm_setup_need_amdgpu_latest: >-
       {{
-        (rocm_setup_wsl_mode != 'legacy')
+        rocm_setup_repo_stream != 'therock'
+        and (rocm_setup_wsl_mode != 'legacy')
         and (rocm_setup_amdgpu_version == 'latest')
       }}
     rocm_setup_need_graphics_latest: >-
       {{
-        (not rocm_setup_wsl_enabled)
+        rocm_setup_repo_stream != 'therock'
+        and (not rocm_setup_wsl_enabled)
         and (rocm_setup_graphics_version == 'latest')
       }}
     rocm_setup_need_metrics_exporter_latest: >-
       {{
-        (rocm_setup_install_metrics_exporter | default(false))
+        rocm_setup_repo_stream != 'therock'
+        and (rocm_setup_install_metrics_exporter | default(false))
         and (rocm_setup_metrics_exporter_version | default('latest') == 'latest')
       }}
 
@@ -49,6 +55,7 @@
   environment:
     QUIET: "true"
     ONLY_ONE: ROCM
+    RADEON_REPO: "https://{{ rocm_setup_repo_base_url }}"
   register: rocm_latest_version
   changed_when: false
   when:
@@ -62,6 +69,7 @@
     QUIET: "true"
     ONLY_ONE: ROCM
     WSL_INSTALL: "true"
+    RADEON_REPO: "https://{{ rocm_setup_repo_base_url }}"
   register: rocm_latest_wsl_version
   changed_when: false
   when:
@@ -74,6 +82,7 @@
   environment:
     QUIET: "true"
     ONLY_ONE: AMDGPU
+    RADEON_REPO: "https://{{ rocm_setup_repo_base_url }}"
   register: amdgpu_latest_version
   changed_when: false
   when: rocm_setup_need_amdgpu_latest
@@ -84,6 +93,7 @@
   environment:
     QUIET: "true"
     ONLY_ONE: GRAPHICS
+    RADEON_REPO: "https://{{ rocm_setup_repo_base_url }}"
   register: graphics_latest_version
   changed_when: false
   when: rocm_setup_need_graphics_latest
@@ -94,6 +104,7 @@
   environment:
     QUIET: "true"
     ONLY_ONE: METRICS_EXPORTER
+    RADEON_REPO: "https://{{ rocm_setup_repo_base_url }}"
   register: metrics_exporter_latest_version
   changed_when: false
   when: rocm_setup_need_metrics_exporter_latest

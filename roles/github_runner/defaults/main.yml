@@ -1,4 +1,7 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 # GitHub Runner Installation Defaults
 
 # Runner version (use "latest" or specific version like "2.311.0")

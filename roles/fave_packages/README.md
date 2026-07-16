@@ -71,6 +71,15 @@ Includes `check_platform` automatically.
 - Ubuntu noble (24.04)
 - Ubuntu resolute (26.04)
 
+## Note on prometheus-node-exporter
+
+This role installs `prometheus-node-exporter` as part of its default package
+list. The `grafana_setup` and `consul_setup` roles also install it independently
+so each role remains usable standalone. Running more than one of these roles on
+the same host is safe (idempotent), but if you want to manage node-exporter
+exclusively through one role, set `grafana_setup_install_node_exporter: false`
+and/or remove the package from `fave_packages_packages` as needed.
+
 ## License
 
 Apache-2.0

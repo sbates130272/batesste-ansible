@@ -16,7 +16,7 @@ The AMD Device Metrics Exporter is hardware-dependent and requires AMD EPYC CPUs
 
 ```bash
 cd roles/rocm_setup
-ansible-playbook -i hosts-rocm-setup ./tests/test.yml
+ansible-playbook -i ../../playbooks/inventories/hosts-rocm-setup ./tests/test.yml
 ```
 
 ### Verify Installation
@@ -63,7 +63,7 @@ For testing without GPU hardware:
 
 ```bash
 cd roles/rocm_setup
-ansible-playbook -i hosts-rocm-setup ./tests/test.yml -e "rocm_setup_install_metrics_exporter=false"
+ansible-playbook -i ../../playbooks/inventories/hosts-rocm-setup ./tests/test.yml -e "rocm_setup_install_metrics_exporter=false"
 ```
 
 ## CI/CD Testing

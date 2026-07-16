@@ -1,9 +1,0 @@
----
-# Supported platforms for github_runner role
-supported_distributions:
-  - Ubuntu
-supported_versions:
-  - "24.04"
-  - noble
-  - "26.04"
-  - resolute

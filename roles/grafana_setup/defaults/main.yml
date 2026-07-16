@@ -1,4 +1,7 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 # defaults file for grafana_setup
 
 # Grafana package version (apt). Set to "latest" to avoid pinning.

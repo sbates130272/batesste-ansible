@@ -1,0 +1,5 @@
+breaking_changes:
+  - >-
+    Move example inventory files (hosts-\*) from individual role root directories
+    to playbooks/inventories/. Update any -i paths in local ansible-playbook
+    commands to use the new location (e.g. ``-i ../../playbooks/inventories/hosts-rocm-setup``).

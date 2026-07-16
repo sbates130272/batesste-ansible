@@ -245,6 +245,33 @@ ROLE_CONFIGS = {
         ],
         "needs_vault": False,
     },
+    "aws_grub": {
+        "free_disk_space": False,
+        "extra_vars": {},
+        "verification_commands": [
+            "ls -la /etc/default/grub.d/50-cloudimg-settings.cfg || true",
+            "cat /etc/default/grub.d/50-cloudimg-settings.cfg || true",
+        ],
+        "needs_vault": False,
+    },
+    "check_platform": {
+        "free_disk_space": False,
+        "extra_vars": {},
+        "verification_commands": [
+            "echo 'check_platform smoke test complete'",
+        ],
+        "needs_vault": False,
+    },
+    "eideticom_scripts": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "username": "runner",
+        },
+        "verification_commands": [
+            "grep -q eideticom-scripts ~/.bashrc && echo 'PATH block found' || true",
+        ],
+        "needs_vault": False,
+    },
 }
 
 # Roles in this list only run on workflow_dispatch (manual); they do not

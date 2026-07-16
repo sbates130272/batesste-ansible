@@ -1,4 +1,7 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 # defaults file for nfs_rdma_setup
 
 # Role mode: 'target' for NFS server (exports), 'host' for NFS client (mount)

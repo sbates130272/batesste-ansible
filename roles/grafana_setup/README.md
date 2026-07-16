@@ -327,16 +327,24 @@ and are ready to use immediately after role execution.
 Run the following from the folder this README resides in:
 
 ```bash
-ANSIBLE_ROLES_PATH=../ ansible-playbook -i hosts-grafana-setup ./tests/test.yml
+ANSIBLE_ROLES_PATH=../ ansible-playbook -i ../../playbooks/inventories/hosts-grafana-setup ./tests/test.yml
 ```
 
 Or to test with your own user:
 
 ```bash
-ANSIBLE_ROLES_PATH=../ ansible-playbook -i hosts-grafana-setup ./tests/test.yml -e ansible_user=$(whoami)
+ANSIBLE_ROLES_PATH=../ ansible-playbook -i ../../playbooks/inventories/hosts-grafana-setup ./tests/test.yml -e ansible_user=$(whoami)
 ```
 
-**Note**: Update `vault_grafana_setup_password` in `hosts-grafana-setup` before running.
+**Note**: Update `vault_grafana_setup_password` in `../../playbooks/inventories/hosts-grafana-setup` before running.
+
+## Note on prometheus-node-exporter
+
+This role installs `prometheus-node-exporter` when
+`grafana_setup_install_node_exporter: true` (the default). The `fave_packages`
+and `consul_setup` roles also install it independently so each role remains
+usable standalone. If you are running multiple of these roles on the same host,
+set `grafana_setup_install_node_exporter: false` to avoid redundancy.
 
 ## Author and License Information
 

@@ -1,3 +1,6 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 docker_setup_edition: 'ce'
 docker_setup_users: []

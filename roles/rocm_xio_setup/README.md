@@ -121,7 +121,7 @@ Run from this role directory:
 
 ```bash
 ANSIBLE_ROLES_PATH=../ ansible-playbook \
-  -i ./hosts-rocm-xio-setup \
+  -i ../../playbooks/inventories/hosts-rocm-xio-setup \
   ./tests/test.yml
 ```
 

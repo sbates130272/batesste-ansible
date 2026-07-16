@@ -1,4 +1,7 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 galaxy_info:
   author: Stephen Bates
   company: Raithlin Semiconductors

@@ -1,14 +1,10 @@
 ---
+# Test playbook for the rocm_hipfile_setup role (deprecated).
+# Verifies that the deprecation stub runs cleanly when
+# rocm_hipfile_setup_allow_deprecated: true is set.
 - name: The test playbook for the rocm_hipfile_setup role
   hosts: all
   roles:
-    - role: rocm_setup
-      become: false
-      rocm_setup_run_checks: false
-      rocm_setup_install_metrics_exporter: false
-      rocm_setup_install_kernel_driver: false
-      rocm_setup_skip_reboot: true
-      rocm_setup_skip_system_upgrade: true
     - role: rocm_hipfile_setup
       become: false
-      rocm_hipfile_setup_run_checks: false
+      rocm_hipfile_setup_allow_deprecated: true

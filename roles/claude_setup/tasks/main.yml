@@ -27,7 +27,9 @@
     state: present
     update_cache: true
   become: true
-  when: claude_setup_install_nodejs
+  when:
+    - claude_setup_install_nodejs
+    - not claude_setup_unprivileged | default(false)
 
 - name: Install the Claude CLI via npm
   community.general.npm:
@@ -35,12 +37,37 @@
     global: true
     state: present
   become: true
+  when: not claude_setup_unprivileged | default(false)
+
+- name: Install nvm (user-local, unprivileged)
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/{{ claude_setup_nvm_version }}/install.sh | bash
+    creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+  args:
+    executable: /bin/bash
+  when: claude_setup_unprivileged | default(false)
+
+- name: Install Node.js LTS and Claude CLI via nvm (user-local, unprivileged)
+  ansible.builtin.shell:
+    cmd: |
+      export NVM_DIR="{{ ansible_env.HOME }}/.nvm"
+      . "$NVM_DIR/nvm.sh"
+      nvm install {{ claude_setup_node_version }}
+      nvm use {{ claude_setup_node_version }}
+      nvm alias default {{ claude_setup_node_version }}
+      npm install -g @anthropic-ai/claude-code
+    executable: /bin/bash
+  changed_when: true
+  when: claude_setup_unprivileged | default(false)
 
 - name: Install nginx for the LLM reverse proxy
   ansible.builtin.package:
     name: nginx
     state: present
   become: true
+  when: not claude_setup_unprivileged | default(false)
 
 - name: Deploy the Claude reverse proxy nginx site config
   ansible.builtin.template:
@@ -51,6 +78,7 @@
     mode: "0644"
   become: true
   notify: Reload nginx
+  when: not claude_setup_unprivileged | default(false)
 
 - name: Enable the Claude reverse proxy nginx site
   ansible.builtin.file:
@@ -59,6 +87,7 @@
     state: link
   become: true
   notify: Reload nginx
+  when: not claude_setup_unprivileged | default(false)
 
 - name: Ensure nginx is started and enabled
   ansible.builtin.systemd:
@@ -66,6 +95,7 @@
     state: started
     enabled: true
   become: true
+  when: not claude_setup_unprivileged | default(false)
 
 - name: Flush handlers to apply nginx config
   ansible.builtin.meta: flush_handlers
@@ -88,6 +118,7 @@
     dest: "~/.claude/secrets.sh"
     mode: "0600"
   no_log: true
+  when: claude_setup_api_key | length > 0 or claude_setup_apim_key | length > 0
 
 - name: Configure Claude environment in .bashrc
   ansible.builtin.blockinfile:
@@ -98,3 +129,18 @@
     block: |
       # Source Claude CLI secrets (API key and proxy URL)
       [ -f ~/.claude/secrets.sh ] && source ~/.claude/secrets.sh
+  when: not claude_setup_unprivileged | default(false)
+
+- name: Configure Claude environment in .bashrc (unprivileged)
+  ansible.builtin.blockinfile:
+    path: "~/.bashrc"
+    state: present
+    marker_begin: BEGIN (claude_setup)
+    marker_end: END (claude_setup)
+    block: |
+      # Source Claude CLI secrets (API key and proxy URL)
+      [ -f ~/.claude/secrets.sh ] && source ~/.claude/secrets.sh
+      # nvm (Node Version Manager) - installed without root for Claude CLI
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  when: claude_setup_unprivileged | default(false)

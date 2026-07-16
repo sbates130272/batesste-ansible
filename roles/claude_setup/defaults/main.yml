@@ -16,12 +16,57 @@ claude_setup_proxy_port: 8888
 # Lemonade server on this host or a remote proxy node).
 claude_setup_proxy_upstream: "http://localhost:8000"
 
-# Base URL written into the Claude CLI settings as
-# ANTHROPIC_BASE_URL.  By default this points at the local
-# nginx proxy defined above.
+# Base URL written into settings.json as ANTHROPIC_BASE_URL.
+# Default points at the local nginx proxy; override for e.g. AMD's API gateway.
 claude_setup_api_base_url: "http://localhost:{{ claude_setup_proxy_port }}"
 
-# API key for the LLM serving backend.
-# This should be sourced from an Ansible Vault-encrypted
-# variable in your inventory or group_vars.
-claude_setup_api_key: "{{ vault_claude_setup_api_key }}"
+# API key for the LLM backend. Set via vault.
+claude_setup_api_key: "{{ vault_claude_setup_api_key | default('') }}"
+
+# AMD API gateway subscription key (Ocp-Apim-Subscription-Key header).
+# Set via vault. Leave empty to omit the header.
+claude_setup_apim_key: "{{ vault_claude_setup_apim_key | default('') }}"
+
+# Model names written into settings.json. Empty string omits the variable.
+claude_setup_model_sonnet: ""
+claude_setup_model_opus: ""
+claude_setup_model_haiku: ""
+claude_setup_default_model: ""
+
+# OTEL telemetry. Set claude_setup_otel_endpoint to enable; leave empty to disable.
+claude_setup_otel_endpoint: ""
+claude_setup_otel_protocol: "http/protobuf"
+claude_setup_otel_resource_attributes: ""
+claude_setup_otel_log_tool_details: "0"
+claude_setup_otel_log_raw_api_bodies: "0"
+claude_setup_otel_log_tool_content: "0"
+claude_setup_otel_log_user_prompts: "0"
+claude_setup_otel_metrics_temporality: "cumulative"
+
+# Set to "1" to enable Claude Code telemetry (requires otel_endpoint).
+claude_setup_enable_telemetry: "0"
+claude_setup_enhanced_telemetry: "0"
+
+# Disable non-essential traffic (e.g. usage stats). "1" to disable.
+claude_setup_disable_nonessential_traffic: "0"
+
+# Disable experimental betas. "1" to disable.
+claude_setup_disable_experimental_betas: "0"
+
+# Enable tool search. "true" or "false".
+claude_setup_enable_tool_search: "false"
+
+# Company announcements shown in the Claude Code UI. Empty list to omit.
+claude_setup_company_announcements: []
+
+# Set to true to skip all tasks that require root/sudo (nginx install and
+# Claude CLI global install). User-space config (~/.claude/, .bashrc) still runs.
+# In unprivileged mode nvm is used to install Node.js and the Claude CLI without root.
+claude_setup_unprivileged: false
+
+# nvm version to install in unprivileged mode.
+claude_setup_nvm_version: "v0.40.3"
+
+# Node.js version alias to install via nvm in unprivileged mode.
+# Uses "node" (latest stable) since the lts/* alias requires network LTS index lookup.
+claude_setup_node_version: "node"

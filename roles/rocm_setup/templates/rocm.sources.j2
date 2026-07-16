@@ -1,6 +1,17 @@
+{% if rocm_setup_repo_stream == 'therock' %}
+{# TheRock / repo.amd.com stream (ROCm 7.13+): single unified repo, suite is 'stable main' #}
 Types: deb
-URIs: https://repo.radeon.com/rocm/apt/{{ rocm_setup_rocm_version }}
-  https://repo.radeon.com/amdgpu/{{ rocm_setup_amdgpu_version }}/ubuntu
+URIs: https://{{ rocm_setup_therock_repo_base_url }}/rocm/{{ rocm_setup_therock_repo_path_map[ansible_distribution_release] | default('packages-multi-arch/ubuntu2404') }}
+Suites: stable
+Components: main
+Architectures: amd64
+Signed-By: {{ rocm_setup_therock_keyring_path }}
+
+{% else %}
+{# Legacy / repo.radeon.com stream (ROCm 7.2.x production) #}
+Types: deb
+URIs: https://{{ rocm_setup_repo_base_url }}/rocm/apt/{{ rocm_setup_rocm_version }}
+  https://{{ rocm_setup_repo_base_url }}/amdgpu/{{ rocm_setup_amdgpu_version }}/ubuntu
 Suites: {{ ansible_distribution_release }}
 Components: main
 Architectures: amd64
@@ -8,7 +19,7 @@ Signed-By: /etc/apt/keyrings/rocm.gpg
 
 {% if not rocm_setup_wsl_enabled %}
 Types: deb
-URIs: https://repo.radeon.com/graphics/{{ rocm_setup_graphics_version }}/ubuntu
+URIs: https://{{ rocm_setup_repo_base_url }}/graphics/{{ rocm_setup_graphics_version }}/ubuntu
 Suites: {{ ansible_distribution_release }}
 Components: main
 Architectures: amd64
@@ -23,4 +34,5 @@ Components: main
 Architectures: amd64
 Signed-By: /etc/apt/keyrings/rocm.gpg
 
+{% endif %}
 {% endif %}

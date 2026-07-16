@@ -146,7 +146,7 @@ Run the following from the folder this README resides in:
 ANSIBLE_ROLES_PATH=../ ansible-playbook -i <host_file> ./tests/test.yml
 ```
 
-There is an [example hosts file](./hosts-rdma-setup) that users can use
+There is an [example hosts file](../../playbooks/inventories/hosts-rdma-setup) that users can use
 as a template for their testing.
 
 ## Installed Packages

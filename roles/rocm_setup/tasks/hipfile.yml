@@ -1,0 +1,33 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Install hipFile and fio-libhipfile via apt (ROCm 7.14+).
+
+- name: Install hipFile and fio-libhipfile packages
+  ansible.builtin.package:
+    name: "{{ rocm_setup_hipfile_packages }}"
+    state: present
+    update_cache: true
+  become: true
+
+- name: Ensure fio-hipfile install directory exists
+  ansible.builtin.file:
+    path: "{{ rocm_setup_hipfile_fio_install_dir }}/bin"
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Check fio has libhipfile engine
+  ansible.builtin.command:
+    cmd: fio --enghelp=libhipfile
+  register: rocm_setup_hipfile_fio_check
+  changed_when: false
+  failed_when: false
+  when: rocm_setup_run_checks
+
+- name: Show hipFile fio engine check output
+  ansible.builtin.debug:
+    msg: "fio libhipfile engine check rc={{ rocm_setup_hipfile_fio_check.rc | default('skipped') }}"
+  when: rocm_setup_run_checks

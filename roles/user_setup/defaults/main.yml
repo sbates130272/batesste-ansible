@@ -1,4 +1,7 @@
 ---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 # the default user is batesste
 username: batesste
 user_setup_timezone: America/Edmonton
@@ -14,3 +17,13 @@ user_setup_ssh_key_name: id_rsa
 
 # Controller-side directory containing the SSH keys
 user_setup_ssh_key_src_dir: "{{ lookup('env', 'HOME') }}/.ssh"
+
+# Set to true to skip tasks that require root/sudo (user/group creation, SSH key
+# deployment, sudoers, sysctl, timezone, networking, fstab, MOTD). User-space
+# config (.bashrc, ~/.ssh/config, emacs files) still runs.
+user_setup_unprivileged: false
+
+# Set to the path of the preferred shell to exec into for interactive sessions
+# when the login shell is not bash (e.g. tcsh on AMD systems). Empty to disable.
+# Uses $?prompt guard so non-interactive SSH (Ansible, scp) is unaffected.
+user_setup_preferred_shell: ""

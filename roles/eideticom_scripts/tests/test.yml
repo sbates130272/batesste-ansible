@@ -1,0 +1,10 @@
+---
+- name: The test playbook for the eideticom_scripts role
+  hosts: all
+  vars:
+    # Use a non-batesste username so the SSH git clone is skipped in CI;
+    # the PATH block-in-bashrc task still runs and is what we verify.
+    username: runner
+  roles:
+    - role: eideticom_scripts
+      become: false

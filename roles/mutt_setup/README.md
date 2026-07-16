@@ -65,7 +65,7 @@ ANSIBLE_ROLES_PATH=../ ansible-playbook -i <host_file> \
   --vault-password-file <vault-password-file> ./tests/test.yml
 ```
 
-There is an [example hosts file](./hosts-mutt-setup) that users can
+There is an [example hosts file](../../playbooks/inventories/hosts-mutt-setup) that users can
 use as a template for their testing.
 
 Note: The test requires a valid vault password file that can decrypt
