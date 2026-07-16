@@ -115,7 +115,7 @@
     dest: "~/.claude/secrets.sh"
     mode: "0600"
   no_log: true
-  when: claude_setup_api_key | length > 0
+  when: claude_setup_api_key | length > 0 or claude_setup_apim_key | length > 0
 
 - name: Configure Claude environment in .bashrc
   ansible.builtin.blockinfile:

@@ -3,6 +3,27 @@
 {# Managed by Ansible — do not edit manually.                  #}
 {
   "env": {
-    "ANTHROPIC_BASE_URL": "{{ claude_setup_api_base_url }}"
-  }
+    "ANTHROPIC_BASE_URL": "{{ claude_setup_api_base_url }}"{% if claude_setup_disable_nonessential_traffic == "1" %},
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"{% endif %}{% if claude_setup_disable_experimental_betas == "1" %},
+    "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1"{% endif %}{% if claude_setup_enable_telemetry == "1" %},
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1"{% endif %}{% if claude_setup_enhanced_telemetry == "1" %},
+    "CLAUDE_CODE_ENHANCED_TELEMETRY_BETA": "1"{% endif %}{% if claude_setup_enable_tool_search != "false" %},
+    "ENABLE_TOOL_SEARCH": "{{ claude_setup_enable_tool_search }}"{% endif %}{% if claude_setup_default_model | length > 0 %},
+    "ANTHROPIC_MODEL": "{{ claude_setup_default_model }}"{% endif %}{% if claude_setup_model_sonnet | length > 0 %},
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "{{ claude_setup_model_sonnet }}"{% endif %}{% if claude_setup_model_opus | length > 0 %},
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "{{ claude_setup_model_opus }}"{% endif %}{% if claude_setup_model_haiku | length > 0 %},
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "{{ claude_setup_model_haiku }}"{% endif %}{% if claude_setup_otel_endpoint | length > 0 %},
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "{{ claude_setup_otel_endpoint }}",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "{{ claude_setup_otel_protocol }}",
+    "OTEL_TRACES_EXPORTER": "otlp",
+    "OTEL_METRICS_EXPORTER": "otlp",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "{{ claude_setup_otel_metrics_temporality }}",
+    "OTEL_LOG_TOOL_DETAILS": "{{ claude_setup_otel_log_tool_details }}",
+    "OTEL_LOG_RAW_API_BODIES": "{{ claude_setup_otel_log_raw_api_bodies }}",
+    "OTEL_LOG_TOOL_CONTENT": "{{ claude_setup_otel_log_tool_content }}",
+    "OTEL_LOG_USER_PROMPTS": "{{ claude_setup_otel_log_user_prompts }}"{% if claude_setup_otel_resource_attributes | length > 0 %},
+    "OTEL_RESOURCE_ATTRIBUTES": "{{ claude_setup_otel_resource_attributes }}"{% endif %}{% endif %}
+  }{% if claude_setup_company_announcements | length > 0 %},
+  "companyAnnouncements": {{ claude_setup_company_announcements | to_nice_json(indent=4) | indent(2) }}{% endif %}
 }

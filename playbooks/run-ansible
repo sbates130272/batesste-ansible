@@ -72,6 +72,9 @@ fi
 
 if [ -f vault-password ]; then
     AP_EXTRA+=(--vault-password-file vault-password)
+    if [ -f secrets.yml ]; then
+        AP_EXTRA+=(--extra-vars "@secrets.yml")
+    fi
 elif [ "${RUN_ANSIBLE_NO_VAULT:-}" = "1" ]; then
     :
 else

@@ -124,6 +124,18 @@
     block: |
       export DEBIAN_FRONTEND=noninteractive
 
+- name: Exec preferred shell for interactive logins (tcsh guard)
+  ansible.builtin.blockinfile:
+    path: "{{ user_setup_home }}/.tcshrc"
+    state: present
+    create: true
+    mode: "0644"
+    marker_begin: "# BEGIN (user_setup)"
+    marker_end: "# END (user_setup)"
+    block: |
+      if ($?prompt) exec {{ user_setup_preferred_shell }} --login
+  when: user_setup_preferred_shell | length > 0
+
 - name: Set the timezone of the system clock
   community.general.timezone:
     name: "{{ user_setup_timezone }}"
