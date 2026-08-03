@@ -8,3 +8,4 @@ git_setup_install_gh: true
 git_setup_gh_token: ""  # Set this in vault to enable gh authentication
 git_setup_gh_authenticate: false  # Set to true to authenticate gh with token
 git_setup_unprivileged: false  # Set to true to skip tasks that require root/sudo
+git_setup_dotfiles_enable: false  # Set to true when dotfiles repo owns .gitconfig (skips git config --global tasks)

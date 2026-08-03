@@ -40,6 +40,48 @@ user_setup_ssh_key_name: id_rsa
 user_setup_ssh_key_src_dir: "{{ lookup('env', 'HOME') }}/.ssh"
 ```
 
+### Dotfiles Integration
+
+```yaml
+# Clone batesste-dotfiles and stow selected packages (default: false)
+user_setup_dotfiles_enable: false
+
+# Git URL of the dotfiles repository
+user_setup_dotfiles_repo: "https://github.com/sbates130272/batesste-dotfiles.git"
+
+# Local clone destination on the target host
+user_setup_dotfiles_dest: "{{ user_setup_home }}/Projects/batesste-dotfiles"
+
+# Space-separated list of stow packages to install via install.sh
+user_setup_dotfiles_packages: "bash git gh"
+```
+
+When `user_setup_dotfiles_enable` is `true`:
+
+- `~/Projects/batesste-dotfiles` is cloned and kept up to date
+- GNU `stow` is installed and `install.sh` is run for the configured packages
+- The `DEBIAN_FRONTEND` blockinfile is skipped (the stowed `.bashrc` already exports it)
+
+Pair with `git_setup_dotfiles_enable: true` so that git role tasks do not
+overwrite the stowed `.gitconfig`.
+
+### HuggingFace Token
+
+```yaml
+# HuggingFace read token (store in vault; empty = skip)
+user_setup_hf_token: ""
+
+# Destination path on the target host (mode 0600)
+user_setup_hf_token_path: "{{ user_setup_home }}/.batesste-hugging-face-read-march-2026.token"
+```
+
+The token is written with `no_log: true` and is never stored on disk
+unencrypted. Store `vault_hf_token` in Ansible Vault and reference it:
+
+```yaml
+user_setup_hf_token: "{{ vault_hf_token | default('') }}"
+```
+
 ### Driver Overrides MOTD
 
 When `user_setup_motd` is set to `true`, the role will:

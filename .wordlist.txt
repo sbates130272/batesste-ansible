@@ -370,3 +370,9 @@ UUID
 vpc
 Xen
 yourlogin
+blockinfile
+dotfiles
+gitconfig
+HuggingFace
+TTY
+unencrypted

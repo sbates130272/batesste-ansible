@@ -123,6 +123,7 @@
     marker_end: END (user_setup)
     block: |
       export DEBIAN_FRONTEND=noninteractive
+  when: not user_setup_dotfiles_enable | default(false)
 
 - name: Exec preferred shell for interactive logins (tcsh guard)
   ansible.builtin.blockinfile:
@@ -149,6 +150,7 @@
     state: present
     create: true
     mode: "0644"
+  when: not user_setup_dotfiles_owns_ssh | default(false)
 
 - name: Set important values in user's ssh config file
   ansible.builtin.lineinfile:
@@ -161,12 +163,84 @@
     - ServerAliveInterval 60
     - ServerAliveCountMax 30
     - StrictHostKeyChecking accept-new
+  when: not user_setup_dotfiles_owns_ssh | default(false)
+
+- name: Ensure Projects directory exists for dotfiles clone
+  ansible.builtin.file:
+    path: "{{ user_setup_home }}/Projects"
+    state: directory
+    mode: "0755"
+  when: user_setup_dotfiles_enable | default(false)
+
+- name: Clone batesste-dotfiles repo
+  ansible.builtin.git:
+    repo: "{{ user_setup_dotfiles_repo }}"
+    dest: "{{ user_setup_dotfiles_dest }}"
+    version: "{{ user_setup_dotfiles_version }}"
+    update: true
+  when: user_setup_dotfiles_enable | default(false)
+
+- name: Install GNU stow, git-crypt, and gettext-base for dotfiles management
+  ansible.builtin.package:
+    name:
+      - stow
+      - git-crypt
+      - gettext-base
+    state: present
+  become: true
+  when:
+    - user_setup_dotfiles_enable | default(false)
+    - not user_setup_unprivileged | default(false)
+
+- name: Import GPG private key for git-crypt unlock
+  when:
+    - user_setup_dotfiles_enable | default(false)
+    - user_setup_gpg_private_key | length > 0
+  no_log: true
+  block:
+    - name: Write GPG private key to tempfile
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .asc
+      register: user_setup_gpg_key_tempfile
+
+    - name: Copy armored GPG private key into tempfile
+      ansible.builtin.copy:
+        content: "{{ user_setup_gpg_private_key }}"
+        dest: "{{ user_setup_gpg_key_tempfile.path }}"
+        mode: "0600"
+
+    - name: Import GPG private key into user keyring
+      ansible.builtin.command:
+        cmd: "gpg --batch --import {{ user_setup_gpg_key_tempfile.path }}"
+      changed_when: true
+
+    - name: Remove GPG private key tempfile
+      ansible.builtin.file:
+        path: "{{ user_setup_gpg_key_tempfile.path }}"
+        state: absent
+
+- name: Unlock git-crypt secrets in dotfiles repo
+  ansible.builtin.command:
+    cmd: git-crypt unlock
+    chdir: "{{ user_setup_dotfiles_dest }}"
+  changed_when: false
+  when: user_setup_dotfiles_enable | default(false)
+
+- name: Run dotfiles install.sh to stow selected packages
+  ansible.builtin.command:
+    cmd: "./install.sh {{ user_setup_dotfiles_packages }}"
+    chdir: "{{ user_setup_dotfiles_dest }}"
+  changed_when: true
+  when: user_setup_dotfiles_enable | default(false)
+
 
 - name: Ensure .emacs.d folder exists
   ansible.builtin.file:
     path: "{{ user_setup_home }}/.emacs.d"
     state: directory
     mode: "0755"
+  when: not user_setup_dotfiles_owns_emacs | default(false)
 
 - name: Copy emacs config file from our files folder
   ansible.builtin.copy:
@@ -174,6 +248,7 @@
     src: init.el
     dest: "{{ user_setup_home }}/.emacs.d/init.el"
     mode: "0644"
+  when: not user_setup_dotfiles_owns_emacs | default(false)
 
 - name: Copy emacs config file from our files folder
   ansible.builtin.copy:
@@ -181,6 +256,7 @@
     src: .emacs
     dest: "{{ user_setup_home }}/.emacs"
     mode: "0644"
+  when: not user_setup_dotfiles_owns_emacs | default(false)
 
 - name: Check if Projects is already a mount point
   ansible.builtin.command:
