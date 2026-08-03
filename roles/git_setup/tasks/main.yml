@@ -90,27 +90,32 @@
     name: core.editor
     value: emacs
     scope: global
+  when: not git_setup_dotfiles_enable | default(false)
 
 - name: Setup name for git config
   community.general.git_config:
     name: user.name
     value: Stephen Bates
     scope: global
+  when: not git_setup_dotfiles_enable | default(false)
 
 - name: Setup email for git config
   community.general.git_config:
     name: user.email
     value: sbates@raithlin.com
     scope: global
+  when: not git_setup_dotfiles_enable | default(false)
 
 - name: Setup pgp signing for all commits
   community.general.git_config:
     name: commit.gpgsign
     value: "true"
     scope: global
-  when: git_setup_enable_gpg_signing | default(true)
+  when:
+    - git_setup_enable_gpg_signing | default(true)
+    - not git_setup_dotfiles_enable | default(false)
 
-- name: Setup pgp signing for all commits
+- name: Setup pgp signing key
   community.general.git_config:
     name: user.signingkey
     value: "{{ git_setup_signingkey }}"
@@ -118,6 +123,7 @@
   when:
     - git_setup_enable_gpg_signing | default(true)
     - git_setup_signingkey | default("") | length > 0
+    - not git_setup_dotfiles_enable | default(false)
 
 - name: Setup gpg-agent correctly in .bashrc
   ansible.builtin.blockinfile:
@@ -127,16 +133,20 @@
     marker_end: END (git_setup)
     block: |
       [ -t 1 ] && GPG_TTY=$(tty) && export GPG_TTY
-  when: git_setup_enable_gpg_signing | default(true)
+  when:
+    - git_setup_enable_gpg_signing | default(true)
+    - not git_setup_dotfiles_enable | default(false)
 
 - name: Setup default merge behaviour
   community.general.git_config:
     name: pull.rebase
     value: "false"
     scope: global
+  when: not git_setup_dotfiles_enable | default(false)
 
 - name: Setup default branch to "main"
   community.general.git_config:
     name: init.defaultBranch
     value: "main"
     scope: global
+  when: not git_setup_dotfiles_enable | default(false)

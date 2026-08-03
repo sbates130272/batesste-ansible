@@ -39,6 +39,10 @@ git_setup_gh_authenticate: false
 
 # GitHub authentication token (store in vault)
 git_setup_gh_token: ""
+
+# Skip all git config --global tasks and the GPG_TTY blockinfile (default: false)
+# Set to true when a dotfiles repo (e.g. batesste-dotfiles) owns .gitconfig
+git_setup_dotfiles_enable: false
 ```
 
 ## GitHub CLI Authentication with Vault

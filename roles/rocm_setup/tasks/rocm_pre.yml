@@ -145,6 +145,7 @@
   when:
     - rocm_setup_rocm_version == 'latest'
     - rocm_setup_wsl_mode != 'legacy'
+    - rocm_setup_repo_stream != 'therock'
 
 - name: Populate rocm_setup_rocm_version variable (legacy wsl)
   ansible.builtin.set_fact:
@@ -152,6 +153,7 @@
   when:
     - rocm_setup_rocm_version == 'latest'
     - rocm_setup_wsl_mode == 'legacy'
+    - rocm_setup_repo_stream != 'therock'
 
 - name: Populate rocm_setup_amdgpu_version variable
   ansible.builtin.set_fact:

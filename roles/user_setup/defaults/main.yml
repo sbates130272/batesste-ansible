@@ -27,3 +27,25 @@ user_setup_unprivileged: false
 # when the login shell is not bash (e.g. tcsh on AMD systems). Empty to disable.
 # Uses $?prompt guard so non-interactive SSH (Ansible, scp) is unaffected.
 user_setup_preferred_shell: ""
+
+# GPG private key — armored export stored in vault; imported before git-crypt unlock.
+# Obtain with: gpg --armor --export-secret-keys <fingerprint>
+# Store as vault_gpg_private_key and reference via inventory.
+user_setup_gpg_private_key: ""
+
+# Dotfiles integration — clone batesste-dotfiles and run install.sh
+# When enabled, the dotfiles repo becomes the authoritative source for the stowed packages.
+user_setup_dotfiles_enable: false
+user_setup_dotfiles_repo: "https://github.com/sbates130272/batesste-dotfiles.git"
+user_setup_dotfiles_version: "v1.0.1"
+user_setup_dotfiles_dest: "{{ user_setup_home }}/Projects/batesste-dotfiles"
+# Space-separated list of stow packages passed to install.sh
+user_setup_dotfiles_packages: "bash git gh"
+# Per-package skip flags — set true when that stow package owns the config.
+# Derived from dotfiles_packages by default; override explicitly if needed.
+user_setup_dotfiles_owns_emacs: false
+user_setup_dotfiles_owns_ssh: false
+user_setup_dotfiles_owns_hf: false
+
+# HuggingFace token — no longer written by this role. When dotfiles is enabled with the
+# secrets package, HF_TOKEN is delivered via ~/.secrets.env (git-crypt encrypted in dotfiles).

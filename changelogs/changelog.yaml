@@ -1,6 +1,60 @@
 ---
 ancestor: null
 releases:
+  2.1.0:
+    release_date: "2026-08-03"
+    changes:
+      release_summary: >-
+        Integrate batesste-dotfiles v1.0.1 into user_setup and git_setup
+        roles, wire up GPG-based git-crypt unlock via vault, install packer
+        via HashiCorp apt repo in fave_packages, and fix a TheRock stream
+        version-detection regression in rocm_setup.
+      minor_changes:
+        - >-
+          user_setup — add dotfiles integration: clone batesste-dotfiles
+          at a pinned version (user_setup_dotfiles_version, default v1.0.0)
+          and run install.sh to stow selected packages. Controlled by
+          user_setup_dotfiles_enable (default false). Installs stow and
+          git-crypt (required by install.sh). DEBIAN_FRONTEND blockinfile
+          is skipped when dotfiles is active. Per-package owns flags
+          (user_setup_dotfiles_owns_emacs, _owns_ssh, _owns_hf) let callers
+          declare which configs the stow packages take over, suppressing the
+          corresponding role tasks.
+        - >-
+          user_setup — add GPG private key import from vault
+          (user_setup_gpg_private_key) so git-crypt unlock works before
+          git_setup has run. Key is written to a tempfile, imported with
+          gpg --batch --import (no_log), and deleted immediately.
+        - >-
+          user_setup — install gettext-base (envsubst) alongside stow and
+          git-crypt; required by dotfiles v1.0.1 install.sh expand_templates.
+          Dotfiles v1.0.1 consolidates all secrets into a single git-crypt
+          encrypted secrets/.secrets.env, stowed to ~/.secrets.env; gh/hf/
+          docker tokens are no longer individual encrypted files. The vault-
+          based HuggingFace token write task is removed; tokens are delivered
+          via ~/.secrets.env sourced at login by the stowed .bashrc.
+          git_setup_gh_authenticate disabled for AMD hosts — gh auth is now
+          handled by dotfiles expand_templates writing ~/.config/gh/hosts.yml.
+        - >-
+          git_setup — add git_setup_dotfiles_enable flag (default false).
+          When true, all git config --global tasks and the GPG_TTY
+          blockinfile are skipped so the stowed .gitconfig remains the
+          authoritative source.
+        - >-
+          git_setup — wire up vault_github_token for automated gh auth
+          login on AMD hosts via git_setup_gh_authenticate and
+          git_setup_gh_token inventory vars.
+        - >-
+          fave_packages — install packer via the HashiCorp signed apt
+          repository (https://apt.releases.hashicorp.com), following the
+          same get_url/dearmor/apt_repository pattern used by docker_setup.
+        - >-
+          rocm_setup — guard the two rocm_setup_rocm_version population
+          tasks with rocm_setup_repo_stream != 'therock' to avoid
+          clobbering the version when using the TheRock stream.
+        - >-
+          playbooks/hosts.yml — enable dotfiles integration (v1.0.0) and
+          gh/hf authentication for the amd inventory group.
   1.5.0:
     release_date: "2026-06-05"
     changes:

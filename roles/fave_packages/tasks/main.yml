@@ -197,3 +197,48 @@
     mode: '0644'
   become: true
   notify: Restart prometheus-node-exporter
+
+- name: Download HashiCorp GPG key
+  ansible.builtin.get_url:
+    url: https://apt.releases.hashicorp.com/gpg
+    dest: /etc/apt/keyrings/hashicorp-archive-keyring.asc
+    mode: "0644"
+  become: true
+
+- name: Dearmor HashiCorp GPG key
+  ansible.builtin.command:
+    cmd: >-
+      gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+      /etc/apt/keyrings/hashicorp-archive-keyring.asc
+    creates: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+  become: true
+
+- name: Ensure HashiCorp GPG keyring is world-readable
+  ansible.builtin.file:
+    path: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+    mode: "0644"
+  become: true
+
+- name: Determine dpkg architecture for HashiCorp repo
+  ansible.builtin.command:
+    cmd: dpkg --print-architecture
+  register: fave_packages_dpkg_arch
+  changed_when: false
+
+- name: Add HashiCorp apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch={{ fave_packages_dpkg_arch.stdout }}
+      signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg]
+      https://apt.releases.hashicorp.com
+      {{ ansible_distribution_release }} main
+    filename: hashicorp
+    state: present
+  become: true
+
+- name: Install packer
+  ansible.builtin.apt:
+    name: packer
+    state: present
+    update_cache: true
+  become: true
