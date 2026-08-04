@@ -1,0 +1,16 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+bugfixes:
+  - >-
+    Stop a rocm.sources file left by an earlier run from permanently breaking
+    rocm_setup. Every apt task in rocm_pre runs before main.yml writes that
+    file, so after a stream switch, or a distro upgrade to a release the
+    previously configured repo publishes no dist for, rocm_pre failed with "does
+    not have a Release file" and never reached the task that would have
+    rewritten the sources — making the failure repeat on every later run.
+    rocm_pre now probes the apt refresh and drops the sources file only when
+    that file is what breaks it, so re-runs recover on their own while a healthy
+    host is left untouched.
