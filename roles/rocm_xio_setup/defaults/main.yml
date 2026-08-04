@@ -15,6 +15,7 @@ rocm_xio_setup_remove_distro_hsa_runtime_dev: true
 rocm_xio_setup_build_type: "Release"
 rocm_xio_setup_build_clients: true
 rocm_xio_setup_build_testing: true
+rocm_xio_setup_offload_arch: ""
 rocm_xio_setup_install: false
 rocm_xio_setup_install_prefix: "/opt/rocm"
 rocm_xio_setup_parallel_jobs: "{{ ansible_processor_vcpus | default(4) }}"
@@ -45,3 +46,22 @@ rocm_xio_setup_perf_extra_args: ""
 
 # Use HSA_FORCE_FINE_GRAIN_PCIE=1 in endpoint checks and perf tests.
 rocm_xio_setup_force_fine_grain_pcie: true
+
+# Persist environment variables even when used by sudo.
+rocm_xio_setup_env_nvme_device: >-
+  {{ (rocm_xio_setup_perf_nvme_controllers | first)
+     if (rocm_xio_setup_perf_nvme_controllers | length > 0)
+     else '' }}
+rocm_xio_setup_env_profile_path: "/etc/profile.d/rocm-xio.sh"
+rocm_xio_setup_env_sudoers_path: "/etc/sudoers.d/rocm-xio"
+
+# Optional: persist TMPDIR system-wide (and across sudo) to write to emulated NVMe
+rocm_xio_setup_env_tmpdir: ""
+
+# Build, install, and load the rocm-xio kernel module from kernel/rocm-xio.
+# Opt-in: enable in playbooks that need /dev/rocm-xio (e.g. rocm-xio-kv-guest).
+# Off by default so a plain rocm_xio_setup run does not build/load a kmod or
+# write to /etc/modules-load.d, and so CI against tags without kernel/rocm-xio
+# (e.g. v0.1.0) stays green.
+rocm_xio_setup_install_kmod: false
+rocm_xio_setup_kmod_dir: "{{ rocm_xio_setup_source_dir }}/kernel/rocm-xio"
