@@ -14,7 +14,7 @@
 uprof_setup_install_dir: /tmp
 
 # Skip the AMD CPU vendor check. Useful for CI runners or
-# environments where ansible_processor is unavailable.
+# environments where ansible_facts['processor'] is unavailable.
 uprof_setup_skip_amd_check: false
 
 # Symlink AMDuProfCLI into /usr/local/bin when installed under

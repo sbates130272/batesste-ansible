@@ -9,8 +9,8 @@ collection.
 
 The role reads the calling role's `meta/main.yml` to
 extract its `platforms` list. It then compares the target
-host's `ansible_distribution` and
-`ansible_distribution_release` against that list. If the
+host's `ansible_facts['distribution']` and
+`ansible_facts['distribution_release']` against that list. If the
 host is not supported, it calls `meta: end_host` to
 gracefully skip the rest of the play on that host.
 

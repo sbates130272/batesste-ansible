@@ -44,7 +44,7 @@
     cmd: |
       set -o pipefail
       curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/{{ claude_setup_nvm_version }}/install.sh | bash
-    creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+    creates: "{{ ansible_facts['env'].HOME }}/.nvm/nvm.sh"
   args:
     executable: /bin/bash
   when: claude_setup_unprivileged | default(false)
@@ -52,7 +52,7 @@
 - name: Install Node.js LTS and Claude CLI via nvm (user-local, unprivileged)
   ansible.builtin.shell:
     cmd: |
-      export NVM_DIR="{{ ansible_env.HOME }}/.nvm"
+      export NVM_DIR="{{ ansible_facts['env'].HOME }}/.nvm"
       . "$NVM_DIR/nvm.sh"
       nvm install {{ claude_setup_node_version }}
       nvm use {{ claude_setup_node_version }}

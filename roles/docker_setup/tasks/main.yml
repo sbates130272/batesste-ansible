@@ -81,7 +81,7 @@
       deb [arch={{ dpkg_arch.stdout }}
       signed-by=/etc/apt/keyrings/docker.gpg]
       https://download.docker.com/linux/ubuntu
-      {{ ansible_distribution_release }} stable
+      {{ ansible_facts['distribution_release'] }} stable
     filename: docker
     state: present
   become: true

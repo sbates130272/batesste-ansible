@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Output directory for generated templates.
-aws_ec2_setup_output_dir: "{{ ansible_env.HOME }}/Projects/aws-ec2-templates"
+aws_ec2_setup_output_dir: "{{ ansible_facts['env'].HOME }}/Projects/aws-ec2-templates"
 
 # Common launch template defaults.
 aws_ec2_setup_default_region: "us-east-1"

@@ -131,7 +131,7 @@
     msg:
       - "✓ AMD Device Metrics Exporter is running"
       - "Listening on: {{ rocm_setup_metrics_exporter_port }}"
-      - "Access from LAN: http://{{ ansible_default_ipv4.address }}:{{ rocm_setup_metrics_exporter_port }}/metrics"
+      - "Access from LAN: http://{{ ansible_facts['default_ipv4'].address }}:{{ rocm_setup_metrics_exporter_port }}/metrics"
       - ""
       - "Note: The exporter handles missing GPUs gracefully:"
       - "  - Version 1.3.1+: Omits unsupported/unavailable metrics"

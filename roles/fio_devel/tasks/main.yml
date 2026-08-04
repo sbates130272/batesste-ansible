@@ -41,7 +41,7 @@
 - name: Install fio related packages when on AWS
   ansible.builtin.package:
     name:
-      - linux-tools-{{ ansible_kernel }}
+      - linux-tools-{{ ansible_facts['kernel'] }}
       - linux-tools-aws
   become: true
   when: inventory_hostname in groups['awsmachines'] | default([])

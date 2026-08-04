@@ -1,0 +1,17 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+minor_changes:
+  - >-
+    Access gathered facts through ``ansible_facts['<name>']`` instead of the
+    legacy injected ``ansible_<name>`` top-level variables across all roles,
+    templates and READMEs. The injected form depends on
+    ``INJECT_FACTS_AS_VARS`` being enabled, so the collection previously
+    failed on controllers that disable it; the ``ansible_facts`` form works
+    either way. Connection and magic variables (``ansible_user``,
+    ``ansible_host``, ``ansible_connection``, ``ansible_port``,
+    ``ansible_ssh_*``, ``ansible_python_interpreter``) are unchanged, as is
+    the ``ansible_kernel`` argument to the ``setup`` module's ``filter``
+    option, which matches that module's own return keys.

@@ -28,7 +28,7 @@ Generated files per profile:
 Defaults come from `defaults/main.yml`.
 
 ```yaml
-aws_ec2_setup_output_dir: "{{ ansible_env.HOME }}/Projects/aws-ec2-templates"
+aws_ec2_setup_output_dir: "{{ ansible_facts['env'].HOME }}/Projects/aws-ec2-templates"
 
 aws_ec2_setup_default_region: us-east-1
 aws_ec2_setup_default_ami_id: ami-REPLACE_WITH_UBUNTU_NOBLE_AMI

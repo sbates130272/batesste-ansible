@@ -95,7 +95,7 @@
 - name: Install configfs-tools for target configuration
   ansible.builtin.package:
     name:
-      - linux-modules-extra-{{ ansible_kernel }}
+      - linux-modules-extra-{{ ansible_facts['kernel'] }}
     state: present
   become: true
   when: nvmeof_setup_mode == 'target'
