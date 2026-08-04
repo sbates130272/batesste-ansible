@@ -1,0 +1,15 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+bugfixes:
+  - >-
+    Stop rocm_setup failing with "object of type 'dict' has no attribute
+    'stdout'" on the therock stream. The tasks populating
+    rocm_setup_amdgpu_version and rocm_setup_graphics_version re-spelled their
+    conditions and omitted the "rocm_setup_repo_stream != 'therock'" guard, so
+    they ran and dereferenced .stdout on the skipped rocm-latest lookups. They
+    now reuse the rocm_setup_need_amdgpu_latest and
+    rocm_setup_need_graphics_latest facts, matching how the ROCm and
+    device-metrics-exporter versions are already handled.

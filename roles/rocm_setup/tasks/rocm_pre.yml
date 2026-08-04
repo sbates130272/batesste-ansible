@@ -158,9 +158,7 @@
 - name: Populate rocm_setup_amdgpu_version variable
   ansible.builtin.set_fact:
     rocm_setup_amdgpu_version: "{{ amdgpu_latest_version.stdout }}"
-  when:
-    - rocm_setup_amdgpu_version == 'latest'
-    - rocm_setup_wsl_mode != 'legacy'
+  when: rocm_setup_need_amdgpu_latest
 
 - name: Populate rocm_setup_amdgpu_version variable (legacy wsl)
   ansible.builtin.set_fact:
@@ -172,9 +170,7 @@
 - name: Populate rocm_setup_graphics_version variable
   ansible.builtin.set_fact:
     rocm_setup_graphics_version: "{{ graphics_latest_version.stdout }}"
-  when:
-    - rocm_setup_graphics_version == 'latest'
-    - not rocm_setup_wsl_enabled
+  when: rocm_setup_need_graphics_latest
 
 - name: Populate rocm_setup_metrics_exporter_version variable
   ansible.builtin.set_fact:
