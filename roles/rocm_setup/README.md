@@ -69,6 +69,10 @@ rocm_setup_install_xrocmtop: true
 rocm_setup_xrocmtop_version: latest
 rocm_setup_xrocmtop_install_dir: /usr/local/bin
 
+# ROCm-CLI: local AI on AMD GPUs — one binary, zero setup
+rocm_setup_install_rocm_cli: true
+rocm_setup_rocm_cli_channel: nightly
+
 # Extra kernel packages installed before amdgpu-dkms
 rocm_setup_extra_kernel_packages: []
 ```
@@ -338,6 +342,37 @@ rocm_setup_install_xrocmtop: false
 To pin a specific version instead of always pulling the latest:
 ```yaml
 rocm_setup_xrocmtop_version: "0.2.0"
+```
+
+## ROCm-CLI
+
+This role can optionally install [ROCm-CLI](https://github.com/ROCm/rocm-cli),
+a command-line tool for setting up and running local AI on AMD GPUs. It ships
+as a single prebuilt binary (`rocm` and `rocmd`) with a full-screen TUI
+dashboard for GPU telemetry, model serving, and chat.
+
+The installer fetches a prebuilt bundle from GitHub releases, verifies its
+SHA-256 checksum, and installs the binaries into `~/.local/bin` for the
+configured `rocm_setup_user`. It also adds `~/.local/bin` to the user's shell
+`PATH`.
+
+> **Note:** Only nightly builds are published today, so the default channel is
+> `nightly`. Once a stable release is available, switch to `release`.
+
+To install (default):
+```yaml
+rocm_setup_install_rocm_cli: true
+rocm_setup_rocm_cli_channel: nightly
+```
+
+To disable:
+```yaml
+rocm_setup_install_rocm_cli: false
+```
+
+To switch to the release channel once stable releases exist:
+```yaml
+rocm_setup_rocm_cli_channel: release
 ```
 
 # Testing

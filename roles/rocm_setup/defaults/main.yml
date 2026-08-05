@@ -106,6 +106,14 @@ rocm_setup_metrics_exporter_port: 5000
 rocm_setup_metrics_exporter_config_path: /etc/metrics/config.json
 rocm_setup_metrics_exporter_open_firewall: true
 
+# ROCm-CLI: local AI on AMD GPUs — one binary, zero setup
+# https://github.com/ROCm/rocm-cli
+# Install by default; set to false to skip.
+# Channel: 'nightly' (current only option until a stable release is published)
+#          or 'release' (default, used once stable releases exist).
+rocm_setup_install_rocm_cli: true
+rocm_setup_rocm_cli_channel: nightly
+
 # Install hipFile and fio-libhipfile via apt. These packages are expected
 # to land in the ROCm apt repo with ROCm 7.13/7.14 tech preview.
 # Adjust rocm_setup_hipfile_packages if the final package names differ.
