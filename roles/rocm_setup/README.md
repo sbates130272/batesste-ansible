@@ -26,6 +26,10 @@ rocm_setup_amdgpu_version: latest
 # Single file for ROCm APT sources (deb822 format)
 rocm_setup_sources_file: /etc/apt/sources.list.d/rocm.sources
 
+# Cache validity window (seconds) for apt tasks that run after a
+# guaranteed-fresh refresh earlier in the same play
+rocm_setup_apt_cache_valid_time: 600
+
 # User to configure for ROCm access (adds to render group)
 rocm_setup_user: rocm_user
 

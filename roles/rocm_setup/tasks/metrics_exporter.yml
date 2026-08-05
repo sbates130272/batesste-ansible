@@ -3,6 +3,9 @@
 # https://instinct.docs.amd.com/projects/device-metrics-exporter/
 # en/latest/installation/deb-package.html
 
+# The device-metrics-exporter repo is written into rocm.sources (and the
+# cache refreshed) by main.yml before this file is ever imported, so both apt
+# tasks below can rely on that refresh instead of repeating it.
 - name: Ensure metrics exporter prerequisites are installed
   ansible.builtin.package:
     name:
@@ -10,6 +13,7 @@
       - gpg
     state: present
     update_cache: true
+    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
   become: true
 
 - name: Ensure keyrings directory exists
@@ -36,6 +40,7 @@
     name: amdgpu-exporter
     state: present
     update_cache: true
+    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
   become: true
 
 - name: Ensure metrics exporter config directory exists
