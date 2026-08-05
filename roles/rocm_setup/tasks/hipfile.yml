@@ -10,6 +10,7 @@
     name: "{{ rocm_setup_hipfile_packages }}"
     state: present
     update_cache: true
+    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
   become: true
 
 - name: Ensure fio-hipfile install directory exists

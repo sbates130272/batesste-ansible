@@ -1,0 +1,16 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+minor_changes:
+  - >-
+    Gate 10 of the 11 update_cache: true apt/package tasks in rocm_setup
+    behind a cache_valid_time window (rocm_setup_apt_cache_valid_time,
+    default 600s), so a single run no longer refreshes the apt cache several
+    times over for indexes it just fetched. The one refresh that directly
+    follows writing rocm.sources, and the apt-get update probe added for the
+    stale-sources recovery above, stay unconditional: apt decides cache
+    freshness purely on the update-success-stamp mtime, which a sources file
+    rewrite never touches, so gating either would risk silently skipping a
+    just-added repo's metadata.

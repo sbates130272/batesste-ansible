@@ -87,6 +87,10 @@
   become: true
   when: rocm_setup_repo_stream != 'therock'
 
+# Deliberately unconditional: this directly follows writing rocm.sources, and
+# apt decides cache freshness purely on the update-success-stamp mtime, which
+# a sources file rewrite never touches. A cache_valid_time here would silently
+# skip fetching the just-added repo's metadata.
 - name: Update apt cache after ROCm repos
   ansible.builtin.apt:
     update_cache: true
@@ -122,6 +126,7 @@
 - name: Install ROCm packages
   ansible.builtin.package:
     update_cache: true
+    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
     name: "{{ rocm_setup_packages }}"
   become: true
   when: rocm_setup_packages | length > 0
@@ -155,6 +160,7 @@
     name: "{{ rocm_setup_extra_kernel_packages }}"
     state: present
     update_cache: true
+    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
   when: rocm_setup_extra_kernel_packages | default([]) | length > 0
   become: true
   register: rocm_setup_extra_kernel_install
@@ -162,6 +168,7 @@
 - name: Install or upgrade amdgpu-dkms to latest available  # noqa package-latest
   ansible.builtin.package:
     update_cache: true
+    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
     name:
       - amdgpu-dkms
     state: latest
