@@ -28,6 +28,7 @@ ROLE_CONFIGS = {
     "rocm_setup": {
         "free_disk_space": True,
         "extra_vars": {
+            "rocm_setup_repo_stream": "legacy",
             "rocm_setup_wsl": False,
             "rocm_setup_rocm_version": "latest",
             "rocm_setup_amdgpu_version": "latest",
@@ -35,12 +36,13 @@ ROLE_CONFIGS = {
             "rocm_setup_install_metrics_exporter": False,
             "rocm_setup_install_kernel_driver": False,
             "rocm_setup_skip_system_upgrade": True,
+            "rocm_setup_install_hipfile": False,
         },
         "verification_commands": [
             "systemctl status amdgpu-dkms || true",
             "dpkg -l | grep rocm || true",
         ],
-        "needs_vault": True,
+        "needs_vault": False,
     },
     "rocm_xio_setup": {
         "free_disk_space": True,
@@ -62,7 +64,7 @@ ROLE_CONFIGS = {
             "dpkg -l | grep rocm || true",
             "test -d ~/Projects/rocm-xio || true",
         ],
-        "needs_vault": True,
+        "needs_vault": False,
     },
     "rocm_hipfile_setup": {
         "free_disk_space": True,
@@ -117,7 +119,7 @@ ROLE_CONFIGS = {
             "curl -s http://localhost:9090/-/healthy || true",
             "curl -s http://localhost:9100/metrics | head -10 || true",
         ],
-        "needs_vault": True,
+        "needs_vault": False,
     },
     "rdma_setup": {
         "free_disk_space": False,
@@ -169,6 +171,13 @@ ROLE_CONFIGS = {
         ],
         "needs_vault": True,
         "needs_github_token": False,
+        # mutt_setup_google_oauth2_client_secret is a real ansible-vault
+        # secret. GitHub withholds repo secrets from pull_request runs
+        # triggered by forked repos, so ANSIBLE_VAULT_PASSWORD is empty
+        # there and this job can never decrypt it. Don't let that block
+        # fork PRs; it still runs (and decrypts) for real on push/
+        # workflow_dispatch runs and PRs from branches in this repo.
+        "ignore_failure": True,
     },
     "nvme_exporter_setup": {
         "free_disk_space": False,
@@ -362,7 +371,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
     # Standard setup steps
     lines.extend([
         "      - name: Checkout code",
-        "        uses: actions/checkout@v4.2.2",
+        "        uses: actions/checkout@v7.0.1",
         "",
         "      - name: Install pip packages",
         "        run: python3 -m pip install -r requirements.txt",
@@ -503,7 +512,7 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
     steps.extend([
         {
             "name": "Checkout code",
-            "uses": "actions/checkout@v4.2.2"
+            "uses": "actions/checkout@v7.0.1"
         },
         {
             "name": "Install pip packages",

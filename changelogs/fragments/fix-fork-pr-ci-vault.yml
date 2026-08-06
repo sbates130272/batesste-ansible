@@ -1,0 +1,18 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+trivial:
+  - >-
+    CI: drop the unused ``--vault-password-file``/``ANSIBLE_VAULT_PASSWORD``
+    requirement from the grafana_setup, rocm_setup and rocm_xio_setup test
+    workflows; none of those roles contain vault-encrypted content, so the
+    flag only served to make their CI jobs fail whenever
+    ``secrets.ANSIBLE_VAULT_PASSWORD`` is unavailable, which GitHub Actions
+    always withholds from ``pull_request`` runs triggered by a forked
+    repository. mutt_setup does decrypt a real vaulted secret, so it keeps
+    the vault password file but now runs with ``continue-on-error`` so a
+    fork PR without access to that secret doesn't block on it. Also bump
+    ``actions/checkout`` to v7.0.1 across all workflows to drop the
+    Node.js 20 deprecation warning.
