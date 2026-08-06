@@ -341,8 +341,6 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         "jobs:",
         f"  {role_name}-test:",
     ])
-    if config.get("ignore_failure", False):
-        lines.append("    continue-on-error: true")
 
     # Add matrix or single runner
     if use_matrix:
@@ -442,6 +440,15 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         "      - name: Run the test playbook against the local runner",
         f"        run: {run_cmd}",
         f"        working-directory: ./roles/{role_name}",
+    ])
+    if config.get("ignore_failure", False):
+        # Step-level (not job-level): a job-level continue-on-error still
+        # reports this job's own check run as "failure" (only the overall
+        # workflow run conclusion becomes "success"), so it doesn't stop a
+        # fork PR without ANSIBLE_VAULT_PASSWORD from showing red here.
+        # continue-on-error on the step itself makes the job succeed.
+        lines.append("        continue-on-error: true")
+    lines.extend([
         "        env:",
         "          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles",
     ])

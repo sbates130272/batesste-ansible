@@ -8,7 +8,6 @@ name: nfs_rdma_setup CI
 
 jobs:
   nfs_rdma_setup-test:
-    continue-on-error: true
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
@@ -47,6 +46,7 @@ jobs:
       - name: Run the test playbook against the local runner
         run: ansible-playbook -v -i hosts-ci ./tests/test.yml
         working-directory: ./roles/nfs_rdma_setup
+        continue-on-error: true
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
 
