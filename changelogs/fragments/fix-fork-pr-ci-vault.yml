@@ -11,8 +11,14 @@ trivial:
     flag only served to make their CI jobs fail whenever
     ``secrets.ANSIBLE_VAULT_PASSWORD`` is unavailable, which GitHub Actions
     always withholds from ``pull_request`` runs triggered by a forked
-    repository. mutt_setup does decrypt a real vaulted secret, so it keeps
-    the vault password file but now runs with ``continue-on-error`` so a
-    fork PR without access to that secret doesn't block on it. Also bump
-    ``actions/checkout`` to v7.0.1 across all workflows to drop the
-    Node.js 20 deprecation warning.
+    repository. mutt_setup and the main batesste-ansible-ci.yml workflow
+    (which also runs mutt_setup by way of the ``newmachine`` recipe) do
+    decrypt a real vaulted secret, so they keep the vault password file but
+    mark the decrypting step ``continue-on-error`` so a fork PR without
+    access to that secret doesn't block on it — this has to be step-level,
+    not job-level, since a job-level ``continue-on-error`` only changes the
+    overall workflow run's conclusion and leaves the job's own check run
+    (what the PR checks list and branch protection read) reporting failure.
+    Applied the same step-level pattern to nvmeof_setup and nfs_rdma_setup
+    for consistency. Also bump ``actions/checkout`` to v7.0.1 across all
+    workflows to drop the Node.js 20 deprecation warning.
