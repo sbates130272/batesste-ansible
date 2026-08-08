@@ -159,7 +159,7 @@ The role installs the following packages:
 - NUMA support: `libnuma-dev`, `numactl`
 - Performance testing: `perftest`
 - PCI utilities: `pciutils`
-- Kernel modules: `linux-modules-extra-{{ ansible_kernel }}`
+- Kernel modules: `linux-modules-extra-{{ ansible_facts['kernel'] }}`
 - RDMA monitoring: `rdmatop` (via `ppa:crazyguitar/rdmatop`, enabled by default)
 
 ## Author and License Information

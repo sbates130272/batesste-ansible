@@ -31,7 +31,7 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:{{ grafana_setup_node_exporter_port }}']
         labels:
-          instance: '{{ ansible_hostname }}'
+          instance: "{{ ansible_facts['hostname'] }}"
           group: 'nodes'
 {% if grafana_verified_exporter_targets is defined and grafana_verified_exporter_targets | length > 0 %}
       # Discovered node exporters on the network

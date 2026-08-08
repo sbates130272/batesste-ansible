@@ -37,7 +37,7 @@ Available variables are listed below, with defaults from
 # Source location
 rocm_xio_setup_repo_url: "https://github.com/ROCm/rocm-xio.git"
 rocm_xio_setup_repo_version: "v0.1.0"
-rocm_xio_setup_source_dir: "{{ ansible_env.HOME }}/Projects/rocm-xio"
+rocm_xio_setup_source_dir: "{{ ansible_facts['env'].HOME }}/Projects/rocm-xio"
 rocm_xio_setup_force_clone: false
 
 # Build/install controls
@@ -48,7 +48,7 @@ rocm_xio_setup_build_clients: true
 rocm_xio_setup_build_testing: true
 rocm_xio_setup_install: false
 rocm_xio_setup_install_prefix: "/opt/rocm"
-rocm_xio_setup_parallel_jobs: "{{ ansible_processor_vcpus | default(4) }}"
+rocm_xio_setup_parallel_jobs: "{{ ansible_facts['processor_vcpus'] | default(4) }}"
 
 # Basic checks
 rocm_xio_setup_run_basic_checks: true

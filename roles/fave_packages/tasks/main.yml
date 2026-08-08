@@ -84,13 +84,13 @@
 - name: Set ptop architecture for GitHub asset
   ansible.builtin.set_fact:
     fave_packages_ptop_arch: >-
-      {{ 'amd64' if ansible_architecture == 'x86_64'
-         else 'arm64' if ansible_architecture == 'aarch64'
+      {{ 'amd64' if ansible_facts['architecture'] == 'x86_64'
+         else 'arm64' if ansible_facts['architecture'] == 'aarch64'
          else '' }}
 
 - name: Fail on unsupported architecture for ptop
   ansible.builtin.fail:
-    msg: "ptop not available for arch {{ ansible_architecture }}"
+    msg: "ptop not available for arch {{ ansible_facts['architecture'] }}"
   when: fave_packages_ptop_arch == ''
 
 - name: Get latest ptop version from GitHub API
@@ -231,7 +231,7 @@
       deb [arch={{ fave_packages_dpkg_arch.stdout }}
       signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg]
       https://apt.releases.hashicorp.com
-      {{ ansible_distribution_release }} main
+      {{ ansible_facts['distribution_release'] }} main
     filename: hashicorp
     state: present
   become: true

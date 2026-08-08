@@ -20,12 +20,12 @@
     supported_distributions: "{{ galaxy_info.platforms | json_query('[].name') }}"
 
 - name: Test for supported distribution on this host and end_host if not found
-  when: ansible_distribution not in supported_distributions
+  when: ansible_facts['distribution'] not in supported_distributions
   block:
 
     - name: Print a debug message when the distribution is not supported
       ansible.builtin.debug:
-        msg: "{{ ansible_distribution }} not supported."
+        msg: "{{ ansible_facts['distribution'] }} not supported."
 
     - name: End the role on this host because the distribution is not supported
       ansible.builtin.meta: end_host
@@ -33,16 +33,16 @@
 - name: Set a fact that contains the supported releases
   ansible.builtin.set_fact:
     supported_releases: "{{ (galaxy_info.platforms |
-                            selectattr('name', 'match', ansible_distribution) |
+                            selectattr('name', 'match', ansible_facts['distribution']) |
                             list | first).versions }}"
 
-- name: Test for supported {{ ansible_distribution }} release and end_host if not found
-  when: ansible_distribution_release not in supported_releases
+- name: Test for supported {{ ansible_facts['distribution'] }} release and end_host if not found
+  when: ansible_facts['distribution_release'] not in supported_releases
   block:
 
     - name: Print a debug message when the release is not supported
       ansible.builtin.debug:
-        msg: "{{ ansible_distribution_release }} not supported."
+        msg: "{{ ansible_facts['distribution_release'] }} not supported."
 
     - name: End the role on this host because the release is not supported
       ansible.builtin.meta: end_host

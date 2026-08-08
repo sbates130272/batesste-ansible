@@ -4,13 +4,13 @@
 - name: Set rdma_exporter architecture for GitHub asset
   ansible.builtin.set_fact:
     rdma_exporter_arch: >-
-      {{ 'amd64' if ansible_architecture == 'x86_64'
-         else 'arm64' if ansible_architecture == 'aarch64'
+      {{ 'amd64' if ansible_facts['architecture'] == 'x86_64'
+         else 'arm64' if ansible_facts['architecture'] == 'aarch64'
          else '' }}
 
 - name: Fail on unsupported architecture for rdma_exporter
   ansible.builtin.fail:
-    msg: "rdma_exporter not available for arch {{ ansible_architecture }}"
+    msg: "rdma_exporter not available for arch {{ ansible_facts['architecture'] }}"
   when: rdma_exporter_arch == ''
 
 - name: Get latest rdma_exporter version from GitHub API

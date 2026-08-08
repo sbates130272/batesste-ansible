@@ -6,7 +6,7 @@
 # Build source location for ROCm XIO.
 rocm_xio_setup_repo_url: "https://github.com/ROCm/rocm-xio.git"
 rocm_xio_setup_repo_version: "v0.1.0"
-rocm_xio_setup_source_dir: "{{ ansible_env.HOME }}/Projects/rocm-xio"
+rocm_xio_setup_source_dir: "{{ ansible_facts['env'].HOME }}/Projects/rocm-xio"
 rocm_xio_setup_force_clone: false
 
 # Build and install controls.
@@ -17,7 +17,7 @@ rocm_xio_setup_build_clients: true
 rocm_xio_setup_build_testing: true
 rocm_xio_setup_install: false
 rocm_xio_setup_install_prefix: "/opt/rocm"
-rocm_xio_setup_parallel_jobs: "{{ ansible_processor_vcpus | default(4) }}"
+rocm_xio_setup_parallel_jobs: "{{ ansible_facts['processor_vcpus'] | default(4) }}"
 
 # Run install validation checks after build.
 rocm_xio_setup_run_basic_checks: true

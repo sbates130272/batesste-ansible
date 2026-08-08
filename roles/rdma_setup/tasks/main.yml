@@ -31,14 +31,16 @@
   become: true
   when: rdma_setup_reboot and ansible_connection != 'local'
 
-- name: Update ansible_kernel as it may have changed
+- name: Re-gather kernel facts as the kernel may have changed
+  # The setup module's filter matches its own return keys, which are
+  # ansible_-prefixed, so this is not an ansible_facts[...] lookup.
   ansible.builtin.setup:
     filter:
       - ansible_kernel
 
 - name: Check if linux-modules-extra exists for this kernel
   ansible.builtin.command:
-    cmd: apt-cache show linux-modules-extra-{{ ansible_kernel }}
+    cmd: apt-cache show linux-modules-extra-{{ ansible_facts['kernel'] }}
   register: rdma_setup_modules_extra_check
   changed_when: false
   failed_when: false
@@ -47,8 +49,8 @@
   ansible.builtin.package:
     update_cache: true
     name: >-
-      {{ ['linux-headers-' + ansible_kernel]
-         + (['linux-modules-extra-' + ansible_kernel]
+      {{ ['linux-headers-' + ansible_facts['kernel']]
+         + (['linux-modules-extra-' + ansible_facts['kernel']]
             if rdma_setup_modules_extra_check.rc == 0
             else []) }}
   become: true

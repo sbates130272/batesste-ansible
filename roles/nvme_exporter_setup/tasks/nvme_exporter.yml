@@ -11,13 +11,13 @@
 - name: Set nvme_exporter architecture for GitHub asset
   ansible.builtin.set_fact:
     nvme_exporter_arch: >-
-      {{ 'amd64' if ansible_architecture == 'x86_64'
-         else 'arm64' if ansible_architecture == 'aarch64'
+      {{ 'amd64' if ansible_facts['architecture'] == 'x86_64'
+         else 'arm64' if ansible_facts['architecture'] == 'aarch64'
          else '' }}
 
 - name: Fail on unsupported architecture for nvme_exporter
   ansible.builtin.fail:
-    msg: "nvme_exporter not available for arch {{ ansible_architecture }}"
+    msg: "nvme_exporter not available for arch {{ ansible_facts['architecture'] }}"
   when: nvme_exporter_arch == ''
 
 - name: Get latest nvme_exporter version from GitHub API

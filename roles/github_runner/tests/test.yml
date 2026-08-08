@@ -9,7 +9,7 @@
     # Use ephemeral mode for CI testing (runner removed after job)
     github_runner_ephemeral: true
     # Custom name for CI runner
-    github_runner_name: "ci-test-{{ ansible_hostname }}-{{ ansible_date_time.epoch }}"
+    github_runner_name: "ci-test-{{ ansible_facts['hostname'] }}-{{ ansible_facts['date_time'].epoch }}"
     # Custom labels for testing
     github_runner_labels: "self-hosted,linux,x64,ci-test"
 

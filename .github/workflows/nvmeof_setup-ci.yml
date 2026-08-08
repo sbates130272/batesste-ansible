@@ -8,11 +8,10 @@ name: nvmeof_setup CI
 
 jobs:
   nvmeof_setup-test:
-    continue-on-error: true
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
 
       - name: Install pip packages
         run: python3 -m pip install -r requirements.txt
@@ -48,6 +47,7 @@ jobs:
       - name: Run the test playbook against the local runner
         run: ansible-playbook -v -i hosts-ci ./tests/test.yml
         working-directory: ./roles/nvmeof_setup
+        continue-on-error: true
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
 

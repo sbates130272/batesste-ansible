@@ -66,7 +66,7 @@ grafana_setup_amd_gpu_exporter_port: 2021
 # Network discovery configuration
 grafana_setup_discover_node_exporters: false
 grafana_setup_discover_amd_gpu_exporters: false
-grafana_setup_discovery_network: "{{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.netmask }}"
+grafana_setup_discovery_network: "{{ ansible_facts['default_ipv4'].network }}/{{ ansible_facts['default_ipv4'].netmask }}"
 grafana_setup_discovery_timeout: 2  # HTTP request timeout for verification
 grafana_setup_discovery_scan_timeout: 60  # Maximum nmap scan time
 

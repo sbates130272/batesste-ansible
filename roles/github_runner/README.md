@@ -48,7 +48,7 @@ github_runner_token: ""
 github_runner_version: "latest"
 
 # Runner name (default: hostname)
-github_runner_name: "{{ ansible_hostname }}"
+github_runner_name: "{{ ansible_facts['hostname'] }}"
 
 # Runner labels (default: "self-hosted,linux,x64")
 github_runner_labels: "self-hosted,linux,x64,gpu"
@@ -157,7 +157,7 @@ ansible-playbook -i inventory setup.yml --ask-vault-pass
     github_runner_url: "https://github.com/myorg"
     github_runner_token: "{{ vault_github_runner_token }}"
     github_runner_labels: "self-hosted,linux,x64,gpu,cuda"
-    github_runner_name: "gpu-runner-{{ ansible_hostname }}"
+    github_runner_name: "gpu-runner-{{ ansible_facts['hostname'] }}"
   roles:
     - github_runner
 ```

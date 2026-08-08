@@ -260,7 +260,9 @@
     - not rocm_setup_wsl_enabled
     - not rocm_setup_skip_reboot
 
-- name: Update ansible_kernel as it may have changed
+- name: Re-gather kernel facts as the kernel may have changed
+  # The setup module's filter matches its own return keys, which are
+  # ansible_-prefixed, so this is not an ansible_facts[...] lookup.
   ansible.builtin.setup:
     filter:
       - ansible_kernel
@@ -275,7 +277,7 @@
 
 - name: Check if linux-modules-extra exists for this kernel
   ansible.builtin.command:
-    cmd: apt-cache show linux-modules-extra-{{ ansible_kernel }}
+    cmd: apt-cache show linux-modules-extra-{{ ansible_facts['kernel'] }}
   register: rocm_setup_modules_extra_check
   changed_when: false
   failed_when: false
@@ -285,8 +287,8 @@
   ansible.builtin.package:
     update_cache: true
     name: >-
-      {{ ['linux-generic', 'linux-headers-' + ansible_kernel]
-         + (['linux-modules-extra-' + ansible_kernel]
+      {{ ['linux-generic', 'linux-headers-' + ansible_facts['kernel']]
+         + (['linux-modules-extra-' + ansible_facts['kernel']]
             if rocm_setup_modules_extra_check.rc == 0
             else []) }}
   become: true
@@ -316,4 +318,4 @@
 
 - name: Reset the connection so ROCm group membership takes effect
   ansible.builtin.meta: reset_connection
-  when: rocm_setup_user == ansible_user_id
+  when: rocm_setup_user == ansible_facts['user_id']

@@ -44,7 +44,7 @@
 
 - name: Set user home fact from environment (unprivileged fallback)
   ansible.builtin.set_fact:
-    user_setup_home: "{{ ansible_env.HOME }}"
+    user_setup_home: "{{ ansible_facts['env'].HOME }}"
   when: user_setup_unprivileged | default(false)
 
 - name: Set authorized key for the user from local file

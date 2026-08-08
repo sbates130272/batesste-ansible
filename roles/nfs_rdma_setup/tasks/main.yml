@@ -24,7 +24,7 @@
     nfs_rdma_setup_server_address_resolved: "{{
       (nfs_rdma_rdma_interfaces | first).address
       if (nfs_rdma_rdma_interfaces | default([]) | length) > 0
-      else ansible_default_ipv4.address | default('')
+      else ansible_facts['default_ipv4'].address | default('')
     }}"
   when:
     - nfs_rdma_setup_mode == 'target'
@@ -35,7 +35,7 @@
   vars:
     _hv: "{{ hostvars[nfs_rdma_setup_target_host] | default({}) }}"
     _addr_from_fact: "{{ _hv.nfs_rdma_setup_server_address_resolved | default('') }}"
-    _addr_from_default: "{{ _hv.ansible_default_ipv4.address | default('') }}"
+    _addr_from_default: "{{ _hv.ansible_facts['default_ipv4'].address | default('') }}"
     _nfs_rdma_server_ip: >-
       {{
         nfs_rdma_setup_nfs_server
@@ -45,7 +45,7 @@
           if (_addr_from_fact | length > 0)
           else (
             _addr_from_default
-            if (_hv.ansible_default_ipv4 is defined)
+            if (_hv.ansible_facts['default_ipv4'] is defined)
             else nfs_rdma_setup_nfs_server
           )
         )

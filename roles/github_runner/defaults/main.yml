@@ -14,7 +14,7 @@ github_runner_url: ""
 github_runner_token: ""
 
 # Runner name (defaults to hostname if not specified)
-github_runner_name: "{{ ansible_hostname }}"
+github_runner_name: "{{ ansible_facts['hostname'] }}"
 
 # Runner labels (comma-separated, e.g., "self-hosted,linux,x64,gpu")
 github_runner_labels: "self-hosted,linux,x64"
