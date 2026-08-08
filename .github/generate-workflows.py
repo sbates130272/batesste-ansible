@@ -37,6 +37,7 @@ ROLE_CONFIGS = {
             "rocm_setup_install_kernel_driver": False,
             "rocm_setup_skip_system_upgrade": True,
             "rocm_setup_install_hipfile": False,
+            "rocm_setup_install_xrocmtop": False,
         },
         "verification_commands": [
             "systemctl status amdgpu-dkms || true",
