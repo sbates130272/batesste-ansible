@@ -111,6 +111,7 @@
     src: claude-settings.json.j2
     dest: "~/.claude/settings.json"
     mode: "0644"
+  when: not claude_setup_dotfiles_enable | default(false)
 
 - name: Template the Claude secrets file
   ansible.builtin.template:
