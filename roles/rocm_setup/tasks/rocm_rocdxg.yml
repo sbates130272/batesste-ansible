@@ -122,6 +122,7 @@
       - git
     state: present
     update_cache: true
+    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
   become: true
 
 - name: Check if librocdxg is already installed

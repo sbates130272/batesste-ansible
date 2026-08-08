@@ -36,6 +36,16 @@ rocm_setup_versioned_package_map:
 # Single file for ROCm APT sources (deb822 format).
 rocm_setup_sources_file: /etc/apt/sources.list.d/rocm.sources
 
+# Cache validity window (seconds) for apt tasks that follow a guaranteed-fresh
+# refresh earlier in the same run — see the update_cache: true sites in
+# rocm_pre.yml, main.yml, hipfile.yml, rocm_rocdxg.yml, and metrics_exporter.yml.
+# Keeps a converged re-run from re-fetching every index several times over.
+# The one apt task in main.yml that immediately follows writing rocm.sources
+# stays unconditional on purpose: nothing invalidates the cache timestamp when
+# a sources file changes, so gating that particular refresh would silently
+# skip fetching a just-added repo's metadata.
+rocm_setup_apt_cache_valid_time: 600
+
 # The user to set ROCm up for. This includes adding to the relevant
 # user groups etc.
 rocm_setup_user: rocm_user

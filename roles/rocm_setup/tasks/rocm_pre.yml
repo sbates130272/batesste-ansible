@@ -243,9 +243,41 @@
       rocm_setup_metrics_exporter_version }}"
   when: rocm_setup_install_metrics_exporter | default(false)
 
+# Every apt task below runs before main.yml writes rocm.sources, so a file left
+# by an earlier run is still on disk at this point. After a stream switch, or a
+# distro upgrade to a release the previously configured repo publishes no dist
+# for, that file fails all of them — and the role never reaches the task that
+# would have rewritten it, so the same failure repeats on every later run.
+#
+# Probe the refresh and drop the file only when it is what breaks it. On a
+# healthy host nothing is removed, so main.yml's sources template still reports
+# no change on a re-run.
+- name: Check whether apt can refresh with the ROCm sources on disk  # noqa command-instead-of-module
+  # The exit code is the signal, and the apt module masks it: with
+  # failed_when: false the registered result reports failed: false, and it
+  # burns five retry sleeps before giving up. Deliberately unconditional too:
+  # detecting an unusable sources file means actually attempting the fetch, so
+  # it cannot honour cache_valid_time either.
+  ansible.builtin.command:
+    cmd: apt-get update -qq
+  register: rocm_setup_apt_refresh_check
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Remove the ROCm sources file when it breaks the apt refresh
+  ansible.builtin.file:
+    path: "{{ rocm_setup_sources_file }}"
+    state: absent
+  become: true
+  when: rocm_setup_apt_refresh_check.rc != 0
+
+# The probe above just rebuilt the cache, so this refresh and the next one are
+# provably redundant rather than merely probably redundant.
 - name: Perform an update, upgrade and autoremove
   ansible.builtin.apt:
     update_cache: true
+    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
     upgrade: safe
     autoremove: true
   become: true
@@ -270,6 +302,7 @@
 - name: Install the prerequisite packages needed for ROCm install
   ansible.builtin.package:
     update_cache: true
+    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
     name:
       - python3-setuptools
       - python3-wheel
@@ -286,6 +319,7 @@
 - name: Install the kernel header and extra modules
   ansible.builtin.package:
     update_cache: true
+    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
     name: >-
       {{ ['linux-generic', 'linux-headers-' + ansible_facts['kernel']]
          + (['linux-modules-extra-' + ansible_facts['kernel']]
