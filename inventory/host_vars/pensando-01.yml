@@ -1,0 +1,8 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+
+ansible_host: pens-01
+ansible_user: stebates
+user_setup_vm_fstab: false

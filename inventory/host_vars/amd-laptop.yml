@@ -1,0 +1,12 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+
+ansible_host: 10.0.0.107
+ansible_user: stebates
+username: stebates
+rocm_setup_wsl: rocdxg
+rocm_setup_run_checks: true
+rocm_setup_wsl_run_hip_check: true
+rocm_setup_install_metrics_exporter: true

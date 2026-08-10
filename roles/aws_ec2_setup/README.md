@@ -125,6 +125,6 @@ From this role directory:
 
 ```bash
 ANSIBLE_ROLES_PATH=../ ansible-playbook \
-  -i ../../playbooks/inventories/hosts-aws-ec2-setup \
+  -i ../../inventory/inventories/hosts-aws-ec2-setup.yml \
   ./tests/test.yml
 ```

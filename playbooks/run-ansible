@@ -8,7 +8,7 @@
 # README.md for more information.
 
 PLAYBOOK=${PLAYBOOK:-setup.yml}
-HOSTS=${HOSTS:-hosts.yml}
+HOSTS=${HOSTS:-../inventory/hosts.yml}
 TARGETS=${TARGETS:-localvms}
 RECIPE=${RECIPE:-newmachine}
 TAGS=${TAGS:-}

@@ -6,13 +6,7 @@ exclude_paths:
   - .github
   - changelogs
   - tests/sanity
-
-# playbooks/hosts.yml is a static inventory (passed via `-i`), not a
-# playbook, but its location doesn't match the default `**/inventory/**`
-# kind-detection glob, so ansible-lint would otherwise try to parse it as
-# a list of plays and fail with a fatal syntax-check error.
-kinds:
-  - inventory: "playbooks/hosts.yml"
+  - playbooks/secrets.yml
 
 warn_list:
   - command-instead-of-module

@@ -1,0 +1,8 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+
+ansible_host: useocpm2m-097-114
+ansible_port: 2230
+ansible_ssh_common_args: '-o ProxyJump=useocpslog-002'
