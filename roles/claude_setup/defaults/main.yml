@@ -59,6 +59,10 @@ claude_setup_enable_tool_search: "false"
 # Company announcements shown in the Claude Code UI. Empty list to omit.
 claude_setup_company_announcements: []
 
+# When true, the dotfiles claude stow package owns ~/.claude/settings.json and
+# ~/.claude/CLAUDE.md — the settings.json template task is skipped.
+claude_setup_dotfiles_enable: false
+
 # Set to true to skip all tasks that require root/sudo (nginx install and
 # Claude CLI global install). User-space config (~/.claude/, .bashrc) still runs.
 # In unprivileged mode nvm is used to install Node.js and the Claude CLI without root.

@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
 
       - name: Install pip packages
         run: python3 -m pip install -r requirements.txt
@@ -55,11 +55,10 @@ jobs:
                   grafana_setup_version: 13.0.1
 
       - name: Run the test playbook against the local runner
-        run: ansible-playbook -v -i hosts-ci ./tests/test.yml --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD")
+        run: ansible-playbook -v -i hosts-ci ./tests/test.yml
         working-directory: ./roles/grafana_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
-          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
       - name: Verify grafana_setup installation
         run: |

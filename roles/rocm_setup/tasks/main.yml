@@ -224,3 +224,8 @@
   when:
     - rocm_setup_install_hipfile
     - not rocm_setup_wsl_enabled
+
+- name: Install ROCm-CLI for user
+  ansible.builtin.import_tasks:
+    file: rocm_cli.yml
+  when: rocm_setup_install_rocm_cli

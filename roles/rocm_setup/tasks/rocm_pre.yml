@@ -166,6 +166,7 @@
   when:
     - rocm_setup_amdgpu_version == 'latest'
     - rocm_setup_wsl_mode == 'legacy'
+    - rocm_setup_repo_stream != 'therock'
 
 - name: Populate rocm_setup_graphics_version variable
   ansible.builtin.set_fact:

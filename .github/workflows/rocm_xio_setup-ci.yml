@@ -21,7 +21,7 @@ jobs:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
 
       - name: Install pip packages
         run: python3 -m pip install -r requirements.txt
@@ -65,11 +65,10 @@ jobs:
                   rocm_xio_setup_run_perf_tests: false
 
       - name: Run the test playbook against the local runner
-        run: ansible-playbook -v -i hosts-ci ./tests/test.yml --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD")
+        run: ansible-playbook -v -i hosts-ci ./tests/test.yml
         working-directory: ./roles/rocm_xio_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
-          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
       - name: Verify rocm_xio_setup installation
         run: |

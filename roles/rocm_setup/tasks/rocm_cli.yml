@@ -1,0 +1,59 @@
+---
+# Install ROCm-CLI for the configured user.
+# https://github.com/ROCm/rocm-cli
+# The installer downloads prebuilt binaries into ~/.local/bin and adds that
+# directory to the user's PATH via their shell profile.
+
+- name: Look up rocm_setup user home directory for ROCm-CLI
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ rocm_setup_user }}"
+
+- name: Set rocm_setup user home directory fact for ROCm-CLI
+  ansible.builtin.set_fact:
+    rocm_setup_rocm_cli_user_home: "{{ ansible_facts.getent_passwd[rocm_setup_user][4] }}"
+
+- name: Check currently installed rocm version
+  ansible.builtin.command:
+    cmd: "{{ rocm_setup_rocm_cli_user_home }}/.local/bin/rocm --version"
+  register: rocm_setup_rocm_cli_installed_version
+  changed_when: false
+  failed_when: false
+  become: true
+  become_user: "{{ rocm_setup_user }}"
+
+- name: Ensure ~/.local/bin exists for user
+  ansible.builtin.file:
+    path: "{{ rocm_setup_rocm_cli_user_home }}/.local/bin"
+    state: directory
+    owner: "{{ rocm_setup_user }}"
+    mode: '0755'
+  become: true
+
+- name: Run ROCm-CLI installer as user
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      curl -fsSL https://raw.githubusercontent.com/ROCm/rocm-cli/main/install.sh \
+        | sh -s -- {{ rocm_setup_rocm_cli_channel }}
+    executable: /bin/bash
+  become: true
+  become_user: "{{ rocm_setup_user }}"
+  environment:
+    HOME: "{{ rocm_setup_rocm_cli_user_home }}"
+  register: rocm_setup_rocm_cli_install
+  changed_when: >-
+    rocm_setup_rocm_cli_installed_version.rc != 0
+    or 'up to date' not in (rocm_setup_rocm_cli_install.stdout | default(''))
+
+- name: Verify ROCm-CLI installation
+  ansible.builtin.command:
+    cmd: "{{ rocm_setup_rocm_cli_user_home }}/.local/bin/rocm --version"
+  register: rocm_setup_rocm_cli_verify
+  changed_when: false
+  become: true
+  become_user: "{{ rocm_setup_user }}"
+
+- name: Display installed ROCm-CLI version
+  ansible.builtin.debug:
+    msg: "ROCm-CLI installed: {{ rocm_setup_rocm_cli_verify.stdout | trim }}"

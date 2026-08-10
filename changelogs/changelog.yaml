@@ -5,10 +5,10 @@ releases:
     release_date: "2026-08-03"
     changes:
       release_summary: >-
-        Integrate batesste-dotfiles v1.0.1 into user_setup and git_setup
-        roles, wire up GPG-based git-crypt unlock via vault, install packer
-        via HashiCorp apt repo in fave_packages, and fix a TheRock stream
-        version-detection regression in rocm_setup.
+        Integrate batesste-dotfiles v1.0.2 into user_setup, git_setup, and
+        claude_setup roles, wire up GPG-based git-crypt unlock via vault,
+        install packer via HashiCorp apt repo in fave_packages, and fix
+        TheRock stream version-detection regressions in rocm_setup.
       minor_changes:
         - >-
           user_setup — add dotfiles integration: clone batesste-dotfiles
@@ -53,8 +53,14 @@ releases:
           tasks with rocm_setup_repo_stream != 'therock' to avoid
           clobbering the version when using the TheRock stream.
         - >-
-          playbooks/hosts.yml — enable dotfiles integration (v1.0.0) and
-          gh/hf authentication for the amd inventory group.
+          claude_setup — add claude_setup_dotfiles_enable flag (default false).
+          When true, the settings.json template task is skipped so the dotfiles
+          claude stow package (settings.json, CLAUDE.md) remains authoritative.
+        - >-
+          playbooks/hosts.yml — enable dotfiles v1.0.2 (packages: bash git gh
+          secrets aws claude) for the amd group; user_setup_dotfiles_owns_claude
+          and claude_setup_dotfiles_enable set true; gh auth disabled (dotfiles
+          owns gh/hosts.yml via expand_templates).
   1.5.0:
     release_date: "2026-06-05"
     changes:
