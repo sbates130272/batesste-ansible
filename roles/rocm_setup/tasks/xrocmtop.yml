@@ -12,13 +12,16 @@
   register: rocm_setup_xrocmtop_latest_release
   when: rocm_setup_xrocmtop_version == 'latest'
   changed_when: false
+  check_mode: false
 
 - name: Set resolved xrocmtop version from latest API response
   ansible.builtin.set_fact:
     rocm_setup_xrocmtop_resolved_version: >-
       {{ rocm_setup_xrocmtop_latest_release.json.tag_name
          | regex_replace('^v', '') }}
-  when: rocm_setup_xrocmtop_version == 'latest'
+  when:
+    - rocm_setup_xrocmtop_latest_release.json.tag_name is defined
+    - rocm_setup_xrocmtop_version == 'latest'
 
 - name: Set resolved xrocmtop version from configured value
   ansible.builtin.set_fact:
@@ -46,6 +49,7 @@
   register: rocm_setup_xrocmtop_installed_version
   changed_when: false
   failed_when: false
+  check_mode: false
 
 - name: Set xrocmtop needs update fact
   ansible.builtin.set_fact:
@@ -69,7 +73,9 @@
     src: "/tmp/{{ rocm_setup_xrocmtop_tarball_name }}"
     dest: /tmp
     remote_src: true
-  when: rocm_setup_xrocmtop_needs_update
+  when:
+    - rocm_setup_xrocmtop_needs_update
+    - not ansible_check_mode
 
 - name: Ensure xrocmtop install directory exists
   ansible.builtin.file:
@@ -90,13 +96,16 @@
     group: root
     mode: '0755'
   become: true
-  when: rocm_setup_xrocmtop_needs_update
+  when:
+    - rocm_setup_xrocmtop_needs_update
+    - not ansible_check_mode
 
 - name: Verify xrocmtop installation
   ansible.builtin.command:
     cmd: "{{ rocm_setup_xrocmtop_install_dir }}/xrocmtop --version"
   register: rocm_setup_xrocmtop_verify
   changed_when: false
+  check_mode: false
 
 - name: Display installed xrocmtop version
   ansible.builtin.debug:
