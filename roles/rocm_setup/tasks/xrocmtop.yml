@@ -18,7 +18,9 @@
     rocm_setup_xrocmtop_resolved_version: >-
       {{ rocm_setup_xrocmtop_latest_release.json.tag_name
          | regex_replace('^v', '') }}
-  when: rocm_setup_xrocmtop_version == 'latest'
+  when:
+    - rocm_setup_xrocmtop_latest_release.json.tag_name is defined
+    - rocm_setup_xrocmtop_version == 'latest'
 
 - name: Set resolved xrocmtop version from configured value
   ansible.builtin.set_fact:
