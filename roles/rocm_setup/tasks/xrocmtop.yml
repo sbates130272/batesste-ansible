@@ -73,7 +73,9 @@
     src: "/tmp/{{ rocm_setup_xrocmtop_tarball_name }}"
     dest: /tmp
     remote_src: true
-  when: rocm_setup_xrocmtop_needs_update
+  when:
+    - rocm_setup_xrocmtop_needs_update
+    - not ansible_check_mode
 
 - name: Ensure xrocmtop install directory exists
   ansible.builtin.file:
@@ -94,7 +96,9 @@
     group: root
     mode: '0755'
   become: true
-  when: rocm_setup_xrocmtop_needs_update
+  when:
+    - rocm_setup_xrocmtop_needs_update
+    - not ansible_check_mode
 
 - name: Verify xrocmtop installation
   ansible.builtin.command:
