@@ -12,6 +12,7 @@
   register: rocm_setup_xrocmtop_latest_release
   when: rocm_setup_xrocmtop_version == 'latest'
   changed_when: false
+  check_mode: false
 
 - name: Set resolved xrocmtop version from latest API response
   ansible.builtin.set_fact:
@@ -48,6 +49,7 @@
   register: rocm_setup_xrocmtop_installed_version
   changed_when: false
   failed_when: false
+  check_mode: false
 
 - name: Set xrocmtop needs update fact
   ansible.builtin.set_fact:
@@ -99,6 +101,7 @@
     cmd: "{{ rocm_setup_xrocmtop_install_dir }}/xrocmtop --version"
   register: rocm_setup_xrocmtop_verify
   changed_when: false
+  check_mode: false
 
 - name: Display installed xrocmtop version
   ansible.builtin.debug:
