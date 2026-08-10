@@ -1,0 +1,11 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+
+ansible_host: amd-aic-slurm
+ansible_user: stebates
+username: stebates
+user_setup_motd: true
+nvme_exporter_setup_install: true
+git_setup_install_gh: false

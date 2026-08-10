@@ -1,0 +1,50 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+
+username: stebates
+user_setup_create: false
+user_setup_preferred_shell: /bin/bash
+
+# Claude setup - AMD API gateway (secrets via vault)
+claude_setup_api_base_url: "https://llm-api.amd.com/Anthropic"
+claude_setup_api_key: "{{ vault_claude_setup_api_key | default('dummy') }}"
+claude_setup_apim_key: "{{ vault_claude_setup_apim_key | default('') }}"
+claude_setup_model_sonnet: "Claude-Sonnet-4.6"
+claude_setup_model_opus: "Claude-Opus-4.8"
+claude_setup_model_haiku: "Claude-Haiku-4.5"
+claude_setup_default_model: "Claude-Sonnet-4.6"
+claude_setup_disable_nonessential_traffic: "1"
+claude_setup_disable_experimental_betas: "1"
+claude_setup_enable_tool_search: "true"
+claude_setup_enable_telemetry: "1"
+claude_setup_enhanced_telemetry: "1"
+claude_setup_otel_endpoint: "https://collector.slug.amd.com"
+claude_setup_otel_log_tool_details: "0"
+claude_setup_otel_log_raw_api_bodies: "0"
+claude_setup_otel_log_tool_content: "0"
+claude_setup_otel_log_user_prompts: "0"
+claude_setup_company_announcements:
+  - "Welcome to Claude Code - AMD Edition!"
+  - "Review AMD coding standards before committing code"
+  - "Security reminder: Never commit credentials, API keys, or sensitive data"
+  - "Tip: Use /help to see available commands and features"
+
+# GPG key — imported by user_setup before git-crypt unlock; stored in vault
+user_setup_gpg_private_key: "{{ vault_gpg_private_key | default('') }}"
+
+# Dotfiles integration - deploy batesste-dotfiles via stow
+# secrets package owns gh/hf/docker tokens via git-crypt encrypted ~/.secrets.env
+user_setup_dotfiles_enable: true
+user_setup_dotfiles_version: "v1.0.2"
+user_setup_dotfiles_packages: "bash git gh secrets aws claude"
+user_setup_dotfiles_owns_emacs: false
+user_setup_dotfiles_owns_ssh: false
+user_setup_dotfiles_owns_hf: false
+user_setup_dotfiles_owns_claude: true
+git_setup_dotfiles_enable: true
+# gh auth handled by dotfiles expand_templates (gh/hosts.yml); disable role-based auth
+git_setup_gh_authenticate: false
+# claude settings.json owned by dotfiles claude stow package
+claude_setup_dotfiles_enable: true

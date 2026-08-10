@@ -1,0 +1,12 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+
+ansible_host: amd-aic-spur
+ansible_user: stebates
+username: stebates
+user_setup_motd: true
+user_setup_unprivileged: true
+git_setup_unprivileged: true
+claude_setup_unprivileged: true

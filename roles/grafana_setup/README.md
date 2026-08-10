@@ -327,16 +327,16 @@ and are ready to use immediately after role execution.
 Run the following from the folder this README resides in:
 
 ```bash
-ANSIBLE_ROLES_PATH=../ ansible-playbook -i ../../playbooks/inventories/hosts-grafana-setup ./tests/test.yml
+ANSIBLE_ROLES_PATH=../ ansible-playbook -i ../../inventory/inventories/hosts-grafana-setup.yml ./tests/test.yml
 ```
 
 Or to test with your own user:
 
 ```bash
-ANSIBLE_ROLES_PATH=../ ansible-playbook -i ../../playbooks/inventories/hosts-grafana-setup ./tests/test.yml -e ansible_user=$(whoami)
+ANSIBLE_ROLES_PATH=../ ansible-playbook -i ../../inventory/inventories/hosts-grafana-setup.yml ./tests/test.yml -e ansible_user=$(whoami)
 ```
 
-**Note**: Update `vault_grafana_setup_password` in `../../playbooks/inventories/hosts-grafana-setup` before running.
+**Note**: Update `vault_grafana_setup_password` in `../../inventory/inventories/hosts-grafana-setup.yml` before running.
 
 ## Note on prometheus-node-exporter
 

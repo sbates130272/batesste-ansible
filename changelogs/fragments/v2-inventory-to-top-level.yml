@@ -1,0 +1,10 @@
+breaking_changes:
+  - >-
+    Move ``playbooks/hosts.yml`` to ``inventory/hosts.yml`` and rename
+    ``playbooks/inventories/hosts-*`` to ``inventory/inventories/hosts-*.yml``
+    to follow Ansible best practices (inventory under a top-level ``inventory/``
+    directory, YAML suffix for all inventory files). Update any ``-i`` paths or
+    ``HOSTS=`` overrides: the ``run-ansible`` default is now
+    ``../inventory/hosts.yml`` and ``ansible.cfg`` sets that as the default
+    inventory. The ``kinds:`` workaround in ``.ansible-lint`` is removed as
+    ``inventory/hosts.yml`` now matches the default ``**/inventory/**`` glob.

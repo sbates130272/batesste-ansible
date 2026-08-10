@@ -104,12 +104,12 @@ then the shared recipe dispatcher runs the host setup roles.
 
 Recommended flow:
 
-1. Set the EC2 variables in `playbooks/hosts.yml`, a gitignored local vars
+1. Set the EC2 variables in `inventory/hosts.yml`, a gitignored local vars
    file, or extra vars passed to Ansible.
 2. Run the AWS ROCm XIO recipe from the repository root:
 
 ```bash
-PLAYBOOK=setup-ec2.yml HOSTS=playbooks/hosts.yml playbooks/run-ansible
+PLAYBOOK=setup-ec2.yml playbooks/run-ansible
 ```
 
 3. Enable performance tests only when you have explicitly configured safe test
@@ -121,7 +121,7 @@ Run from this role directory:
 
 ```bash
 ANSIBLE_ROLES_PATH=../ ansible-playbook \
-  -i ../../playbooks/inventories/hosts-rocm-xio-setup \
+  -i ../../inventory/inventories/hosts-rocm-xio-setup.yml \
   ./tests/test.yml
 ```
 

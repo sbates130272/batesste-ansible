@@ -100,7 +100,7 @@ The unified entry point is [setup.yml](./playbooks/setup.yml). Select a recipe
 with `-e setup_recipe=<name>` or the `RECIPE` environment variable used by
 `playbooks/run-ansible`. Tags are optional filters inside the selected recipe,
 for example `--tags rocm_setup`. Example inventory:
-[hosts.yml](./playbooks/hosts.yml) (gitignored `playbooks/hosts` also works for
+[hosts.yml](./inventory/hosts.yml) (a gitignored local override also works for
 private lists). For a new host you may use [qemu-minimal][qemu-minimal] to build
 an image first.
 
@@ -174,7 +174,7 @@ vault_aws_ec2_access_key_id: AKIA…
 vault_aws_ec2_secret_access_key: …
 ```
 
-3. Set account-specific values by editing [hosts.yml](./playbooks/hosts.yml) or
+3. Set account-specific values by editing [hosts.yml](./inventory/hosts.yml) or
    create a gitignored `playbooks/vars/local.yml` and merge it at runtime with
    `-e @playbooks/vars/local.yml`. Example `local.yml`:
 
@@ -191,27 +191,26 @@ rocm_xio_setup_perf_nvme_controllers: ["/dev/nvme1n1"]
 # For Play 2 only (no EC2 API): aws_rocm_skip_ec2_launch: true
 ```
 
-4. `rocm_setup` reboots after AMDGPU DKMS (`hosts.yml`
+4. `rocm_setup` reboots after AMDGPU DKMS (`inventory/hosts.yml`
    `aws_rocm_bootstrap.vars` sets `rocm_setup_skip_reboot: false`). The shared
    inventory lists `aws_ec2_launch` (localhost), `aws_rocm_bootstrap`, and
    `awsmachines` so the launch play and `aws_grub` role see the same groups.
-   For YAML inventory, the file must start with `---` as the first line.
 5. To configure an existing instance without calling the EC2 API, set
-   `aws_rocm_skip_ec2_launch: true` in `hosts.yml`, `local.yml`, or pass
-   `-e aws_rocm_skip_ec2_launch=true`, or run with `--skip-tags ec2_launch`
+   `aws_rocm_skip_ec2_launch: true` in `inventory/hosts.yml`, `local.yml`, or
+   pass `-e aws_rocm_skip_ec2_launch=true`, or run with `--skip-tags ec2_launch`
    (same inventory).
 6. Run from the `playbooks/` directory (see
    [ansible.cfg](./playbooks/ansible.cfg)):
 
 ```
-ansible-playbook -i hosts.yml setup-ec2.yml \
+ansible-playbook setup-ec2.yml \
   --vault-password-file vault-password --become-password-file sudo-password
 ```
 
    Add `-e @playbooks/vars/local.yml` (and optional `-e @…/vault.yml`) when you
-   keep overrides outside `hosts.yml`.
+   keep overrides outside `inventory/hosts.yml`.
 
-With `run-ansible`, set `HOSTS=hosts.yml` and `PLAYBOOK=setup-ec2.yml`;
+With `run-ansible`, set `PLAYBOOK=setup-ec2.yml`;
 `TARGETS` and `RECIPE` are ignored by the EC2 playbook. For runs that do not
 need vault or a sudo password file on disk, set
 `RUN_ANSIBLE_NO_VAULT=1` and/or `RUN_ANSIBLE_NO_SUDO_PASS=1` (see below).
@@ -231,7 +230,7 @@ example when sudo is passwordless), set `RUN_ANSIBLE_NO_SUDO_PASS=1`.
 Otherwise you typically create:
 
 1. A hosts file, call this what you like. The repository ships
-   [hosts.yml](./playbooks/hosts.yml) as a combined example inventory (lab
+   [hosts.yml](./inventory/hosts.yml) as a combined example inventory (lab
    groups plus AWS ROCm XIO groups).
 2. `sudo-password`, a file with the sudo password for the remote user. Not all
    modes of execution need this.

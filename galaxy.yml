@@ -42,6 +42,7 @@ build_ignore:
   - .python-version
   - .spellcheck.yml
   - .wordlist.txt
+  - inventory
   - playbooks
   - requirements.txt
   - requirements.yml

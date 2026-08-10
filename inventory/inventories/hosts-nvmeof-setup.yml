@@ -26,4 +26,3 @@ nvmeof_servers:
               nqn: nvmet-storage
   vars:
     ansible_user: stebates
-

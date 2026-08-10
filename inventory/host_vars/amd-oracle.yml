@@ -1,0 +1,10 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+
+ansible_host: amd-oracle
+user_setup_create: false
+ansible_ssh_common_args: >-
+  -o RequestTTY=no
+  -o RemoteCommand=none
