@@ -37,7 +37,7 @@ user_setup_gpg_private_key: "{{ vault_gpg_private_key | default('') }}"
 # Dotfiles integration - deploy batesste-dotfiles via stow
 # secrets package owns gh/hf/docker tokens via git-crypt encrypted ~/.secrets.env
 user_setup_dotfiles_enable: true
-user_setup_dotfiles_version: "v1.3.0"
+user_setup_dotfiles_version: "v1.4.0"
 user_setup_dotfiles_packages: "bash git gh secrets aws claude"
 user_setup_dotfiles_owns_emacs: false
 user_setup_dotfiles_owns_ssh: false
