@@ -124,12 +124,11 @@ rocm_setup_metrics_exporter_open_firewall: true
 rocm_setup_install_rocm_cli: true
 rocm_setup_rocm_cli_channel: nightly
 
-# Install hipFile and fio-libhipfile via apt. These packages are expected
-# to land in the ROCm apt repo with ROCm 7.13/7.14 tech preview.
-# Adjust rocm_setup_hipfile_packages if the final package names differ.
+# Install hipFile packages via apt (ROCm 7.14+).
+# Legacy stream (repo.radeon.com): hipfile
+# TheRock stream (repo.amd.com): amdrocm-hipfile, amdrocm-hipfile-dev
+# Override this list when the stream's package names differ from the default.
 rocm_setup_install_hipfile: false
 rocm_setup_hipfile_packages:
   - hipfile
-  - fio-libhipfile
-# Install path expected by inventory that previously used rocm_hipfile_setup.
 rocm_setup_hipfile_fio_install_dir: /opt/fio-hipfile

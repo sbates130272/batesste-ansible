@@ -3,9 +3,26 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Install hipFile and fio-libhipfile via apt (ROCm 7.14+).
+# Install hipFile packages via apt (ROCm 7.14+).
 
-- name: Install hipFile and fio-libhipfile packages
+- name: Set hipfile package list for therock stream
+  ansible.builtin.set_fact:
+    rocm_setup_hipfile_packages:
+      - amdrocm-hipfile
+      - amdrocm-hipfile-dev
+  when:
+    - rocm_setup_repo_stream == 'therock'
+    - rocm_setup_hipfile_packages == ['hipfile']
+
+- name: Install HIP runtime headers (required for hipfile dev on therock)
+  ansible.builtin.package:
+    name: "amdrocm-core-dev{{ rocm_setup_rocm_version | regex_search('^[0-9]+\\.[0-9]+') }}"
+    state: present
+  become: true
+  when:
+    - rocm_setup_repo_stream == 'therock'
+
+- name: Install hipFile packages
   ansible.builtin.package:
     name: "{{ rocm_setup_hipfile_packages }}"
     state: present

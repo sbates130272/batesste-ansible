@@ -152,5 +152,4 @@
       - uprof_setup
       - cloud_setup
       - aws_grub
-      - rocm_hipfile_setup
       - rocm_xio_setup
