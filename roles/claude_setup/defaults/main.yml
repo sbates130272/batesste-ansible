@@ -27,6 +27,9 @@ claude_setup_api_key: "{{ vault_claude_setup_api_key | default('') }}"
 # Set via vault. Leave empty to omit the header.
 claude_setup_apim_key: "{{ vault_claude_setup_apim_key | default('') }}"
 
+# AMD LLM gateway usage stats API. Set to empty to omit the claude-usage helper.
+claude_setup_usage_api_url: "https://llm-api.amd.com/api/UsageStats"
+
 # Model names written into settings.json. Empty string omits the variable.
 claude_setup_model_sonnet: ""
 claude_setup_model_opus: ""

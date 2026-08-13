@@ -79,6 +79,7 @@
   ansible.builtin.pip:
     name: uv
     state: present
+    extra_args: --break-system-packages
   become: true
 
 - name: Set ptop architecture for GitHub asset

@@ -34,7 +34,6 @@
         - git_setup
         - rdma_setup
         - rocm_setup
-        - rocm_hipfile_setup
         - rocm_xio_setup
         - uprof_setup
         - claude_setup
@@ -223,17 +222,6 @@
         - inventory_hostname in groups.get('awsmachines', [])
       tags:
         - aws_grub
-
-    - name: Run rocm_hipfile_setup
-      ansible.builtin.include_role:
-        name: rocm_hipfile_setup
-        apply:
-          remote_user: "{{ username }}"
-          tags:
-            - rocm_hipfile_setup
-      when: "'rocm_hipfile_setup' in setup_selected_roles"
-      tags:
-        - rocm_hipfile_setup
 
     - name: Run rocm_xio_setup
       ansible.builtin.include_role:

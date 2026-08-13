@@ -109,7 +109,7 @@
 
 - name: Resolve ROCm meta package name (therock stream)
   ansible.builtin.set_fact:
-    rocm_setup_rocm_meta_pkg: rocm
+    rocm_setup_rocm_meta_pkg: amdrocm
   when: rocm_setup_repo_stream == 'therock'
 
 - name: Build ROCm package list
