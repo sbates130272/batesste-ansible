@@ -72,3 +72,61 @@ jobs:
         run: |
           systemctl status amdgpu-dkms || true
           dpkg -l | grep rocm || true
+
+  rocm_setup-therock-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+
+      - name: Install pip packages
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Run ansible-galaxy to install collections
+        run: ansible-galaxy collection install -r requirements.yml
+
+      - name: Build and install the collection locally
+        run: |
+          ansible-galaxy collection build --force
+          ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force
+
+      - name: Create an SSH keypair
+        run: mkdir -p .ssh && ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+
+      - name: Create a GNU PGP folder
+        run: mkdir -p .gnupg
+
+      - name: Write hosts-ci file
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: ./roles/rocm_setup/hosts-ci
+          write-mode: overwrite
+          contents: |
+            all:
+              hosts:
+                localhost:
+                  ansible_connection: local
+                  ansible_user: runner
+                  rocm_setup_repo_stream: therock
+                  rocm_setup_therock_channel: stable
+                  rocm_setup_wsl: false
+                  rocm_setup_run_checks: false
+                  rocm_setup_install_metrics_exporter: false
+                  rocm_setup_install_kernel_driver: false
+                  rocm_setup_skip_system_upgrade: true
+                  rocm_setup_install_hipfile: false
+                  rocm_setup_install_xrocmtop: false
+
+      - name: Run the test playbook against the local runner
+        run: ansible-playbook -v -i hosts-ci ./tests/test.yml
+        working-directory: ./roles/rocm_setup
+        env:
+          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+
+      - name: Verify rocm_setup therock installation
+        run: |
+          dpkg -l | grep rocm || true
+          dpkg -l | grep amdrocm || true
+          cat /etc/apt/sources.list.d/rocm.sources || true

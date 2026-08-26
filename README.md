@@ -1,5 +1,15 @@
 # batesste-ansible: An Ansible collection of roles.
 
+[![Collection CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/batesste-ansible-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/batesste-ansible-ci.yml)
+[![rocm_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/rocm_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/rocm_setup-ci.yml)
+[![grafana_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/grafana_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/grafana_setup-ci.yml)
+[![claude_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/claude_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/claude_setup-ci.yml)
+[![git_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/git_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/git_setup-ci.yml)
+[![rdma_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/rdma_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/rdma_setup-ci.yml)
+[![Ansible Galaxy](https://img.shields.io/badge/galaxy-sbates130272.batesste-blue?logo=ansible)](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/)
+[![GitHub Release](https://img.shields.io/github/v/release/sbates130272/batesste-ansible)](https://github.com/sbates130272/batesste-ansible/releases)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+
 ## Introduction
 
 This repo contains an Ansible collection (`sbates130272.batesste`) of
