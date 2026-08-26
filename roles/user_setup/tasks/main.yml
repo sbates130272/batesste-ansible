@@ -172,11 +172,27 @@
     mode: "0755"
   when: user_setup_dotfiles_enable | default(false)
 
+- name: Resolve latest dotfiles release tag from GitHub API
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/sbates130272/batesste-dotfiles/releases/latest"
+    return_content: true
+    headers:
+      Accept: "application/vnd.github+json"
+  register: _dotfiles_latest_release
+  when:
+    - user_setup_dotfiles_enable | default(false)
+    - user_setup_dotfiles_version == "latest"
+
 - name: Clone batesste-dotfiles repo
   ansible.builtin.git:
     repo: "{{ user_setup_dotfiles_repo }}"
     dest: "{{ user_setup_dotfiles_dest }}"
-    version: "{{ user_setup_dotfiles_version }}"
+    version: >-
+      {{
+        (_dotfiles_latest_release.json.tag_name
+         if (user_setup_dotfiles_version == 'latest' and _dotfiles_latest_release is not skipped)
+         else user_setup_dotfiles_version)
+      }}
     update: true
   when: user_setup_dotfiles_enable | default(false)
 
