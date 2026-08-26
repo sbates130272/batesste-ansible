@@ -555,8 +555,8 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
             lines.append(f"            {line}")
         lines.extend([
             "",
-            f"      - name: Run the test playbook against the local runner",
-            f"        run: ansible-playbook -v -i hosts-ci ./tests/test.yml",
+            "      - name: Run the test playbook against the local runner",
+            "        run: ansible-playbook -v -i hosts-ci ./tests/test.yml",
             f"        working-directory: ./roles/{role_name}",
             "        env:",
             "          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles",
