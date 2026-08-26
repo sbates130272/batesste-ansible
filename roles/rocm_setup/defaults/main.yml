@@ -14,14 +14,17 @@ rocm_setup_repo_base_url: repo.radeon.com
 rocm_setup_repo_pin_origin: "{{ rocm_setup_repo_base_url }}"
 
 # --- TheRock stream (repo.amd.com) settings ---
-# Ubuntu 26.04 uses packages/ubuntu2604; 24.04 and 22.04 use packages-multi-arch/ubuntu{2404,2204}.
-rocm_setup_therock_repo_base_url: repo.amd.com
-rocm_setup_therock_gpg_url: "https://{{ rocm_setup_therock_repo_base_url }}/rocm/packages/gpg/rocm.gpg"
+# Channel selects the subdomain: stable, nightly, or dev.
+# Repo layout: https://{channel}.repo.amd.com/rocm/core/packages/{distro}/
+# GPG key:     https://{channel}.repo.amd.com/rocm/gpg/packages.gpg
+rocm_setup_therock_channel: stable
+rocm_setup_therock_repo_base_url: "{{ rocm_setup_therock_channel }}.repo.amd.com"
+rocm_setup_therock_gpg_url: "https://{{ rocm_setup_therock_repo_base_url }}/rocm/gpg/packages.gpg"
 rocm_setup_therock_keyring_path: /etc/apt/keyrings/amdrocm.gpg
 rocm_setup_therock_repo_path_map:
-  noble: packages-multi-arch/ubuntu2404
-  resolute: packages/ubuntu2604
-  jammy: packages-multi-arch/ubuntu2204
+  noble: core/packages/ubuntu2404
+  resolute: core/packages/ubuntu2604
+  jammy: core/packages/ubuntu2204
 
 # The version of ROCm to install (legacy stream only). Set to latest to
 # auto-detect via the rocm-latest script.

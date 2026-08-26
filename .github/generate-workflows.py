@@ -44,6 +44,27 @@ ROLE_CONFIGS = {
             "dpkg -l | grep rocm || true",
         ],
         "needs_vault": False,
+        "extra_jobs": [
+            {
+                "name_suffix": "therock",
+                "extra_vars": {
+                    "rocm_setup_repo_stream": "therock",
+                    "rocm_setup_therock_channel": "stable",
+                    "rocm_setup_wsl": False,
+                    "rocm_setup_run_checks": False,
+                    "rocm_setup_install_metrics_exporter": False,
+                    "rocm_setup_install_kernel_driver": False,
+                    "rocm_setup_skip_system_upgrade": True,
+                    "rocm_setup_install_hipfile": False,
+                    "rocm_setup_install_xrocmtop": False,
+                },
+                "verification_commands": [
+                    "dpkg -l | grep rocm || true",
+                    "dpkg -l | grep amdrocm || true",
+                    "cat /etc/apt/sources.list.d/rocm.sources || true",
+                ],
+            },
+        ],
     },
     "rocm_xio_setup": {
         "free_disk_space": True,
@@ -472,6 +493,82 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         ])
         for cmd in config["verification_commands"]:
             lines.append(f"          {cmd}")
+
+    # Emit extra jobs (same boilerplate, different hosts-ci vars)
+    for extra_job in config.get("extra_jobs", []):
+        suffix = extra_job["name_suffix"]
+        job_id = f"{role_name}-{suffix}-test"
+        lines.extend([
+            "",
+            f"  {job_id}:",
+            f"    runs-on: ubuntu-{ubuntu_versions[0]}",
+            "    steps:",
+        ])
+        if config.get("free_disk_space", False):
+            lines.extend([
+                "      - name: Free Disk Space (Ubuntu)",
+                "        uses: jlumbroso/free-disk-space@v1.3.1",
+            ])
+        lines.extend([
+            "      - name: Checkout code",
+            "        uses: actions/checkout@v7.0.1",
+            "",
+            "      - name: Install pip packages",
+            "        run: python3 -m pip install -r requirements.txt",
+            "",
+            "      - name: Run ansible-galaxy to install collections",
+            "        run: ansible-galaxy collection install -r requirements.yml",
+            "",
+            "      - name: Build and install the collection locally",
+            "        run: |",
+            "          ansible-galaxy collection build --force",
+            "          ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force",
+            "",
+            "      - name: Create an SSH keypair",
+            '        run: mkdir -p .ssh && ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""',
+            "",
+            "      - name: Create a GNU PGP folder",
+            "        run: mkdir -p .gnupg",
+            "",
+        ])
+        extra_hosts = {
+            "all": {
+                "hosts": {
+                    "localhost": {
+                        "ansible_connection": "local",
+                        "ansible_user": "runner",
+                    }
+                }
+            }
+        }
+        extra_hosts["all"]["hosts"]["localhost"].update(extra_job.get("extra_vars", {}))
+        extra_hosts_yaml = yaml.dump(extra_hosts, default_flow_style=False, sort_keys=False)
+        lines.extend([
+            "      - name: Write hosts-ci file",
+            "        uses: DamianReeves/write-file-action@v1.3",
+            "        with:",
+            f"          path: ./roles/{role_name}/hosts-ci",
+            "          write-mode: overwrite",
+            "          contents: |",
+        ])
+        for line in extra_hosts_yaml.splitlines():
+            lines.append(f"            {line}")
+        lines.extend([
+            "",
+            f"      - name: Run the test playbook against the local runner",
+            f"        run: ansible-playbook -v -i hosts-ci ./tests/test.yml",
+            f"        working-directory: ./roles/{role_name}",
+            "        env:",
+            "          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles",
+        ])
+        if extra_job.get("verification_commands"):
+            lines.extend([
+                "",
+                f"      - name: Verify {role_name} {suffix} installation",
+                "        run: |",
+            ])
+            for cmd in extra_job["verification_commands"]:
+                lines.append(f"          {cmd}")
 
     return "\n".join(lines) + "\n"
 
