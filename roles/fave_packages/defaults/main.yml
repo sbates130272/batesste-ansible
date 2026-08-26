@@ -8,3 +8,4 @@
 # /etc/default/prometheus-node-exporter.  The WiFi collector
 # is disabled upstream by default; this enables it.
 fave_packages_node_exporter_extra_args: "--collector.wifi"
+fave_packages_uv_enable: true
