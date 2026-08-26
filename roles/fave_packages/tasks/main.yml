@@ -81,6 +81,7 @@
     state: present
     extra_args: --break-system-packages
   become: true
+  when: fave_packages_uv_enable | default(true)
 
 - name: Set ptop architecture for GitHub asset
   ansible.builtin.set_fact:
