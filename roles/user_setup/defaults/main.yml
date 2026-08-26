@@ -37,7 +37,7 @@ user_setup_gpg_private_key: ""
 # When enabled, the dotfiles repo becomes the authoritative source for the stowed packages.
 user_setup_dotfiles_enable: false
 user_setup_dotfiles_repo: "https://github.com/sbates130272/batesste-dotfiles.git"
-user_setup_dotfiles_version: "v1.4.0"
+user_setup_dotfiles_version: "latest"
 user_setup_dotfiles_dest: "{{ user_setup_home }}/.dotfiles"
 # Space-separated list of stow packages passed to install.sh
 user_setup_dotfiles_packages: "bash git gh"
