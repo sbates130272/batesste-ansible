@@ -1,0 +1,52 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Persist ROCXIO_NVME_DEVICE / NVME_DEVICE (and optionally TMPDIR) system-wide
+# so callers don't need a wrapper script to re-export them across the sudo
+# boundary.
+
+- name: Ensure TMPDIR target directory exists
+  ansible.builtin.file:
+    path: "{{ rocm_xio_setup_env_tmpdir }}"
+    state: directory
+    mode: "1777"
+  become: true
+  when: rocm_xio_setup_env_tmpdir | length > 0
+
+- name: Install rocm-xio shell exports under /etc/profile.d
+  ansible.builtin.copy:
+    dest: "{{ rocm_xio_setup_env_profile_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # Managed by batesste rocm_xio_setup role.
+      {% if rocm_xio_setup_env_nvme_device | length > 0 %}
+      export ROCXIO_NVME_DEVICE="{{ rocm_xio_setup_env_nvme_device }}"
+      export NVME_DEVICE="${NVME_DEVICE:-$ROCXIO_NVME_DEVICE}"
+      {% endif %}
+      {% if rocm_xio_setup_env_tmpdir | length > 0 %}
+      export TMPDIR="{{ rocm_xio_setup_env_tmpdir }}"
+      {% endif %}
+  become: true
+
+- name: Keep rocm-xio env vars across sudo via /etc/sudoers.d
+  ansible.builtin.copy:
+    dest: "{{ rocm_xio_setup_env_sudoers_path }}"
+    owner: root
+    group: root
+    mode: "0440"
+    content: |
+      # Managed by batesste rocm_xio_setup role.
+      {% set _keep = [] %}
+      {% if rocm_xio_setup_env_nvme_device | length > 0 %}
+      {% set _ = _keep.extend(['ROCXIO_NVME_DEVICE', 'NVME_DEVICE']) %}
+      {% endif %}
+      {% if rocm_xio_setup_env_tmpdir | length > 0 %}
+      {% set _ = _keep.append('TMPDIR') %}
+      {% endif %}
+      Defaults env_keep += "{{ _keep | join(' ') }}"
+    validate: "visudo -cf %s"
+  become: true

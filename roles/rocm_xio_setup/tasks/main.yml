@@ -85,6 +85,8 @@
       -DCMAKE_BUILD_TYPE={{ rocm_xio_setup_build_type }}
       -DBUILD_CLIENTS={{ 'ON' if rocm_xio_setup_build_clients else 'OFF' }}
       -DBUILD_TESTING={{ 'ON' if rocm_xio_setup_build_testing else 'OFF' }}
+      {{ ('-DOFFLOAD_ARCH=' + rocm_xio_setup_offload_arch)
+         if rocm_xio_setup_offload_arch else '' }}
   changed_when: false
 
 - name: Build rocm-xio
@@ -119,6 +121,16 @@
     - rocm_xio_setup_install_dependencies
     - rocm_xio_setup_build_clients
     - "'libcli11-dev' not in ansible_facts.packages"
+
+- name: Build, install, and load the rocm-xio kernel module
+  ansible.builtin.import_tasks: rocm_xio_kmod.yml
+  when: rocm_xio_setup_install_kmod
+
+- name: Persist rocm-xio test environment for ctest/sudo convenience
+  ansible.builtin.import_tasks: rocm_xio_env.yml
+  when: >-
+    (rocm_xio_setup_env_nvme_device | length > 0)
+    or (rocm_xio_setup_env_tmpdir | length > 0)
 
 - name: Run post-install rocm-xio checks
   ansible.builtin.import_tasks: rocm_xio_check.yml
