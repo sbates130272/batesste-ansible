@@ -4,7 +4,8 @@ This directory contains automated CI/CD workflows for the batesste-ansible repos
 
 ## Overview
 
-- **batesste-ansible-ci.yml**: Main CI workflow that runs linting, spelling, and core tests
+- **batesste-ansible-ci.yml**: Main CI workflow that runs linting, spelling, README checks, and core tests
+- **check-readme.sh**: Script (run by the main CI) that verifies every role in `roles/` is linked in the top-level `README.md`
 - **Individual role workflows**: Auto-generated workflows for each role with tests
 - **generate-workflows.py**: Python script that automatically generates role-specific workflows
 
@@ -52,6 +53,19 @@ ROLE_CONFIGS = {
 name to `WORKFLOW_DISPATCH_ONLY_ROLES` in `generate-workflows.py` (e.g.
 `["nvmeof_setup"]`) or set `workflow_dispatch_only: true` for that role
 in `ROLE_CONFIGS`. Regenerate workflows after changing.
+
+### Keeping README.md in Sync
+
+`check-readme.sh` is run as a step inside `batesste-ansible-ci.yml`. It fails
+if any directory under `roles/` does not have a corresponding
+`roles/<role>/README.md` link in the top-level `README.md`. When adding a new
+role, add a row to the **Roles** table in `README.md` before opening a PR.
+
+Run the check locally:
+
+```bash
+bash .github/check-readme.sh
+```
 
 ### Adding CI for a New Role
 

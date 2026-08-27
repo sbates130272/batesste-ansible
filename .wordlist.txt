@@ -40,12 +40,14 @@ Grafana
 Grafana's
 HSA
 HTTPS
+HashiCorp
 Homebrew
 HuggingFace
 IPv
 InfiniBand
 Instinct
 JSON
+KVM
 KEYPAIR
 LLM
 LLMs
@@ -124,6 +126,7 @@ async
 auth
 aws
 backend
+benchmarking
 batesste
 bindings
 blockinfile
@@ -291,6 +294,7 @@ ppa
 pre
 prebuilt
 preload
+profiler
 profiling
 prometheus
 qemu
