@@ -90,6 +90,8 @@ Radeon
 RoCE
 SDK
 SLIRP
+Symlink
+Symlinks
 SMI
 SMU
 SSD

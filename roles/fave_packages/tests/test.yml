@@ -1,0 +1,7 @@
+---
+- name: Test fave_packages role
+  hosts: all
+  tasks:
+    - name: Include fave_packages role
+      ansible.builtin.include_role:
+        name: fave_packages

@@ -1,0 +1,7 @@
+---
+- name: Test cloud_setup role
+  hosts: all
+  tasks:
+    - name: Include cloud_setup role
+      ansible.builtin.include_role:
+        name: cloud_setup

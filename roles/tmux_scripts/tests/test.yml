@@ -1,0 +1,7 @@
+---
+- name: Test tmux_scripts role
+  hosts: all
+  tasks:
+    - name: Include tmux_scripts role
+      ansible.builtin.include_role:
+        name: tmux_scripts

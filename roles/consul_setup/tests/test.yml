@@ -1,0 +1,7 @@
+---
+- name: Test consul_setup role
+  hosts: all
+  tasks:
+    - name: Include consul_setup role
+      ansible.builtin.include_role:
+        name: consul_setup

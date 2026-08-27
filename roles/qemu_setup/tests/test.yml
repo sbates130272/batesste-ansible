@@ -1,0 +1,7 @@
+---
+- name: Test qemu_setup role
+  hosts: all
+  tasks:
+    - name: Include qemu_setup role
+      ansible.builtin.include_role:
+        name: qemu_setup
