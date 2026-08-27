@@ -2,10 +2,23 @@
 
 [![Collection CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/batesste-ansible-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/batesste-ansible-ci.yml)
 [![rocm_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/rocm_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/rocm_setup-ci.yml)
+[![rocm_xio_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/rocm_xio_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/rocm_xio_setup-ci.yml)
+[![rocm_hipfile_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/rocm_hipfile_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/rocm_hipfile_setup-ci.yml)
 [![grafana_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/grafana_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/grafana_setup-ci.yml)
 [![claude_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/claude_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/claude_setup-ci.yml)
 [![git_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/git_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/git_setup-ci.yml)
 [![rdma_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/rdma_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/rdma_setup-ci.yml)
+[![uprof_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/uprof_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/uprof_setup-ci.yml)
+[![nvme_exporter_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/nvme_exporter_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/nvme_exporter_setup-ci.yml)
+[![nvmeof_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/nvmeof_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/nvmeof_setup-ci.yml)
+[![nfs_rdma_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/nfs_rdma_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/nfs_rdma_setup-ci.yml)
+[![mutt_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/mutt_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/mutt_setup-ci.yml)
+[![lemonade_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/lemonade_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/lemonade_setup-ci.yml)
+[![github_runner CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/github_runner-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/github_runner-ci.yml)
+[![eideticom_scripts CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/eideticom_scripts-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/eideticom_scripts-ci.yml)
+[![aws_grub CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/aws_grub-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/aws_grub-ci.yml)
+[![aws_ec2_setup CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/aws_ec2_setup-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/aws_ec2_setup-ci.yml)
+[![check_platform CI](https://github.com/sbates130272/batesste-ansible/actions/workflows/check_platform-ci.yml/badge.svg)](https://github.com/sbates130272/batesste-ansible/actions/workflows/check_platform-ci.yml)
 [![Ansible Galaxy](https://img.shields.io/badge/galaxy-sbates130272.batesste-blue?logo=ansible)](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/)
 [![GitHub Release](https://img.shields.io/github/v/release/sbates130272/batesste-ansible)](https://github.com/sbates130272/batesste-ansible/releases)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
@@ -88,18 +101,14 @@ ansible-galaxy collection install -r requirements.yml
 
 Roles included from playbooks use short names from `roles/`, but internal
 `include_role` calls use the collection FQCN (for example
-`sbates130272.batesste.check_platform`). `playbooks/run-ansible` installs the
-local collection automatically when it is missing. To rebuild and reinstall from
-your checkout after role changes, set `FORCE_LOCAL=1`:
+`sbates130272.batesste.check_platform`). `playbooks/run-ansible` installs
+collection dependencies from `requirements.yml` automatically on first run
+(and again whenever `requirements.yml` is newer than the marker file
+`collections/.deps-installed`).
+
+To manually build and install the collection from your checkout:
 
 ```
-FORCE_LOCAL=1 playbooks/run-ansible
-```
-
-Manual install (same steps `run-ansible` runs):
-
-```
-ansible-galaxy collection install -r requirements.yml -p collections
 ansible-galaxy collection build --force
 ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force -p collections
 ```
@@ -114,37 +123,51 @@ for example `--tags rocm_setup`. Example inventory:
 private lists). For a new host you may use [qemu-minimal][qemu-minimal] to build
 an image first.
 
-### AWS Example
+### User Setup Example
 
-Assuming you have set up a basic Ubuntu 24.04 or 26.04 EC2 instance on AWS you
-can create a hosts file like this:
+The `newmachine` recipe bootstraps a fresh host: creates the user account,
+installs preferred packages, configures git, tmux, mutt, Docker, QEMU, and
+more. `user_setup` runs as `root_user` (typically `root` or `ubuntu`); all
+subsequent roles run as `username`.
 
-```
-[awsmachines]
-52.11.127.216
-[awsmachines:vars]
+Create a minimal hosts file:
+
+```ini
+[mymachines]
+192.168.1.10
+[mymachines:vars]
 root_user=ubuntu
 username=batesste
 ```
 
-and then run:
+Then run:
 
 ```
 ansible-playbook -i hosts setup.yml \
   -e setup_recipe=newmachine \
-  -e targets=awsmachines \
+  -e targets=mymachines \
   --ask-vault-pass
 ```
 
-You can then enter your ansible-vault password at the prompt and things should
-work from there.
+To also deploy dotfiles, pass `user_setup_dotfiles_enable=true`:
 
-### AMD / ROCm Example
+```
+ansible-playbook -i hosts setup.yml \
+  -e setup_recipe=newmachine \
+  -e targets=mymachines \
+  -e user_setup_dotfiles_enable=true \
+  --ask-vault-pass
+```
 
-For AMD machines (ROCm, RDMA, hipFile, ROCm XIO, uProf) use `setup.yml` with
+See [roles/user_setup/README.md](roles/user_setup/README.md) for the full
+variable reference.
+
+### AMD ROCm Example
+
+For AMD machines (ROCm, RDMA, ROCm XIO, uProf, Claude Code) use `setup.yml` with
 `-e setup_recipe=amd`. It runs `user_setup`, `fave_packages`,
 `nvme_exporter_setup`, `git_setup`, `rdma_setup`, `rocm_setup`,
-`rocm_hipfile_setup`, `rocm_xio_setup`, and `uprof_setup`. The `uprof_setup`
+`rocm_xio_setup`, `uprof_setup`, and `claude_setup`. The `uprof_setup`
 role requires the AMD uProf `.deb` from [amd.com][amd-uprof] after accepting the
 EULA, and its path via `uprof_setup_deb_path`. Example:
 
@@ -160,127 +183,94 @@ Or with `run-ansible` (defaults to `RECIPE=newmachine`):
 RECIPE=amd HOSTS=<host-file> TARGETS=<target-group> playbooks/run-ansible
 ```
 
-### AWS g4ad + ROCm XIO (automated EC2)
+### Other Recipes
 
-Use [setup-ec2.yml](./playbooks/setup-ec2.yml) to launch a **g4ad** instance
-(Ubuntu 24.04 noble, one GPU / one NVMe target) with `amazon.aws`. The launch
-play only creates or discovers the instance and adds the bootstrap host to
-inventory. The normal shared recipe dispatcher in `setup.yml` then runs
-`user_setup`, `fave_packages`, `git_setup`, `rdma_setup`, `rocm_setup`,
-`uprof_setup`, `cloud_setup`, `aws_grub`, `rocm_hipfile_setup`, and
-`rocm_xio_setup`.
+`setup.yml` also ships these focused recipes:
 
-1. `ansible-galaxy collection install -r requirements.yml` pulls
-   **amazon.aws**. Install the collection from this repo if you use FQCN roles
-   (see **Local Collection Install** above).
-2. Optional: put EC2 API keys in a YAML file (for example
-   `playbooks/vars/vault.yml`) and encrypt with `ansible-vault encrypt`, then
-   pass `-e @playbooks/vars/vault.yml` along with `--vault-password-file`, or
-   rely on AWS credentials on the control node (env / `~/.aws/config`).
-   Example contents:
+| Recipe | Roles run |
+| ------ | --------- |
+| `nfs_rdma` | `nfs_rdma_setup` |
+| `nvmeof` | `nvmeof_setup` |
+| `rocm_xio` | `rocm_xio_setup` |
 
-```yaml
-vault_aws_ec2_access_key_id: AKIA…
-vault_aws_ec2_secret_access_key: …
-```
-
-3. Set account-specific values by editing [hosts.yml](./inventory/hosts.yml) or
-   create a gitignored `playbooks/vars/local.yml` and merge it at runtime with
-   `-e @playbooks/vars/local.yml`. Example `local.yml`:
-
-```yaml
-aws_ec2_vpc_subnet_id: "subnet-…"
-aws_ec2_key_name: "your-ec2-key-name"
-aws_ec2_security_group_ids: ["sg-…"]
-aws_ec2_profile: "your-aws-cli-profile"
-username: "yourlogin"
-aws_ec2_owner_tag: "your-owner-id"
-aws_ec2_bootstrap_ansible_host: "203.0.113.10"
-aws_ec2_ssh_private_key_file: "{{ lookup('env', 'HOME') }}/.ssh/your-key.pem"
-rocm_xio_setup_perf_nvme_controllers: ["/dev/nvme1n1"]
-# For Play 2 only (no EC2 API): aws_rocm_skip_ec2_launch: true
-```
-
-4. `rocm_setup` reboots after AMDGPU DKMS (`inventory/hosts.yml`
-   `aws_rocm_bootstrap.vars` sets `rocm_setup_skip_reboot: false`). The shared
-   inventory lists `aws_ec2_launch` (localhost), `aws_rocm_bootstrap`, and
-   `awsmachines` so the launch play and `aws_grub` role see the same groups.
-5. To configure an existing instance without calling the EC2 API, set
-   `aws_rocm_skip_ec2_launch: true` in `inventory/hosts.yml`, `local.yml`, or
-   pass `-e aws_rocm_skip_ec2_launch=true`, or run with `--skip-tags ec2_launch`
-   (same inventory).
-6. Run from the `playbooks/` directory (see
-   [ansible.cfg](./playbooks/ansible.cfg)):
-
-```
-ansible-playbook setup-ec2.yml \
-  --vault-password-file vault-password --become-password-file sudo-password
-```
-
-   Add `-e @playbooks/vars/local.yml` (and optional `-e @…/vault.yml`) when you
-   keep overrides outside `inventory/hosts.yml`.
-
-With `run-ansible`, set `PLAYBOOK=setup-ec2.yml`;
-`TARGETS` and `RECIPE` are ignored by the EC2 playbook. For runs that do not
-need vault or a sudo password file on disk, set
-`RUN_ANSIBLE_NO_VAULT=1` and/or `RUN_ANSIBLE_NO_SUDO_PASS=1` (see below).
+Select them with `-e setup_recipe=<name>` like any other recipe.
 
 ### run-ansible
 
-There is a simple bash script at `playbooks/run-ansible` that can call
-`ansible-playbook` for you. It sets `ANSIBLE_ROLES_PATH` to this checkout's
-`roles/` directory and ensures the local `sbates130272.batesste` collection is
-installed under `collections/` (see **Local Collection Install**). Set
-`FORCE_LOCAL=1` to rebuild and reinstall that collection from the checkout
-before each run. By default it expects `vault-password` and `sudo-password` in
-the `playbooks/` directory. To omit the vault file (for example when no vault
-is used), set `RUN_ANSIBLE_NO_VAULT=1`. To omit the become password file (for
-example when sudo is passwordless), set `RUN_ANSIBLE_NO_SUDO_PASS=1`.
+[`playbooks/run-ansible`](playbooks/run-ansible) is a wrapper around
+`ansible-playbook` that handles boilerplate. It:
 
-Otherwise you typically create:
+- Sets `ANSIBLE_ROLES_PATH` to `roles/` in this checkout
+- Installs collection dependencies from `requirements.yml` into
+  `collections/` on first run (re-runs when `requirements.yml` changes)
+- Passes `vault-password` and `sudo-password` files automatically when present
 
-1. A hosts file, call this what you like. The repository ships
-   [hosts.yml](./inventory/hosts.yml) as a combined example inventory (lab
-   groups plus AWS ROCm XIO groups).
-2. `sudo-password`, a file with the sudo password for the remote user. Not all
-   modes of execution need this.
-3. `vault-password`, a file with the ansible-vault password in it. Never check
-   this in! Only some roles need this.
+**Environment variables (all optional — defaults shown):**
 
-You can then invoke the unified playbook with the following (defaults shown):
+| Variable | Default | Purpose |
+| -------- | ------- | ------- |
+| `PLAYBOOK` | `setup.yml` | Playbook to run |
+| `HOSTS` | `../inventory/hosts.yml` | Inventory file |
+| `TARGETS` | `localvms` | Host group passed as `targets` |
+| `RECIPE` | `newmachine` | Recipe passed as `setup_recipe` |
+| `TAGS` | _(none)_ | Passed to `--tags` to narrow a recipe |
+| `RUN_ANSIBLE_NO_VAULT` | _(unset)_ | Set to `1` to skip `vault-password` |
+| `RUN_ANSIBLE_NO_SUDO_PASS` | _(unset)_ | Set to `1` to skip `sudo-password` |
 
+**Credential files** (place in `playbooks/`; never commit these):
+
+- `vault-password` — ansible-vault password; required unless `RUN_ANSIBLE_NO_VAULT=1`
+- `sudo-password` — become password for the remote user; required unless `RUN_ANSIBLE_NO_SUDO_PASS=1`
+- `secrets.yml` — extra vars file included automatically when present alongside `vault-password`
+
+**Typical invocation:**
+
+```bash
+RECIPE=newmachine HOSTS=<host-file> TARGETS=<group> playbooks/run-ansible
 ```
-RECIPE=newmachine PLAYBOOK=setup.yml HOSTS=<host-file> \
-  TARGETS=<target-group> playbooks/run-ansible [<extra-args>]
-```
 
-`RECIPE` is passed as `setup_recipe`. `TAGS` is optional and is passed to
-`ansible-playbook --tags` only to narrow work inside that recipe. The optional
-`extra-args` are appended to the `ansible-playbook` command.
+Any additional arguments are appended verbatim to the `ansible-playbook` command.
 
-## Roles Information
+## Roles
 
-Some of the more involved roles have their own README.md. Please refer to them
-for more information about a specific role.
+Each role ships a `README.md` with variables, requirements, and usage notes.
+
+| Role | Description |
+| ---- | ----------- |
+| [aws_ec2_setup](roles/aws_ec2_setup/README.md) | AWS EC2 instance configuration helpers |
+| [aws_grub](roles/aws_grub/README.md) | GRUB configuration for AWS instances |
+| [check_platform](roles/check_platform/README.md) | Assert supported Ubuntu release |
+| [claude_setup](roles/claude_setup/README.md) | Install and configure Claude Code via a local proxy |
+| [cloud_setup](roles/cloud_setup/README.md) | Cloud provider tools and configuration |
+| [consul_setup](roles/consul_setup/README.md) | HashiCorp Consul agent install and configuration |
+| [docker_setup](roles/docker_setup/README.md) | Docker engine install and user configuration |
+| [eideticom_scripts](roles/eideticom_scripts/README.md) | Eideticom-specific utility scripts |
+| [fave_packages](roles/fave_packages/README.md) | Install preferred apt/pip packages |
+| [fio_devel](roles/fio_devel/README.md) | Build fio from source for storage benchmarking |
+| [git_setup](roles/git_setup/README.md) | Git global config, signing, and dotfiles |
+| [github_runner](roles/github_runner/README.md) | GitHub Actions self-hosted runner setup |
+| [grafana_setup](roles/grafana_setup/README.md) | Grafana, Prometheus, and Node Exporter stack |
+| [kernel_setup](roles/kernel_setup/README.md) | Custom kernel build and install |
+| [lemonade_setup](roles/lemonade_setup/README.md) | Lemonade clipboard tool setup |
+| [mutt_setup](roles/mutt_setup/README.md) | Mutt email client configuration |
+| [nfs_rdma_setup](roles/nfs_rdma_setup/README.md) | NFS over RDMA configuration |
+| [nvme_exporter_setup](roles/nvme_exporter_setup/README.md) | NVMe Prometheus exporter |
+| [nvmeof_setup](roles/nvmeof_setup/README.md) | NVMe-oF target and initiator setup |
+| [qemu_setup](roles/qemu_setup/README.md) | QEMU/KVM hypervisor install and configuration |
+| [rdma_setup](roles/rdma_setup/README.md) | RDMA/InfiniBand drivers and tools |
+| [rocm_hipfile_setup](roles/rocm_hipfile_setup/README.md) | ROCm hipFile package install |
+| [rocm_setup](roles/rocm_setup/README.md) | AMD ROCm stack install and DKMS configuration |
+| [rocm_xio_setup](roles/rocm_xio_setup/README.md) | ROCm XIO storage backend setup |
+| [tmux_scripts](roles/tmux_scripts/README.md) | tmux configuration and helper scripts |
+| [uprof_setup](roles/uprof_setup/README.md) | AMD uProf profiler install |
+| [user_setup](roles/user_setup/README.md) | User account, SSH keys, and dotfiles bootstrap |
+| [vm_create](roles/vm_create/README.md) | Create and configure local VMs via libvirt |
 
 ## Playbook and Role Testing
 
 Role and playbook testing is done via GitHub Actions. See
 [.github/README.md](.github/README.md) for how workflows are generated and
 how to run role tests in CI.
-
-## Useful Ansible Commands
-
-As this repository has developed we have come across some very useful Ansible
-commands that we include here for reference.
-
-```
-ansible -m ansible.builtin.setup --tree /tmp/facts -i hosts localmachines
-```
-
-This parses a local inventory file called `hosts` and gathers facts on all the
-machines in the `localmachines` section. It then records those facts in a JSON
-structure in `/tmp/facts/` indexed by target machine name.
 
 <!-- References -->
 

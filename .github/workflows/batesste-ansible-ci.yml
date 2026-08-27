@@ -13,6 +13,9 @@ on:
       - main
     paths:
       - 'playbooks/**'
+      - 'roles/**'
+      - 'README.md'
+      - '.github/check-readme.sh'
       - '.github/workflows/batesste-ansible-ci.yml'
       - '.ansible-lint'
       - '.spellcheck.yml'
@@ -63,6 +66,9 @@ jobs:
             localhost root_user=runner username=runner ansible_connection=local
             [awsmachines]
             [localvms]
+      - name: Check README references all roles
+        run: bash .github/check-readme.sh
+
       - name: Run the default playbook against the local runner
         # The newmachine recipe includes mutt_setup, which decrypts a real
         # ansible-vault secret (mutt_setup_google_oauth2_client_secret).
