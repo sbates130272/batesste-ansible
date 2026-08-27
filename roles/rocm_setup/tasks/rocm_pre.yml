@@ -237,6 +237,57 @@
       rocm_setup_metrics_exporter_version }}"
   when: rocm_setup_install_metrics_exporter | default(false)
 
+# --- TheRock stream: AMDGPU kernel driver version resolution ---
+# The kernel driver packages live on repo.radeon.com/amdgpu/<version>/ubuntu,
+# which is versioned independently from the ROCm userspace release on repo.amd.com.
+# When rocm_setup_amdgpu_driver_version == 'latest' we discover the highest
+# numeric version from the repo.radeon.com/amdgpu/ directory listing; otherwise
+# the caller-supplied value is used directly (useful for CI pinning).
+
+- name: Fetch repo.radeon.com/amdgpu/ directory index for version discovery
+  ansible.builtin.uri:
+    url: https://repo.radeon.com/amdgpu/
+    return_content: true
+  register: rocm_setup_amdgpu_dir_index
+  when:
+    - rocm_setup_repo_stream == 'therock'
+    - rocm_setup_install_kernel_driver
+    - not rocm_setup_wsl_enabled
+    - rocm_setup_amdgpu_driver_version == 'latest'
+
+- name: Resolve latest amdgpu driver version from directory listing
+  ansible.builtin.set_fact:
+    rocm_setup_amdgpu_driver_version_resolved: >-
+      {{
+        rocm_setup_amdgpu_dir_index.content
+        | regex_findall('href="(\d+\.\d+(?:\.\d+)?)/"')
+        | community.general.version_sort
+        | last
+      }}
+  when:
+    - rocm_setup_repo_stream == 'therock'
+    - rocm_setup_install_kernel_driver
+    - not rocm_setup_wsl_enabled
+    - rocm_setup_amdgpu_driver_version == 'latest'
+
+- name: Debug resolved amdgpu driver version
+  ansible.builtin.debug:
+    msg: "rocm_setup_amdgpu_driver_version_resolved: {{ rocm_setup_amdgpu_driver_version_resolved }}"
+  when:
+    - rocm_setup_repo_stream == 'therock'
+    - rocm_setup_install_kernel_driver
+    - not rocm_setup_wsl_enabled
+    - rocm_setup_amdgpu_driver_version == 'latest'
+
+- name: Use explicit amdgpu driver version (pinned)
+  ansible.builtin.set_fact:
+    rocm_setup_amdgpu_driver_version_resolved: "{{ rocm_setup_amdgpu_driver_version }}"
+  when:
+    - rocm_setup_repo_stream == 'therock'
+    - rocm_setup_install_kernel_driver
+    - not rocm_setup_wsl_enabled
+    - rocm_setup_amdgpu_driver_version != 'latest'
+
 # Every apt task below runs before main.yml writes rocm.sources, so a file left
 # by an earlier run is still on disk at this point. After a stream switch, or a
 # distro upgrade to a release the previously configured repo publishes no dist
