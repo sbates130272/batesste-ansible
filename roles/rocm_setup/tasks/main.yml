@@ -65,6 +65,26 @@
   become: true
   when: rocm_setup_repo_stream == 'therock'
 
+# The AMDGPU kernel driver repo (repo.radeon.com/amdgpu/) uses the same GPG
+# key as the legacy ROCm stream.  When running the therock stream with kernel
+# driver installation, we need rocm.gpg present even though the therock ROCm
+# userspace repo uses amdrocm.gpg.
+- name: Install repo.radeon.com GPG key for amdgpu kernel driver repo (therock + kernel driver)
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      wget -qO- https://{{ rocm_setup_repo_base_url }}/rocm/rocm.gpg.key \
+        | gpg --dearmor \
+        | tee /etc/apt/keyrings/rocm.gpg > /dev/null
+  args:
+    executable: /bin/bash
+    creates: /etc/apt/keyrings/rocm.gpg
+  become: true
+  when:
+    - rocm_setup_repo_stream == 'therock'
+    - rocm_setup_install_kernel_driver
+    - not rocm_setup_wsl_enabled
+
 - name: Write ROCm sources file
   ansible.builtin.template:
     src: rocm.sources.j2

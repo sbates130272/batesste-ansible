@@ -7,6 +7,17 @@ Components: main
 Architectures: amd64
 Signed-By: {{ rocm_setup_therock_keyring_path }}
 
+{% if rocm_setup_install_kernel_driver %}
+{# AMDGPU kernel driver packages live on repo.radeon.com, versioned independently from ROCm.
+   rocm_setup_amdgpu_driver_version_resolved is set by rocm_pre.yml (auto-discovered or pinned). #}
+Types: deb
+URIs: https://{{ rocm_setup_repo_base_url }}/amdgpu/{{ rocm_setup_amdgpu_driver_version_resolved }}/ubuntu
+Suites: {{ ansible_facts['distribution_release'] }}
+Components: main
+Architectures: amd64
+Signed-By: /etc/apt/keyrings/rocm.gpg
+
+{% endif %}
 {% else %}
 {# Legacy / repo.radeon.com stream (ROCm 7.2.x production) #}
 Types: deb

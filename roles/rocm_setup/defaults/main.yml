@@ -18,6 +18,15 @@ rocm_setup_repo_pin_origin: "{{ rocm_setup_repo_base_url }}"
 # Repo layout: https://{channel}.repo.amd.com/rocm/core/packages/{distro}/
 # GPG key:     https://{channel}.repo.amd.com/rocm/gpg/packages.gpg
 rocm_setup_therock_channel: stable
+
+# AMDGPU kernel driver repo version for the therock stream.  The kernel driver
+# packages (amdgpu-dkms) live on repo.radeon.com under a separate versioned
+# path that does not follow the ROCm release cadence.  Set to 'latest' to
+# auto-discover the highest available version from repo.radeon.com/amdgpu/ at
+# run time; set to an explicit string (e.g. '31.50') to pin.
+# Only used when rocm_setup_repo_stream == 'therock' and
+# rocm_setup_install_kernel_driver == true.
+rocm_setup_amdgpu_driver_version: latest
 rocm_setup_therock_repo_base_url: "{{ rocm_setup_therock_channel }}.repo.amd.com"
 rocm_setup_therock_gpg_url: "https://{{ rocm_setup_therock_repo_base_url }}/rocm/gpg/packages.gpg"
 rocm_setup_therock_keyring_path: /etc/apt/keyrings/amdrocm.gpg
