@@ -75,7 +75,7 @@
     state: touch
     mode: "0644"
 
-- name: Copy mutt user file for raithlin
+- name: Copy the mutt user file for raithlin
   ansible.builtin.template:
     src: user-raithlin.j2
     dest: ~/.mutt/user-raithlin
@@ -145,7 +145,7 @@
     regexp: <GOOGLE_CLIENT_SECRET>
     replace: "{{ mutt_setup_google_oauth2_client_secret }}"
 
-- name: Update .bashrc with some mutt specific environment variables.
+- name: Update .bashrc with mutt-specific environment variables
   ansible.builtin.blockinfile:
     path: ~/.bashrc
     state: present

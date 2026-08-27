@@ -15,7 +15,7 @@
   vars:
     calling_role_path: "{{ kernel_setup_calling_role_path_fact }}"  # noqa var-naming
 
-- name: Install kernel build pre-requisites and update if requested
+- name: Install kernel build prerequisites and refresh apt cache
   ansible.builtin.package:
     update_cache: true
     state: present
@@ -30,7 +30,7 @@
       - pahole
   become: true
 
-- name: Ensure Projects folder exists.
+- name: Ensure Projects folder exists
   ansible.builtin.file:
     path: ~/Projects
     state: directory

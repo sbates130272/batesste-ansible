@@ -127,20 +127,6 @@
     mode: '0640'
   become: true
 
-- name: Stop and remove old rdma_exporter unit if present
-  ansible.builtin.systemd:
-    name: rdma_exporter
-    state: stopped
-    enabled: false
-  become: true
-  failed_when: false
-
-- name: Remove old rdma_exporter unit file
-  ansible.builtin.file:
-    path: /etc/systemd/system/rdma_exporter.service
-    state: absent
-  become: true
-
 - name: Deploy rdma-exporter systemd unit
   ansible.builtin.template:
     src: rdma_exporter.service.j2

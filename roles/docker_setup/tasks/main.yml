@@ -9,7 +9,7 @@
   ansible.builtin.set_fact:
     docker_setup_calling_role_path_fact: "{{ role_path | default('') }}"
 
-- name: Test the host platform
+- name: Test the host platform to see if it can support this role
   ansible.builtin.include_role:
     name: sbates130272.batesste.check_platform
   vars:

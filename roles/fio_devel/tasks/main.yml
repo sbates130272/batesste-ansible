@@ -17,7 +17,7 @@
   vars:
     calling_role_path: "{{ fio_devel_calling_role_path_fact }}"  # noqa var-naming
 
-- name: Install fio related packages
+- name: Install fio build dependencies
   ansible.builtin.package:
     name:
       - gettext
@@ -38,7 +38,7 @@
       - kernel
   when: inventory_hostname in groups['awsmachines'] | default([])
 
-- name: Install fio related packages when on AWS
+- name: Install fio AWS-specific kernel packages
   ansible.builtin.package:
     name:
       - linux-tools-{{ ansible_facts['kernel'] }}
@@ -46,7 +46,7 @@
   become: true
   when: inventory_hostname in groups['awsmachines'] | default([])
 
-- name: Ensure Projects folder exists.
+- name: Ensure Projects folder exists
   ansible.builtin.file:
     path: ~/Projects
     state: directory

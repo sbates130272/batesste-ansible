@@ -1,23 +1,6 @@
 ---
 # Configure NVMe-oF host/initiator connections
 
-- name: Get current NVMe-oF connected subsystem NQNs
-  ansible.builtin.shell: |
-    set -o pipefail
-    nvme list-subsys 2>/dev/null | awk -F'NQN=' '/NQN=/{print $2}' | tr -d ' \r'
-  args:
-    executable: /bin/bash
-  become: true
-  register: nvme_list_subsys_out
-  changed_when: false
-
-- name: Set list of connected NQNs for host
-  ansible.builtin.set_fact:
-    nvmeof_connected_nqns: "{{
-      (nvme_list_subsys_out.stdout_lines | default([]))
-      | map('trim') | select() | list
-    }}"
-
 # If we are connected but the subsystem has no namespaces (e.g. stale
 # connection), disconnect so the next connect can re-establish properly.
 - name: Disconnect when connected but namespaces missing
