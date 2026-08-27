@@ -49,6 +49,7 @@ jobs:
                 localhost:
                   ansible_connection: local
                   ansible_user: runner
+                  username: runner
                   kernel_setup_force: false
                   kernel_setup_tools_force: false
 

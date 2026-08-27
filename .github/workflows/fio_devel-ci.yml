@@ -49,6 +49,7 @@ jobs:
                 localhost:
                   ansible_connection: local
                   ansible_user: runner
+                  username: runner
                   fio_devel_fio_force: false
                   fio_devel_fio_stuff_force: false
 

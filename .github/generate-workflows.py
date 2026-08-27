@@ -123,6 +123,9 @@ ROLE_CONFIGS = {
             "systemctl status lemonade-server || true",
         ],
         "needs_vault": False,
+        # lemonade-server package not yet available in the PPA on ubuntu-24.04;
+        # ignore until the role is updated for the current lemonade release.
+        "ignore_failure": True,
     },
     "grafana_setup": {
         "free_disk_space": False,
@@ -380,6 +383,7 @@ ROLE_CONFIGS = {
     "fio_devel": {
         "free_disk_space": False,
         "extra_vars": {
+            "username": "runner",
             "fio_devel_fio_force": False,
             "fio_devel_fio_stuff_force": False,
         },
@@ -391,6 +395,7 @@ ROLE_CONFIGS = {
     "kernel_setup": {
         "free_disk_space": False,
         "extra_vars": {
+            "username": "runner",
             "kernel_setup_force": False,
             "kernel_setup_tools_force": False,
         },
