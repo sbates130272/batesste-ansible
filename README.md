@@ -149,15 +149,8 @@ ansible-playbook -i hosts setup.yml \
   --ask-vault-pass
 ```
 
-To also deploy dotfiles, pass `user_setup_dotfiles_enable=true`:
-
-```
-ansible-playbook -i hosts setup.yml \
-  -e setup_recipe=newmachine \
-  -e targets=mymachines \
-  -e user_setup_dotfiles_enable=true \
-  --ask-vault-pass
-```
+Dotfiles are deployed by default. To skip them, pass
+`-e user_setup_dotfiles_enable=false`.
 
 See [roles/user_setup/README.md](roles/user_setup/README.md) for the full
 variable reference.
