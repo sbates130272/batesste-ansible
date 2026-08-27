@@ -264,7 +264,9 @@
     cmd: git-crypt unlock
     chdir: "{{ user_setup_dotfiles_dest }}"
   changed_when: false
-  when: user_setup_dotfiles_enable | default(false)
+  when:
+    - user_setup_dotfiles_enable | default(false)
+    - user_setup_gpg_private_key | length > 0
 
 - name: Run dotfiles install.sh to stow selected packages
   ansible.builtin.command:
@@ -275,7 +277,9 @@
       {{ user_setup_dotfiles_packages }}
     chdir: "{{ user_setup_dotfiles_dest }}"
   changed_when: true
-  when: user_setup_dotfiles_enable | default(false)
+  when:
+    - user_setup_dotfiles_enable | default(false)
+    - user_setup_gpg_private_key | length > 0
 
 
 - name: Ensure .emacs.d folder exists
