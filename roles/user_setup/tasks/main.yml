@@ -100,7 +100,7 @@
   become: true
   when: not user_setup_unprivileged | default(false)
 
-- name: Massively improve startup on certain systems
+- name: Disable systemd-networkd-wait-online to improve boot time
   ansible.builtin.lineinfile:
     path: /lib/systemd/system/systemd-networkd-wait-online.service
     search_string: ExecStart
@@ -108,7 +108,7 @@
   become: true
   when: not user_setup_unprivileged | default(false)
 
-- name: Restart service # noqa: args[module]
+- name: Restart network-online.target # noqa: args[module]
   ansible.builtin.service:
     service: network-online.target
     state: restarted
@@ -289,7 +289,7 @@
     mode: "0755"
   when: not user_setup_dotfiles_owns_emacs | default(false)
 
-- name: Copy emacs config file from our files folder
+- name: Copy Emacs init.el config file
   ansible.builtin.copy:
     force: true
     src: init.el
@@ -297,7 +297,7 @@
     mode: "0644"
   when: not user_setup_dotfiles_owns_emacs | default(false)
 
-- name: Copy emacs config file from our files folder
+- name: Copy .emacs config file
   ansible.builtin.copy:
     force: true
     src: .emacs

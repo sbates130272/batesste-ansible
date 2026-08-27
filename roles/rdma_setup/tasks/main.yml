@@ -110,17 +110,6 @@
   ansible.builtin.debug:
     var: rdma_setup_detect_output.stdout_lines
 
-- name: Read the rdma-detect status file
-  ansible.builtin.slurp:
-    src: "{{ rdma_detect_output_file }}"
-  register: rdma_setup_status_file
-  become: true
-
-- name: Set fact with RDMA detection details
-  ansible.builtin.set_fact:
-    rdma_setup_detection_report: >-
-      {{ rdma_setup_status_file['content'] | b64decode }}
-
 - name: Display location of saved report
   ansible.builtin.debug:
     msg: "RDMA detection report saved to {{ rdma_detect_output_file }}"

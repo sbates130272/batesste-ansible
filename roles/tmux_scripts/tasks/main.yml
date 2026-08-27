@@ -15,7 +15,7 @@
   vars:
     calling_role_path: "{{ tmux_scripts_calling_role_path_fact }}"  # noqa var-naming
 
-- name: Ensure tmux resurrect is installed
+- name: Register tmux-resurrect as TPM plugin in .tmux.conf
   ansible.builtin.lineinfile:
     create: true
     state: present

@@ -16,13 +16,6 @@
     cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
   become: true
 
-- name: Ensure keyrings directory exists
-  ansible.builtin.file:
-    path: /etc/apt/keyrings
-    state: directory
-    mode: '0755'
-  become: true
-
 - name: Install ROCm GPG key for metrics exporter
   ansible.builtin.shell:
     cmd: |

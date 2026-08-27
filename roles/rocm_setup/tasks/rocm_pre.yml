@@ -76,7 +76,7 @@
     - rocm_setup_need_rocm_latest
     - rocm_setup_wsl_mode == 'legacy'
 
-- name: Run the rocm-latest script and register results
+- name: Run the rocm-latest script for AMDGPU version
   ansible.builtin.command:
     cmd: rocm-latest
   environment:

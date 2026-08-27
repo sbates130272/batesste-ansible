@@ -132,13 +132,6 @@
     path: "{{ github_runner_install_dir }}/.runner"
   register: github_runner_configured
 
-- name: Check if runner is already running
-  ansible.builtin.systemd:
-    name: github-runner
-  register: github_runner_service_status
-  become: true
-  failed_when: false
-
 - name: Configure and register runner
   when: not github_runner_configured.stat.exists or github_runner_replace | bool
   block:

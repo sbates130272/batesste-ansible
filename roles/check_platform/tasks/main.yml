@@ -7,7 +7,7 @@
 #
 # [1]: https://stackoverflow.com/questions/60114346/what-is-the-best-way-to-manage-unsupported-distros-in-an-ansible-role
 
-- name: Include the calling roles' meta data
+- name: Print calling role path for debug
   ansible.builtin.debug:
     msg: "The path appears to be {{ calling_role_path }}/meta/main.yml"
 

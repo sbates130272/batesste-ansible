@@ -36,7 +36,7 @@
     - repo_clone.failed
     - not 'Local modifications exist in the destination' in repo_clone.msg
 
-- name: Add a block to .bashrc that adds the ~/.bin folder to path.
+- name: Add ~/.local/bin and eideticom-scripts to PATH in .bashrc
   ansible.builtin.blockinfile:
     path: ~/.bashrc
     state: present
