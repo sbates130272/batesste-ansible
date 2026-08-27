@@ -48,5 +48,14 @@ user_setup_dotfiles_owns_ssh: false
 user_setup_dotfiles_owns_hf: false
 user_setup_dotfiles_owns_claude: false
 
+# Path to the CA bundle for git HTTPS clones. Set GIT_SSL_CAINFO explicitly so
+# git's libcurl finds the system bundle (populated by update-ca-certificates with
+# the ZScaler cert during cloud-init). Harmless on non-ZScaler systems.
+user_setup_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt
+
+# Set true on AMD corporate hosts to deploy amd-root-ca.crt and run
+# update-ca-certificates before the dotfiles git clone.
+user_setup_install_amd_ca: false
+
 # HuggingFace token — no longer written by this role. When dotfiles is enabled with the
 # secrets package, HF_TOKEN is delivered via ~/.secrets.env (git-crypt encrypted in dotfiles).

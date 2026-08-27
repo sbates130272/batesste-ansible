@@ -15,3 +15,5 @@ qemu_setup_bridge: true
 qemu_setup_bridge_name: batesste-br0
 qemu_setup_bridge_iface: enp1s0
 qemu_setup_bridge_address: 10.0.0.55/24
+
+qemu_setup_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt

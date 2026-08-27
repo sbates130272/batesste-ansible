@@ -33,6 +33,8 @@
     version: "{{ lemonade_setup_source_version }}"
     force: "{{ lemonade_setup_source_force }}"
     accept_newhostkey: true
+  environment:
+    GIT_SSL_CAINFO: "{{ lemonade_setup_git_ssl_cainfo | default('/etc/ssl/certs/ca-certificates.crt') }}"
   register: lemonade_setup_repo_clone
   failed_when:
     - lemonade_setup_repo_clone.failed

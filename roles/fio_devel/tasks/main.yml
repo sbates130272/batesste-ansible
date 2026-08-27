@@ -58,6 +58,8 @@
     dest: ~/Projects/fio
     force: "{{ fio_devel_fio_force }}"
     version: "{{ fio_devel_fio_sha }}"
+  environment:
+    GIT_SSL_CAINFO: "{{ fio_devel_git_ssl_cainfo | default('/etc/ssl/certs/ca-certificates.crt') }}"
   notify: Configure, build and install fio
   register: repo_clone
   failed_when:
@@ -71,6 +73,8 @@
     accept_newhostkey: true
     force: "{{ fio_devel_fio_stuff_force }}"
     version: "{{ fio_devel_fio_stuff_sha }}"
+  environment:
+    GIT_SSL_CAINFO: "{{ fio_devel_git_ssl_cainfo | default('/etc/ssl/certs/ca-certificates.crt') }}"
   register: repo_clone
   failed_when:
     - repo_clone.failed

@@ -45,3 +45,5 @@ rocm_xio_setup_perf_extra_args: ""
 
 # Use HSA_FORCE_FINE_GRAIN_PCIE=1 in endpoint checks and perf tests.
 rocm_xio_setup_force_fine_grain_pcie: true
+
+rocm_xio_setup_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt

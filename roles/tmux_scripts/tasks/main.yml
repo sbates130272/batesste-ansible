@@ -33,6 +33,8 @@
     accept_newhostkey: true
     force: "{{ tmux_scripts_force }}"
     version: "{{ tmux_scripts_sha }}"
+  environment:
+    GIT_SSL_CAINFO: "{{ tmux_scripts_git_ssl_cainfo | default('/etc/ssl/certs/ca-certificates.crt') }}"
   register: repo_clone
   failed_when:
     - repo_clone.failed

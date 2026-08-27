@@ -17,3 +17,5 @@ kernel_setup_linus_remote: https://git.kernel.org/pub/scm/linux/kernel/git/torva
 
 # Stable Remote
 kernel_setup_stable_remote: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+
+kernel_setup_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt

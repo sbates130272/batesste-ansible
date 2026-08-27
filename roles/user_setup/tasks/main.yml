@@ -172,6 +172,27 @@
     mode: "0755"
   when: user_setup_dotfiles_enable | default(false)
 
+- name: Install AMD corporate root CA cert for ZScaler HTTPS interception
+  ansible.builtin.copy:
+    src: amd-root-ca.crt
+    dest: /usr/local/share/ca-certificates/amd-root-ca.crt
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: Update CA certificates
+  when:
+    - user_setup_dotfiles_enable | default(false)
+    - user_setup_install_amd_ca | default(false)
+    - not user_setup_unprivileged | default(false)
+
+- name: Flush handlers so CA bundle is rebuilt before git clone
+  ansible.builtin.meta: flush_handlers
+  when:
+    - user_setup_dotfiles_enable | default(false)
+    - user_setup_install_amd_ca | default(false)
+    - not user_setup_unprivileged | default(false)
+
 - name: Resolve latest dotfiles release tag from GitHub API
   ansible.builtin.uri:
     url: "https://api.github.com/repos/sbates130272/batesste-dotfiles/releases/latest"
@@ -194,6 +215,8 @@
          else user_setup_dotfiles_version)
       }}
     update: true
+  environment:
+    GIT_SSL_CAINFO: "{{ user_setup_git_ssl_cainfo | default('/etc/ssl/certs/ca-certificates.crt') }}"
   when: user_setup_dotfiles_enable | default(false)
 
 - name: Install GNU stow, git-crypt, and gettext-base for dotfiles management
