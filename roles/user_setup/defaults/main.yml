@@ -41,6 +41,10 @@ user_setup_dotfiles_version: "latest"
 user_setup_dotfiles_dest: "{{ user_setup_home }}/.dotfiles"
 # Space-separated list of stow packages passed to install.sh
 user_setup_dotfiles_packages: "bash git gh"
+# Pass --bootstrap <mode> to install.sh. Valid values: "proxy", "noproxy", "" (disabled).
+user_setup_dotfiles_bootstrap: ""
+# Pass --force to install.sh (overwrites existing stow symlinks)
+user_setup_dotfiles_force: false
 # Per-package skip flags — set true when that stow package owns the config.
 # Derived from dotfiles_packages by default; override explicitly if needed.
 user_setup_dotfiles_owns_emacs: false

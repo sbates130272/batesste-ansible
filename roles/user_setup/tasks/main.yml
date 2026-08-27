@@ -268,7 +268,11 @@
 
 - name: Run dotfiles install.sh to stow selected packages
   ansible.builtin.command:
-    cmd: "./install.sh {{ user_setup_dotfiles_packages }}"
+    cmd: >-
+      ./install.sh
+      {{ ('--bootstrap ' + user_setup_dotfiles_bootstrap) if user_setup_dotfiles_bootstrap else '' }}
+      {{ '--force' if user_setup_dotfiles_force | default(false) else '' }}
+      {{ user_setup_dotfiles_packages }}
     chdir: "{{ user_setup_dotfiles_dest }}"
   changed_when: true
   when: user_setup_dotfiles_enable | default(false)
