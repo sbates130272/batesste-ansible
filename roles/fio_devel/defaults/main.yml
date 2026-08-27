@@ -12,3 +12,5 @@ fio_devel_fio_install_dir: /opt/fio
 # fio-stuff tag/sha to checkout
 fio_devel_fio_stuff_force: false
 fio_devel_fio_stuff_sha: a0e9fcd99dc2793badd04cd2b387aeafa3ec35ea
+
+fio_devel_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt

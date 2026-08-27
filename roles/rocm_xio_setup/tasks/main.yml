@@ -76,6 +76,8 @@
     version: "{{ rocm_xio_setup_repo_version }}"
     force: "{{ rocm_xio_setup_force_clone }}"
     update: true
+  environment:
+    GIT_SSL_CAINFO: "{{ rocm_xio_setup_git_ssl_cainfo | default('/etc/ssl/certs/ca-certificates.crt') }}"
 
 - name: Configure rocm-xio with CMake
   ansible.builtin.command:

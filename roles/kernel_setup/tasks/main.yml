@@ -43,6 +43,8 @@
     accept_newhostkey: true
     force: "{{ kernel_setup_tools_force }}"
     version: "{{ kernel_setup_tools_sha }}"
+  environment:
+    GIT_SSL_CAINFO: "{{ kernel_setup_git_ssl_cainfo | default('/etc/ssl/certs/ca-certificates.crt') }}"
   register: repo_clone
   failed_when:
     - repo_clone.failed

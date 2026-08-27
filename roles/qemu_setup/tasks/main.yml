@@ -90,6 +90,8 @@
     accept_newhostkey: true
     force: "{{ qemu_setup_force }}"
     version: "{{ qemu_setup_qemu_minimal_sha }}"
+  environment:
+    GIT_SSL_CAINFO: "{{ qemu_setup_git_ssl_cainfo | default('/etc/ssl/certs/ca-certificates.crt') }}"
   register: repo_clone
   failed_when:
     - repo_clone.failed

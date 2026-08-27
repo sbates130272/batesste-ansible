@@ -44,3 +44,5 @@ lemonade_setup_preload_models:
 # Prometheus exporter configuration
 lemonade_setup_exporter_enabled: true
 lemonade_setup_exporter_port: 9091
+
+lemonade_setup_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt
