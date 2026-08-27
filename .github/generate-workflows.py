@@ -106,20 +106,19 @@ ROLE_CONFIGS = {
         "needs_vault": False,
     },
     "lemonade_setup": {
-        "free_disk_space": True,
+        "free_disk_space": False,
         "extra_vars": {
+            "lemonade_setup_install_method": "deb",
+            "lemonade_setup_llamacpp_backend": "cpu",
+            "lemonade_setup_run_rocm_setup": False,
             "lemonade_setup_start_service": False,
             "lemonade_setup_preload_enabled": False,
             "lemonade_setup_exporter_enabled": False,
             "vault_lemonade_setup_api_key": "test_ci_api_key_placeholder",
-            "rocm_setup_run_checks": False,
-            "rocm_setup_install_metrics_exporter": False,
-            "rocm_setup_skip_reboot": True,
         },
         "verification_commands": [
             "which lemonade-server || true",
             "dpkg -l | grep lemonade || true",
-            "dpkg -l | grep rocm || true",
             "cat /etc/lemonade/lemonade.conf || true",
             "systemctl status lemonade-server || true",
         ],
@@ -302,6 +301,125 @@ ROLE_CONFIGS = {
             "grep -q eideticom-scripts ~/.bashrc && echo 'PATH block found' || true",
         ],
         "needs_vault": False,
+    },
+    "user_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "username": "runner",
+            "user_setup_unprivileged": True,
+            "user_setup_dotfiles_enable": False,
+        },
+        "verification_commands": [
+            "id runner",
+            "ls -la ~/.bashrc || true",
+        ],
+        "needs_vault": False,
+    },
+    "fave_packages": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "fave_packages_uv_enable": False,
+        },
+        "verification_commands": [
+            "git --version",
+            "stow --version",
+            "dpkg -l | grep git-crypt || true",
+            "dpkg -l | grep gettext-base || true",
+            "tmux -V",
+            "emacs --version | head -1",
+        ],
+        "needs_vault": False,
+    },
+    "tmux_scripts": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "username": "runner",
+            "tmux_scripts_force": True,
+        },
+        "verification_commands": [
+            "ls -la ~/.tmux.conf || true",
+        ],
+        "needs_vault": False,
+        "workflow_dispatch_only": True,
+    },
+    "cloud_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "cloud_setup_install_gh": True,
+        },
+        "verification_commands": [
+            "aws --version || true",
+            "gh --version || true",
+        ],
+        "needs_vault": True,
+        "ignore_failure": True,
+    },
+    "consul_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "consul_setup_start_service": False,
+        },
+        "verification_commands": [
+            "consul version || true",
+            "dpkg -l | grep consul || true",
+        ],
+        "needs_vault": True,
+        "ignore_failure": True,
+    },
+    "docker_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "docker_setup_users": ["runner"],
+        },
+        "verification_commands": [
+            "docker --version",
+            "docker info || true",
+        ],
+        "needs_vault": False,
+    },
+    "fio_devel": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "fio_devel_fio_force": False,
+            "fio_devel_fio_stuff_force": False,
+        },
+        "verification_commands": [
+            "ls -la /opt/fio/fio || true",
+        ],
+        "needs_vault": False,
+    },
+    "kernel_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "kernel_setup_force": False,
+            "kernel_setup_tools_force": False,
+        },
+        "verification_commands": [
+            "ls -la ~/Projects/kernel-scripts || true",
+            "pahole --version || true",
+        ],
+        "needs_vault": False,
+    },
+    "qemu_setup": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "qemu_setup_force": False,
+        },
+        "verification_commands": [
+            "qemu-system-x86_64 --version || true",
+            "virsh --version || true",
+        ],
+        "needs_vault": False,
+        "workflow_dispatch_only": True,
+    },
+    "vm_create": {
+        "free_disk_space": False,
+        "extra_vars": {},
+        "verification_commands": [
+            "virsh list --all || true",
+        ],
+        "needs_vault": False,
+        "workflow_dispatch_only": True,
     },
 }
 

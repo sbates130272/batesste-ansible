@@ -1,0 +1,7 @@
+---
+- name: Test user_setup role
+  hosts: all
+  tasks:
+    - name: Include user_setup role
+      ansible.builtin.include_role:
+        name: user_setup

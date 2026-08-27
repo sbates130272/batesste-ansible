@@ -1,0 +1,7 @@
+---
+- name: Test kernel_setup role
+  hosts: all
+  tasks:
+    - name: Include kernel_setup role
+      ansible.builtin.include_role:
+        name: kernel_setup

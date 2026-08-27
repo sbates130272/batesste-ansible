@@ -1,0 +1,7 @@
+---
+- name: Test fio_devel role
+  hosts: all
+  tasks:
+    - name: Include fio_devel role
+      ansible.builtin.include_role:
+        name: fio_devel
