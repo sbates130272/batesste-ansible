@@ -1,5 +1,8 @@
 ---
 # Optional install of Prometheus rdma_exporter (yuuki/rdma_exporter).
+#
+# NOTE: Structure is parallel to roles/nvme_exporter_setup/tasks/nvme_exporter.yml —
+# keep both files in sync when changing the install pattern.
 
 - name: Set rdma_exporter architecture for GitHub asset
   ansible.builtin.set_fact:

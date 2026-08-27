@@ -1,6 +1,9 @@
 ---
 # Install the Prometheus NVMe exporter
 # (https://github.com/E4-Computer-Engineering/nvme-exporter).
+#
+# NOTE: Structure is parallel to roles/rdma_setup/tasks/rdma_exporter.yml —
+# keep both files in sync when changing the install pattern.
 
 - name: Ensure nvme-cli is installed
   ansible.builtin.package:

@@ -21,53 +21,20 @@
   vars:
     calling_role_path: "{{ mutt_setup_calling_role_path_fact }}"  # noqa var-naming
 
-- name: Create the mutt headers folder for raithlin
+- name: Create mutt cache and working directories
   ansible.builtin.file:
-    path: ~/.mutt/cache/raithlin/headers
+    path: "{{ item }}"
     state: directory
     mode: "0755"
-
-- name: Create the mutt headers folder for gmail
-  ansible.builtin.file:
-    path: ~/.mutt/cache/gmail/headers
-    state: directory
-    mode: "0755"
-
-- name: Create the mutt bodies folder for raithlin
-  ansible.builtin.file:
-    path: ~/.mutt/cache/raithlin/bodies
-    state: directory
-    mode: "0755"
-
-- name: Create the mutt tmp folder
-  ansible.builtin.file:
-    path: ~/.mutt/tmp
-    state: directory
-    mode: "0755"
-
-- name: Create the mutt language folder
-  ansible.builtin.file:
-    path: ~/.mutt/lang
-    state: directory
-    mode: "0755"
-
-- name: Create the mutt scripts folder
-  ansible.builtin.file:
-    path: ~/.mutt/scripts
-    state: directory
-    mode: "0755"
-
-- name: Create the mutt tokens folder
-  ansible.builtin.file:
-    path: ~/.mutt/tokens
-    state: directory
-    mode: "0755"
-
-- name: Create the mutt bodies folder for gmail
-  ansible.builtin.file:
-    path: ~/.mutt/cache/gmail/bodies
-    state: directory
-    mode: "0755"
+  loop:
+    - ~/.mutt/cache/raithlin/headers
+    - ~/.mutt/cache/raithlin/bodies
+    - ~/.mutt/cache/gmail/headers
+    - ~/.mutt/cache/gmail/bodies
+    - ~/.mutt/tmp
+    - ~/.mutt/lang
+    - ~/.mutt/scripts
+    - ~/.mutt/tokens
 
 - name: Create the mutt certificates file
   ansible.builtin.file:

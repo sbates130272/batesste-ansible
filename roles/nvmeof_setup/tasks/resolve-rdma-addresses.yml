@@ -1,6 +1,9 @@
 ---
 # Discover RDMA-capable interfaces and their IPv4 addresses.
 # Sets nvmeof_rdma_interfaces: [{ name: "ib0", address: "192.168.2.2" }, ...]
+#
+# NOTE: Logic identical to roles/nfs_rdma_setup/tasks/resolve-rdma-addresses.yml —
+# keep in sync. Variable prefix differs: nvmeof_ vs nfs_rdma_.
 
 - name: Get RDMA link netdev names
   ansible.builtin.shell: |

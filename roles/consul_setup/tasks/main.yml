@@ -14,20 +14,38 @@
   vars:
     calling_role_path: "{{ consul_setup_calling_role_path_fact }}"  # noqa var-naming
 
-- name: Add HashiCorp GPG key
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      curl -fsSL https://apt.releases.hashicorp.com/gpg | \
+- name: Download HashiCorp GPG key
+  ansible.builtin.get_url:
+    url: https://apt.releases.hashicorp.com/gpg
+    dest: /etc/apt/keyrings/hashicorp-archive-keyring.asc
+    mode: "0644"
+  become: true
+
+- name: Dearmor HashiCorp GPG key
+  ansible.builtin.command:
+    cmd: >-
       gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-    executable: /bin/bash
+      /etc/apt/keyrings/hashicorp-archive-keyring.asc
     creates: /usr/share/keyrings/hashicorp-archive-keyring.gpg
   become: true
+
+- name: Ensure HashiCorp GPG keyring is world-readable
+  ansible.builtin.file:
+    path: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+    mode: "0644"
+  become: true
+
+- name: Determine dpkg architecture for HashiCorp repo
+  ansible.builtin.command:
+    cmd: dpkg --print-architecture
+  register: consul_setup_dpkg_arch
+  changed_when: false
 
 - name: Add HashiCorp APT repository
   ansible.builtin.apt_repository:
     repo: >-
-      deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg]
+      deb [arch={{ consul_setup_dpkg_arch.stdout }}
+      signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg]
       https://apt.releases.hashicorp.com {{ ansible_facts['distribution_release'] }} main
     state: present
     filename: hashicorp
