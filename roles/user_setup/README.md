@@ -43,8 +43,8 @@ user_setup_ssh_key_src_dir: "{{ lookup('env', 'HOME') }}/.ssh"
 ### Dotfiles Integration
 
 ```yaml
-# Clone batesste-dotfiles and stow selected packages (default: false)
-user_setup_dotfiles_enable: false
+# Clone batesste-dotfiles and stow selected packages (default: true)
+user_setup_dotfiles_enable: true
 
 # Git URL of the dotfiles repository
 user_setup_dotfiles_repo: "https://github.com/sbates130272/batesste-dotfiles.git"

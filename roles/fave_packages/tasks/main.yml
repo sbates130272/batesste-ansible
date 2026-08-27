@@ -28,7 +28,9 @@
       - emacs-nox
       - expect
       - fio
+      - gettext-base
       - git
+      - git-crypt
       - gnuplot
       - gpg-agent
       - libaio-dev
@@ -43,6 +45,7 @@
       - python3-venv
       - ripgrep
       - mutt
+      - stow
       - sysstat
       - tmux
       - tree
