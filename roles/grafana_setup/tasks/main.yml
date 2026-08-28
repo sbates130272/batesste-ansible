@@ -322,6 +322,23 @@
   become: true
   notify: Restart grafana
 
+- name: Install Node Exporter
+  ansible.builtin.package:
+    name: prometheus-node-exporter
+    state: present
+    update_cache: true
+  become: true
+  when: grafana_setup_install_node_exporter
+
+- name: Enable and start Node Exporter service
+  ansible.builtin.systemd:
+    name: prometheus-node-exporter
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true
+  when: grafana_setup_install_node_exporter
+
 - name: Download Node Exporter dashboard from Grafana.com
   ansible.builtin.uri:
     url: >-
@@ -447,23 +464,6 @@
   delay: 2
   changed_when: false
   when: grafana_setup_provision_node_exporter_dashboard or grafana_setup_provision_amd_gpu_dashboard
-
-- name: Install Node Exporter
-  ansible.builtin.package:
-    name: prometheus-node-exporter
-    state: present
-    update_cache: true
-  become: true
-  when: grafana_setup_install_node_exporter
-
-- name: Enable and start Node Exporter service
-  ansible.builtin.systemd:
-    name: prometheus-node-exporter
-    enabled: true
-    state: started
-    daemon_reload: true
-  become: true
-  when: grafana_setup_install_node_exporter
 
 - name: Install nmap for network discovery
   ansible.builtin.package:
