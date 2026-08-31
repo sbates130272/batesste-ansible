@@ -196,6 +196,7 @@ github
 gitignored
 glibc
 gmail
+gnupg
 gnupgp
 gnuplot
 gp

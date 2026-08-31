@@ -1,0 +1,84 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+
+- name: Deploy dotfiles
+  hosts: "{{ targets }}"
+  gather_facts: true
+
+  tasks:
+    - name: Install prerequisites
+      ansible.builtin.package:
+        name:
+          - git
+          - git-crypt
+          - gnupg
+          - stow
+          - gettext-base
+        state: present
+      become: true
+      when:
+        - ansible_connection != 'local'
+        - dotfiles_install_prereqs | default(false)
+
+    - name: Resolve latest dotfiles release tag from GitHub API
+      ansible.builtin.uri:
+        url: "https://api.github.com/repos/sbates130272/batesste-dotfiles/releases/latest"
+        return_content: true
+        headers:
+          Accept: "application/vnd.github+json"
+      register: _dotfiles_latest_release
+      when: dotfiles_version == "latest"
+
+    - name: Clone or update dotfiles repo
+      ansible.builtin.git:
+        repo: "{{ dotfiles_repo }}"
+        dest: "{{ dotfiles_dir }}"
+        version: >-
+          {{
+            (_dotfiles_latest_release.json.tag_name
+             if (dotfiles_version == 'latest' and _dotfiles_latest_release is not skipped)
+             else dotfiles_version)
+          }}
+        update: true
+      environment:
+        GIT_SSL_CAINFO: "{{ dotfiles_git_ssl_cainfo }}"
+      when: ansible_connection != 'local'
+
+    - name: Unlock git-crypt
+      ansible.builtin.shell:
+        cmd: "set -o pipefail && printf '%s' {{ vault_git_crypt_key_b64 | quote }} | base64 -d | git-crypt unlock -"
+        chdir: "{{ dotfiles_dir }}"
+        executable: /bin/bash
+      no_log: true
+      changed_when: true
+      when:
+        - ansible_connection != 'local'
+        - vault_git_crypt_key_b64 | default('') | length > 0
+
+    - name: Get dotfiles version
+      ansible.builtin.command:
+        cmd: "git describe --tags --always --long"
+        chdir: "{{ dotfiles_dir }}"
+      register: dotfiles_version_out
+      changed_when: false
+
+    - name: Show dotfiles version
+      ansible.builtin.debug:
+        msg: "dotfiles version: {{ dotfiles_version_out.stdout }}"
+
+    - name: Run install.sh
+      ansible.builtin.command:
+        cmd: >-
+          ./install.sh
+          {{ ('--bootstrap ' + dotfiles_bootstrap) if dotfiles_bootstrap else '' }}
+          {{ '--force' if dotfiles_force | default(false) else '' }}
+          {{ dotfiles_packages }}
+        chdir: "{{ dotfiles_dir }}"
+      register: install_result
+      changed_when: true
+
+    - name: Show install.sh output
+      ansible.builtin.debug:
+        msg: "{{ install_result.stdout_lines + install_result.stderr_lines }}"
