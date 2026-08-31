@@ -48,15 +48,17 @@
 
     - name: Unlock git-crypt
       ansible.builtin.shell:
-        cmd: "printf '%s' {{ vault_git_crypt_key_b64 | quote }} | base64 -d | git-crypt unlock -"
+        cmd: "set -o pipefail && printf '%s' {{ vault_git_crypt_key_b64 | quote }} | base64 -d | git-crypt unlock -"
         chdir: "{{ dotfiles_dir }}"
+        executable: /bin/bash
       no_log: true
+      changed_when: true
       when:
         - ansible_connection != 'local'
         - vault_git_crypt_key_b64 | default('') | length > 0
 
     - name: Get dotfiles version
-      ansible.builtin.shell:
+      ansible.builtin.command:
         cmd: "git describe --tags --always --long"
         chdir: "{{ dotfiles_dir }}"
       register: dotfiles_version_out
@@ -75,6 +77,7 @@
           {{ dotfiles_packages }}
         chdir: "{{ dotfiles_dir }}"
       register: install_result
+      changed_when: true
 
     - name: Show install.sh output
       ansible.builtin.debug:
