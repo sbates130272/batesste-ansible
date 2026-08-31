@@ -222,7 +222,7 @@
 - name: Run the rocm checks to ensure install worked
   ansible.builtin.import_tasks:
     file: rocm_check.yml
-  when: rocm_setup_run_checks
+  when: rocm_setup_run_gpu_checks
 
 - name: Install and configure AMD Device Metrics Exporter
   ansible.builtin.import_tasks:

@@ -109,6 +109,11 @@ rocm_setup_wsl_run_hip_check: true
 # Set to false in CI or when no AMD GPUs are present
 rocm_setup_run_checks: true
 
+# GPU-dependent checks (rocminfo, HIP hello-world compilation and execution).
+# Defaults to rocm_setup_run_checks for backward compatibility — set to false
+# independently on machines that have ROCm installed but no AMD GPU present.
+rocm_setup_run_gpu_checks: "{{ rocm_setup_run_checks }}"
+
 # xrocmtop - btop-style terminal UI for AMD ROCm and Vulkan GPU monitoring
 # https://github.com/argakiig/xrocmtop
 # Install by default; set to false to skip.
