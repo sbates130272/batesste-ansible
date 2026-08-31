@@ -1,0 +1,42 @@
+name: dotfiles CI
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+      - main
+    paths:
+      - playbooks/dotfiles/**
+      - .github/workflows/dotfiles-ci.yml
+      - requirements.txt
+      - requirements.yml
+
+jobs:
+  dotfiles-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+
+      - name: Install pip packages
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Run ansible-galaxy to install collections
+        run: ansible-galaxy collection install -r requirements.yml
+
+      - name: Build and install the collection locally
+        run: |
+          ansible-galaxy collection build --force
+          ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force
+
+      - name: Run ansible-lint on dotfiles playbook
+        uses: ansible/ansible-lint@v25.8.2
+        with:
+          args: "-c .ansible-lint playbooks/dotfiles/deploy.yml"
+          setup_python: "false"
+
+      - name: Syntax-check dotfiles playbook
+        run: >-
+          ansible-playbook --syntax-check deploy.yml
+          -e targets=localhost
+        working-directory: playbooks/dotfiles
