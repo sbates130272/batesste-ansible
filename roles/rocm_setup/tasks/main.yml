@@ -69,7 +69,7 @@
 # key as the legacy ROCm stream.  When running the therock stream with kernel
 # driver installation, we need rocm.gpg present even though the therock ROCm
 # userspace repo uses amdrocm.gpg.
-- name: Install repo.radeon.com GPG key for amdgpu kernel driver repo (therock + kernel driver)
+- name: Install repo.radeon.com GPG key for therock (kernel driver or metrics exporter)
   ansible.builtin.shell:
     cmd: |
       set -o pipefail
@@ -82,7 +82,7 @@
   become: true
   when:
     - rocm_setup_repo_stream == 'therock'
-    - rocm_setup_install_kernel_driver
+    - rocm_setup_install_kernel_driver or rocm_setup_install_metrics_exporter
     - not rocm_setup_wsl_enabled
 
 - name: Write ROCm sources file
@@ -222,7 +222,7 @@
 - name: Run the rocm checks to ensure install worked
   ansible.builtin.import_tasks:
     file: rocm_check.yml
-  when: rocm_setup_run_gpu_checks
+  when: rocm_setup_run_gpu_checks | bool
 
 - name: Install and configure AMD Device Metrics Exporter
   ansible.builtin.import_tasks:

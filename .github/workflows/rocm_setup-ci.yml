@@ -112,8 +112,9 @@ jobs:
                   rocm_setup_repo_stream: therock
                   rocm_setup_therock_channel: stable
                   rocm_setup_wsl: false
-                  rocm_setup_run_checks: false
-                  rocm_setup_install_metrics_exporter: false
+                  rocm_setup_run_checks: true
+                  rocm_setup_run_gpu_checks: false
+                  rocm_setup_install_metrics_exporter: true
                   rocm_setup_install_kernel_driver: false
                   rocm_setup_skip_system_upgrade: true
                   rocm_setup_install_hipfile: false
