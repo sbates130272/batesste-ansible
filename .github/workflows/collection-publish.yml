@@ -30,7 +30,7 @@ jobs:
             ansible_collections/sbates130272/batesste
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
