@@ -11,7 +11,7 @@ platforms:
 aspell, bmon, build-essential, cmake, driverctl,
 emacs-nox, expect, fio, git, gnuplot, gpg-agent,
 libaio-dev, liburing-dev, linux-generic, npm,
-prometheus-node-exporter,
+pipx, prometheus-node-exporter,
 prometheus-node-exporter-collectors, python-is-python3,
 python3, python3-pip, python3-venv, mutt, sysstat, tmux,
 tree, xfsprogs.
@@ -19,6 +19,12 @@ tree, xfsprogs.
 The role also installs `uv` via pip so that `uv` and `uvx`
 are available, and installs `ptop` from the latest GitHub
 release for supported `amd64` and `arm64` Ubuntu systems.
+
+`pipx` is included so that tools like `ansible-core` and
+`ansible-lint` can be installed into isolated environments
+without conflicting with system Python packages. On Ubuntu
+24.04 this is the recommended way to get a recent
+`ansible-core` (the apt package is outdated).
 
 On Ubuntu noble and resolute the role also installs:
 elpa-cmake-mode, elpa-rust-mode, virtiofsd, and

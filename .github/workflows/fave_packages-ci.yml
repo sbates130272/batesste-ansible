@@ -65,3 +65,4 @@ jobs:
           dpkg -l | grep gettext-base || true
           tmux -V
           emacs --version | head -1
+          pipx --version

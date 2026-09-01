@@ -22,8 +22,30 @@ on:
       - '.wordlist.txt'
       - 'requirements.txt'
       - 'requirements.yml'
+      - '.github/generate-workflows.py'
 
 jobs:
+
+  check-generated-workflows:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+      - name: Setup python and pip
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12.3'
+      - name: Install PyYAML
+        run: python3 -m pip install pyyaml
+      - name: Regenerate workflow files
+        run: python3 .github/generate-workflows.py
+      - name: Fail if generated files differ from committed files
+        run: |
+          if ! git diff --exit-code .github/workflows/; then
+            echo "Workflow files are out of sync with generate-workflows.py."
+            echo "Run: python3 .github/generate-workflows.py"
+            exit 1
+          fi
 
   build-spellcheck-lint-test:
     runs-on: ubuntu-24.04

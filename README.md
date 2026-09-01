@@ -56,13 +56,19 @@ brew install ansible
 
 ### Ubuntu 24.04 / 26.04
 
-Use the packaged version:
+The `ansible` package in the Ubuntu 24.04 apt repos is outdated. Use
+[pipx](https://pipx.pypa.io/) to install a recent `ansible-core` into an
+isolated environment (pipx itself is installed by the `fave_packages` role):
 
 ```
-sudo apt install ansible
+sudo apt install pipx
+pipx install ansible-core
+pipx inject ansible-core ansible-lint
+pipx ensurepath
 ```
 
-Or install via pip in the top-level folder for this repo:
+Or install via pip in the top-level folder for this repo (suitable for CI
+and virtualenvs where system-package isolation is not needed):
 
 ```
 python3 -m pip install -r requirements.txt
