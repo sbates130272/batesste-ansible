@@ -333,6 +333,7 @@ ROLE_CONFIGS = {
             "dpkg -l | grep gettext-base || true",
             "tmux -V",
             "emacs --version | head -1",
+            "pipx --version",
         ],
         "needs_vault": False,
     },
