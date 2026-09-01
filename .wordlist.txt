@@ -293,6 +293,7 @@ plaintext
 playbook
 playbooks
 pnfs
+pipx
 ppa
 pre
 prebuilt
@@ -365,6 +366,7 @@ vCPUs
 vcpus
 venv
 vers
+virtualenvs
 vfio
 virt
 virtiofsd
