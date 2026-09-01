@@ -37,7 +37,7 @@ jobs:
       - name: Install pip packages
         run: python3 -m pip install -r requirements.txt
       - name: GitHub spellcheck action
-        uses: rojopolis/spellcheck-github-actions@0.45.0
+        uses: rojopolis/spellcheck-github-actions@0.66.0
       - name: Render the checkout directory safe for the lint step
         run: git config --global --add safe.directory /github/workspace
       - name: Run ansible-galaxy to install collections
