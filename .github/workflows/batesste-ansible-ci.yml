@@ -47,7 +47,7 @@ jobs:
           ansible-galaxy collection build --force
           ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@v25.8.2
+        uses: ansible/ansible-lint@v26.8.0
         with:
           args: "-c .ansible-lint"
           setup_python: "false"
