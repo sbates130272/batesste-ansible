@@ -148,7 +148,9 @@ ROLE_CONFIGS = {
     },
     "rdma_setup": {
         "free_disk_space": False,
-        "extra_vars": {},
+        "extra_vars": {
+            "rdma_setup_skip_system_upgrade": True,
+        },
         "verification_commands": [
             "dpkg -l | grep rdma || true",
             "ls -la /usr/bin/*ibv* || true",

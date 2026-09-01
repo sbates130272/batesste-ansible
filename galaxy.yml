@@ -1,7 +1,7 @@
 ---
 namespace: sbates130272
 name: batesste
-version: 2.2.5
+version: 2.3.0
 readme: README.md
 
 authors:
@@ -9,8 +9,9 @@ authors:
 
 description: >-
   Ansible roles for configuring Ubuntu bare-metal and VM
-  servers including Docker, Grafana, QEMU/KVM, ROCm, RDMA,
-  NVMe-oF, NVMe exporter, and more.
+  servers including ROCm/AI/LLM tooling (Lemonade, ROCm-CLI,
+  Claude Code), Docker, Grafana, QEMU/KVM, RDMA, NVMe-oF,
+  NVMe exporter, and more.
 
 license:
   - Apache-2.0
@@ -23,6 +24,9 @@ tags:
   - storage
   - llm
   - lemonade
+  - rocm
+  - amd
+  - ai
 
 dependencies:
   ansible.posix: ">=2.2.2"
@@ -36,16 +40,22 @@ homepage: https://github.com/sbates130272/batesste-ansible
 issues: https://github.com/sbates130272/batesste-ansible/issues
 
 build_ignore:
-  - .github
   - .ansible-lint
+  - .claude
+  - .cline_storage
+  - .github
   - .gitignore
+  - .mypy_cache
   - .python-version
   - .spellcheck.yml
   - .wordlist.txt
+  - collections
+  - dictionary.dic
   - inventory
   - playbooks
   - requirements.txt
   - requirements.yml
+  - tests
   - "*.tar.gz"
   - "roles/*/hosts-*"
   - "roles/*/tests"
