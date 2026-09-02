@@ -28,6 +28,7 @@
         return_content: true
         headers:
           Accept: "application/vnd.github+json"
+          Authorization: "{{ ('Bearer ' + vault_github_token) if vault_github_token | default('') | length > 0 else omit }}"
       register: _dotfiles_latest_release
       when: dotfiles_version == "latest"
 
@@ -74,7 +75,6 @@
         cmd: >-
           ./install.sh
           {{ '--force' if dotfiles_force | default(false) else '' }}
-          {{ dotfiles_packages }}
         chdir: "{{ dotfiles_dir }}"
       register: install_result
       changed_when: true

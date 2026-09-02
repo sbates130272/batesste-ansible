@@ -273,7 +273,6 @@
     cmd: >-
       ./install.sh
       {{ '--force' if user_setup_dotfiles_force | default(false) else '' }}
-      {{ user_setup_dotfiles_packages }}
     chdir: "{{ user_setup_dotfiles_dest }}"
   changed_when: true
   when:
