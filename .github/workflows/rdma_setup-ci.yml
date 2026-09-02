@@ -61,6 +61,7 @@ jobs:
         working-directory: ./roles/rdma_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
 
       - name: Verify rdma_setup installation
         run: |

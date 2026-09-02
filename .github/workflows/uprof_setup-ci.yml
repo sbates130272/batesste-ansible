@@ -48,6 +48,7 @@ jobs:
         working-directory: ./roles/uprof_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
 
       - name: Verify uprof_setup installation
         run: |

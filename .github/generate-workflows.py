@@ -600,6 +600,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
     lines.extend([
         "        env:",
         "          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles",
+        "          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections",
     ])
 
     if config.get("needs_vault", False):
@@ -687,6 +688,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
             f"        working-directory: ./roles/{role_name}",
             "        env:",
             "          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles",
+            "          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections",
         ])
         if extra_job.get("verification_commands"):
             lines.extend([
@@ -800,7 +802,8 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
         "run": run_cmd,
         "working-directory": f"./roles/{role_name}",
         "env": {
-            "ANSIBLE_ROLES_PATH": "${{ github.workspace }}/roles"
+            "ANSIBLE_ROLES_PATH": "${{ github.workspace }}/roles",
+            "ANSIBLE_COLLECTIONS_PATH": "${{ github.workspace }}/collections:~/.ansible/collections",
         }
     }
 

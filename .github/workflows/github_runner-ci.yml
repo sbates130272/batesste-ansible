@@ -57,6 +57,7 @@ jobs:
         working-directory: ./roles/github_runner
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
 
       - name: Verify github_runner installation
         run: |
