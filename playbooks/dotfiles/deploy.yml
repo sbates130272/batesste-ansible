@@ -65,6 +65,7 @@
         chdir: "{{ dotfiles_dir }}"
       register: dotfiles_version_out
       changed_when: false
+      # noqa: command-instead-of-module - git describe has no module equivalent
 
     - name: Show dotfiles version
       ansible.builtin.debug:
@@ -72,7 +73,10 @@
 
     - name: Show install.sh flags
       ansible.builtin.debug:
-        msg: "install.sh flags: {{ '--proxy' if dotfiles_proxy | default(false) else '(no proxy)' }} {{ '--force' if dotfiles_force | default(false) else '(no force)' }}"
+        msg: >-
+          install.sh flags:
+          {{ '--proxy' if dotfiles_proxy | default(false) else '(no proxy)' }}
+          {{ '--force' if dotfiles_force | default(false) else '(no force)' }}
 
     - name: Run install.sh
       ansible.builtin.command:
