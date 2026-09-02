@@ -42,6 +42,7 @@
              else dotfiles_version)
           }}
         update: true
+        force: "{{ dotfiles_force | default(false) }}"
       environment:
         GIT_SSL_CAINFO: "{{ dotfiles_git_ssl_cainfo }}"
       when: ansible_connection != 'local'
@@ -72,7 +73,6 @@
       ansible.builtin.command:
         cmd: >-
           ./install.sh
-          {{ ('--bootstrap ' + dotfiles_bootstrap) if dotfiles_bootstrap else '' }}
           {{ '--force' if dotfiles_force | default(false) else '' }}
           {{ dotfiles_packages }}
         chdir: "{{ dotfiles_dir }}"
