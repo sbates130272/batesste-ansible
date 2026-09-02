@@ -65,15 +65,24 @@
         chdir: "{{ dotfiles_dir }}"
       register: dotfiles_version_out
       changed_when: false
+      # noqa: command-instead-of-module - git describe has no module equivalent
 
     - name: Show dotfiles version
       ansible.builtin.debug:
         msg: "dotfiles version: {{ dotfiles_version_out.stdout }}"
 
+    - name: Show install.sh flags
+      ansible.builtin.debug:
+        msg: >-
+          install.sh flags:
+          {{ '--proxy' if dotfiles_proxy | default(false) else '(no proxy)' }}
+          {{ '--force' if dotfiles_force | default(false) else '(no force)' }}
+
     - name: Run install.sh
       ansible.builtin.command:
         cmd: >-
           ./install.sh
+          {{ '--proxy' if dotfiles_proxy | default(false) else '' }}
           {{ '--force' if dotfiles_force | default(false) else '' }}
         chdir: "{{ dotfiles_dir }}"
       register: install_result
