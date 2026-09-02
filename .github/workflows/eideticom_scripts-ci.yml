@@ -56,6 +56,7 @@ jobs:
         working-directory: ./roles/eideticom_scripts
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
 
       - name: Verify eideticom_scripts installation
         run: |

@@ -49,6 +49,7 @@ jobs:
         working-directory: ./roles/tmux_scripts
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
 
       - name: Verify tmux_scripts installation
         run: |

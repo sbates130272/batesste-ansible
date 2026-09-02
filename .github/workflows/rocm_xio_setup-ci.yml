@@ -69,6 +69,7 @@ jobs:
         working-directory: ./roles/rocm_xio_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
 
       - name: Verify rocm_xio_setup installation
         run: |

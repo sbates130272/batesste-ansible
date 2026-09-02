@@ -29,6 +29,9 @@ jobs:
           ansible-galaxy collection build --force
           ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force
 
+      - name: Create fake vault-password for CI
+        run: echo "ci-dummy" > playbooks/vault-password
+
       - name: Run ansible-lint on dotfiles playbook
         uses: ansible/ansible-lint@v26.8.0
         with:

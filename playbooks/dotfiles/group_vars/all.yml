@@ -2,10 +2,8 @@
 # pass vault_git_crypt_key_b64 via ansible-vault (secrets.yml) to unlock git-crypt;
 # if unset, git-crypt unlock is skipped.
 dotfiles_repo: "https://github.com/sbates130272/batesste-dotfiles.git"
-dotfiles_dir: "{{ ansible_env.HOME }}/.batesste-dotfiles"
+dotfiles_dir: "{{ ansible_facts['env']['HOME'] }}/.batesste-dotfiles"
 dotfiles_version: latest
-dotfiles_bootstrap: ""
 dotfiles_force: false
-dotfiles_packages: "bash git gh"
 dotfiles_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt
 dotfiles_install_prereqs: false

@@ -67,6 +67,7 @@ jobs:
         working-directory: ./roles/rocm_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
 
       - name: Verify rocm_setup installation
         run: |
@@ -125,6 +126,7 @@ jobs:
         working-directory: ./roles/rocm_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
 
       - name: Verify rocm_setup therock installation
         run: |

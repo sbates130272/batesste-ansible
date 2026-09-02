@@ -58,6 +58,7 @@ jobs:
         working-directory: ./roles/claude_setup
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
 
       - name: Verify claude_setup installation
         run: |
