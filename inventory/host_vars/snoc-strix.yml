@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+ansible_user: batesste
 username: batesste
 user_setup_motd: true
 rdma_setup_install_rdma_exporter: true

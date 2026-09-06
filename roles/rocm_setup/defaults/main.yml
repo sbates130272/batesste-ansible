@@ -109,6 +109,14 @@ rocm_setup_wsl_amdsmi_build: true
 # Set to true to force a clean rebuild even if /opt/rocm-wsl already exists.
 rocm_setup_wsl_amdsmi_force: false
 
+# Build and install the LD_PRELOAD shim that routes gpuagent's amdsmi calls
+# through the WSL-aware libamd_smi (/opt/rocm-wsl/lib/libamd_smi.so) so that
+# the amdgpu-exporter's gpuagent can enumerate GPUs via /dev/dxg instead of
+# /dev/kfd. Requires rocm_setup_install_metrics_exporter: true.
+rocm_setup_wsl_gpuagent_shim_build: true
+# Install directory — must match LD_LIBRARY_PATH in gpuagent.conf.
+rocm_setup_wsl_gpuagent_shim_dir: /usr/local/metrics/lib
+
 # Run rocminfo when rocm_setup_run_checks is true (skipped for legacy WSL).
 # For rocdxg, optionally compile and run the HIP hello-world test too.
 rocm_setup_wsl_run_hip_check: true

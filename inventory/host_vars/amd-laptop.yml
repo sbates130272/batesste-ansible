@@ -6,7 +6,10 @@
 ansible_host: 10.0.0.107
 ansible_user: stebates
 username: stebates
+rocm_setup_repo_stream: therock
 rocm_setup_wsl: rocdxg
 rocm_setup_run_checks: true
+# gfx1151 (Strix Halo) requires HSA_ENABLE_DXG_DETECTION even on therock
+rocm_setup_wsl_hsa_enable_dxg_detection: true
 rocm_setup_wsl_run_hip_check: true
 rocm_setup_install_metrics_exporter: true
