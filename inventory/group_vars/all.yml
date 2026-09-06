@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+ansible_python_interpreter: /usr/bin/python3
+user_setup_dotfiles_owns_emacs: true
 root_user: ubuntu
 username: ""
 # Track latest upstream sources for lab playbook runs. Role defaults remain

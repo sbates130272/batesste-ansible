@@ -205,6 +205,7 @@
     rocm_setup_wsl_needs_dxg_detection: >-
       {{
         rocm_setup_wsl_hsa_enable_dxg_detection
+        and rocm_setup_rocm_version != 'latest'
         and (rocm_setup_rocm_version | string) is version('7.13', '<')
       }}
 
@@ -252,3 +253,82 @@
   loop_control:
     loop_var: rocm_setup_wsl_shell_file
     label: "{{ rocm_setup_wsl_shell_file }}"
+
+# --- WSL-aware amd-smi build (amdsmi/ subdir of librocdxg) ---
+# The ROCm-packaged amd-smi requires kernel modules that are absent under WSL.
+# The librocdxg repo ships its own amdsmi/ that speaks to /dev/dxg and installs
+# under /opt/rocm-wsl to avoid conflicting with the packaged binary.
+
+- name: Check whether WSL amd-smi is already installed
+  ansible.builtin.stat:
+    path: /opt/rocm-wsl/bin/amd-smi
+  register: rocm_setup_wsl_amdsmi_stat
+  when: rocm_setup_wsl_amdsmi_build | bool
+
+- name: Remove stale WSL amd-smi build directory
+  ansible.builtin.file:
+    path: "{{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi/build"
+    state: absent
+  become: true
+  when:
+    - rocm_setup_wsl_amdsmi_build | bool
+    - rocm_setup_wsl_amdsmi_force | bool or not rocm_setup_wsl_amdsmi_stat.stat.exists
+
+- name: Configure WSL amd-smi with cmake
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      set -e
+      cmake -B build -DWIN_SDK="{{ rocm_setup_wsl_win_sdk_include }}/shared" .
+    chdir: "{{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi"
+    executable: /bin/bash
+  become: true
+  when:
+    - rocm_setup_wsl_amdsmi_build | bool
+    - rocm_setup_wsl_amdsmi_force | bool or not rocm_setup_wsl_amdsmi_stat.stat.exists
+  changed_when: true
+
+- name: Build WSL amd-smi
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      set -e
+      cmake --build build --parallel "{{ ansible_processor_vcpus | default(1) }}"
+    chdir: "{{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi"
+    executable: /bin/bash
+  become: true
+  when:
+    - rocm_setup_wsl_amdsmi_build | bool
+    - rocm_setup_wsl_amdsmi_force | bool or not rocm_setup_wsl_amdsmi_stat.stat.exists
+  changed_when: true
+
+- name: Install WSL amd-smi
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      set -e
+      cmake --install build
+    chdir: "{{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi"
+    executable: /bin/bash
+  become: true
+  register: rocm_setup_wsl_amdsmi_install
+  when:
+    - rocm_setup_wsl_amdsmi_build | bool
+    - rocm_setup_wsl_amdsmi_force | bool or not rocm_setup_wsl_amdsmi_stat.stat.exists
+  changed_when: true
+
+- name: Verify WSL amd-smi binary is present
+  ansible.builtin.stat:
+    path: /opt/rocm-wsl/bin/amd-smi
+  register: rocm_setup_wsl_amdsmi_verify
+  when: rocm_setup_wsl_amdsmi_build | bool
+
+- name: Fail when WSL amd-smi binary is missing after install
+  ansible.builtin.fail:
+    msg: >-
+      WSL amd-smi build completed but /opt/rocm-wsl/bin/amd-smi was not found.
+      Check build output in {{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi/build
+      and re-run with rocm_setup_wsl_amdsmi_force: true.
+  when:
+    - rocm_setup_wsl_amdsmi_build | bool
+    - not rocm_setup_wsl_amdsmi_verify.stat.exists

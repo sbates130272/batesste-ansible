@@ -59,9 +59,11 @@
     state: started
     daemon_reload: true
   become: true
-  loop:
-    - amd-metrics-exporter.service
-    - gpuagent.service
+  loop: >-
+    {{
+      ['amd-metrics-exporter.service']
+      + ([] if rocm_setup_wsl_enabled else ['gpuagent.service'])
+    }}
   failed_when: false
 
 - name: Gather service facts
@@ -88,13 +90,18 @@
 
 - name: Display warning if exporter failed to start
   ansible.builtin.debug:
-    msg:
-      - "WARNING: AMD Device Metrics Exporter service failed to start"
-      - "Possible reasons:"
-      - "  - AMD kernel modules not loaded (try: modprobe amdgpu)"
-      - "  - Insufficient permissions to access /dev/kfd or /dev/dri"
-      - "  - ROCm libraries not properly installed"
-      - "Check logs with: journalctl -u device-metrics-exporter -n 50"
+    msg: >-
+      {{
+        ['WARNING: AMD Device Metrics Exporter service failed to start',
+         'Check logs with: journalctl -u amd-metrics-exporter -n 50']
+        + (["Note: on WSL, gpuagent is not started (requires /dev/kfd).",
+            "The exporter endpoint is available but GPU metrics will be empty."]
+           if rocm_setup_wsl_enabled else
+           ["Possible reasons:",
+            "  - AMD kernel modules not loaded (try: modprobe amdgpu)",
+            "  - Insufficient permissions to access /dev/kfd or /dev/dri",
+            "  - ROCm libraries not properly installed"])
+      }}
   when:
     - metrics_exporter_status.status is defined
     - metrics_exporter_status.status.ActiveState != 'active'

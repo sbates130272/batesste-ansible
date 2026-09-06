@@ -85,7 +85,7 @@
   ansible.builtin.blockinfile:
     path: /etc/sysctl.d/10-kernel-hardening.conf
     state: present
-    create: false
+    create: true
     marker_begin: BEGIN (user-setup)
     marker_end: END (user-setup)
     block: |
