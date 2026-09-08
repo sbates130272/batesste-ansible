@@ -1,23 +1,59 @@
 #!/bin/bash
 #
 # A simple bash script that uses curl to obtain the latest release of
-# ROCm, amdgpu, graphics, and device-metrics-exporter via our
-# packaging repo. Use QUIET=true to only display the version tag. Use
-# ONLY_ONE=[ROCM|AMDGPU|GRAPHICS|METRICS_EXPORTER] to only output
-# the version tag for one of those components.
+# ROCm, amdgpu-dkms, graphics, and device-metrics-exporter via our
+# packaging repos. Use QUIET=true to only display the version tag. Use
+# ONLY_ONE=[ROCM|AMDGPU|AMDGPU_DKMS|GRAPHICS|METRICS_EXPORTER] to only
+# output the version tag for one of those components. AMDGPU_DKMS is an
+# alias for AMDGPU, included for clarity in therock contexts where the
+# kernel driver version is independent of the ROCm userspace version.
+#
+# REPO_STREAM=[therock|legacy] selects the install path (default: therock).
+# For the therock stream, ROCM queries the APT Packages index on repo.amd.com
+# for the amdrocm meta-package version. Use REPO_STREAM=legacy for the
+# original repo.radeon.com flow.
+#
+# DISTRO=[noble|resolute] sets the target Ubuntu release (default: noble).
+# This derives THEROCK_DISTRO_PATH (ubuntu2404/ubuntu2604) for the therock APT
+# index URL, and AMDGPU_SUITE for the amdgpu-dkms package version lookup.
+# Both can be overridden explicitly if needed.
+#
+# THEROCK_CHANNEL=[stable|nightly|dev] selects the therock channel (default: stable).
+# AMDGPU_DKMS and METRICS_EXPORTER always query repo.radeon.com regardless of
+# REPO_STREAM.
 #
 # Note that setting WSL_INSTALL=true ensures that only the latest
 # version that works with WSL2 is installed. This also will return
 # "none" for the amdgpu component as it is not used in WSL-based
-# systems. Note that we parse the RADEON_REPO tree to obtain this
-# latest version based on what version has the wsl version of the
-# runtime. Note the WSL_INSTALL version of this script can take longer
-# as it has to parse the website more.
+# systems. Note we parse the RADEON_REPO tree to obtain the latest
+# version based on what version has the wsl version of the runtime.
+# The WSL_INSTALL version of this script can take longer as it has to
+# parse the website more. WSL_INSTALL applies to the legacy stream only.
 
 RADEON_REPO=${RADEON_REPO:-https://repo.radeon.com}
 QUIET=${QUIET:-false}
 ONLY_ONE=${ONLY_ONE:-false}
 WSL_INSTALL=${WSL_INSTALL:-false}
+REPO_STREAM=${REPO_STREAM:-therock}
+
+# Distro release: noble (24.04) or resolute (26.04).
+# Derives THEROCK_DISTRO_PATH and AMDGPU_SUITE when not set explicitly.
+DISTRO=${DISTRO:-noble}
+case ${DISTRO} in
+    noble)    _DISTRO_PATH=ubuntu2404 ;;
+    resolute) _DISTRO_PATH=ubuntu2604 ;;
+    *)        _DISTRO_PATH=ubuntu2404 ;;
+esac
+
+# TheRock stream settings (only used when REPO_STREAM=therock)
+THEROCK_CHANNEL=${THEROCK_CHANNEL:-stable}
+THEROCK_DISTRO_PATH=${THEROCK_DISTRO_PATH:-${_DISTRO_PATH}}
+THEROCK_SUITE=${THEROCK_SUITE:-stable}
+THEROCK_ROCM_PACKAGE=${THEROCK_ROCM_PACKAGE:-amdrocm}
+THEROCK_REPO_BASE="https://${THEROCK_CHANNEL}.repo.amd.com"
+
+# Suite for the amdgpu-dkms package version lookup (repo.radeon.com/amdgpu/).
+AMDGPU_SUITE=${AMDGPU_SUITE:-${DISTRO}}
 
 ROCM_REMOTE=${RADEON_REPO}/rocm/apt/
 AMDGPU_REMOTE=${RADEON_REPO}/amdgpu/
@@ -26,38 +62,63 @@ METRICS_EXPORTER_REMOTE=${RADEON_REPO}/device-metrics-exporter/apt/
 WSL_REMOTE=${RADEON_REPO}/amdgpu/
 
 wsl_version () {
-    VERSIONS=$(curl -s ${1} | \
+    VERSIONS=$(curl -s "${1}" | \
       sed -nE 's/^<a href="([0-9.]+*)\/">*.*/\1/p' | \
       sort -rg)
-    VERSION_ARRAY=( ${VERSIONS} )
+    mapfile -t VERSION_ARRAY <<< "${VERSIONS}"
     WSL_SUPPORT="none"
-    for VERSION in ${VERSION_ARRAY[@]}; do
-        if curl -s ${1}${VERSION}/ubuntu/pool/main/h/ | grep -qi wsl; then
+    for VERSION in "${VERSION_ARRAY[@]}"; do
+        if curl -s "${1}${VERSION}/ubuntu/pool/main/h/" | grep -qi wsl; then
             WSL_SUPPORT=${VERSION}
             break
         fi
     done
-    echo ${WSL_SUPPORT}
+    echo "${WSL_SUPPORT}"
 }
 
 parse_repo () {
-    VERSION=$(curl -s ${1} | \
+    VERSION=$(curl -s "${1}" | \
       sed -nE 's/^<a href="([0-9.]+*)\/">*.*/\1/p' | \
-      sort -g | tail -n 1)
-    echo $VERSION
+      sort -V | tail -n 1)
+    echo "${VERSION}"
 }
 
-if [ ${ONLY_ONE} == "ROCM" ] || [ ${ONLY_ONE} == "false" ]; then
-
-    if [ ${WSL_INSTALL} == "true" ]; then
-        ROCM_VERSION=$(wsl_version $WSL_REMOTE)
-    else
-        ROCM_VERSION=$(parse_repo $ROCM_REMOTE)
+# Parse an APT Packages index for the version of a named package.
+# Tries plain Packages first, then Packages.gz.  awk exits on first
+# match so curl gets SIGPIPE early; no need to read the whole file.
+parse_apt_packages () {
+    local url="${1}"
+    local pkg="${2}"
+    local result
+    result=$(curl -sf "${url}" 2>/dev/null | awk -v p="${pkg}" '
+        /^Package: / { in_pkg = ($2 == p) }
+        in_pkg && /^Version: / { print $2; exit }
+    ')
+    if [ -z "${result}" ]; then
+        result=$(curl -sf "${url}.gz" 2>/dev/null | gunzip -c | awk -v p="${pkg}" '
+            /^Package: / { in_pkg = ($2 == p) }
+            in_pkg && /^Version: / { print $2; exit }
+        ')
     fi
-    if [ ${QUIET} == "true" ]; then
-        echo ${ROCM_VERSION}
+    echo "${result}"
+}
+
+if [ "${ONLY_ONE}" == "ROCM" ] || [ "${ONLY_ONE}" == "false" ]; then
+
+    if [ "${REPO_STREAM}" == "therock" ]; then
+        THEROCK_PACKAGES_URL="${THEROCK_REPO_BASE}/rocm/core/packages/${THEROCK_DISTRO_PATH}/dists/${THEROCK_SUITE}/main/binary-amd64/Packages"
+        ROCM_VERSION=$(parse_apt_packages "${THEROCK_PACKAGES_URL}" "${THEROCK_ROCM_PACKAGE}")
+    elif [ "${WSL_INSTALL}" == "true" ]; then
+        ROCM_VERSION=$(wsl_version "${WSL_REMOTE}")
     else
-        if [ ${WSL_INSTALL} == "true" ]; then
+        ROCM_VERSION=$(parse_repo "${ROCM_REMOTE}")
+    fi
+    if [ "${QUIET}" == "true" ]; then
+        echo "${ROCM_VERSION}"
+    else
+        if [ "${REPO_STREAM}" == "therock" ]; then
+            echo "ROCm latest (therock ${THEROCK_CHANNEL}/${DISTRO}): ${ROCM_VERSION}."
+        elif [ "${WSL_INSTALL}" == "true" ]; then
             echo "ROCm latest (wsl): ${ROCM_VERSION}."
         else
             echo "ROCm latest: ${ROCM_VERSION}."
@@ -65,40 +126,51 @@ if [ ${ONLY_ONE} == "ROCM" ] || [ ${ONLY_ONE} == "false" ]; then
     fi
 fi
 
-if [ ${ONLY_ONE} == "AMDGPU" ] || [ ${ONLY_ONE} == "false" ]; then
-    if [ ${WSL_INSTALL} == "true" ]; then
+# AMDGPU_DKMS is the therock-era name for the kernel driver version;
+# AMDGPU is the legacy alias.  Both resolve via repo.radeon.com/amdgpu/
+# regardless of REPO_STREAM.
+if [ "${ONLY_ONE}" == "AMDGPU" ] || [ "${ONLY_ONE}" == "AMDGPU_DKMS" ] || \
+   [ "${ONLY_ONE}" == "false" ]; then
+    if [ "${WSL_INSTALL}" == "true" ]; then
         AMDGPU_VERSION="none"
+        AMDGPU_PKG_VERSION="none"
     else
-        AMDGPU_VERSION=$(parse_repo $AMDGPU_REMOTE)
+        AMDGPU_VERSION=$(parse_repo "${AMDGPU_REMOTE}")
+        AMDGPU_PKG_VERSION=$(parse_apt_packages \
+            "${RADEON_REPO}/amdgpu/${AMDGPU_VERSION}/ubuntu/dists/${AMDGPU_SUITE}/main/binary-amd64/Packages" \
+            "amdgpu-dkms")
     fi
-    if [ ${QUIET} == "true" ]; then
-        echo ${AMDGPU_VERSION}
+    if [ "${QUIET}" == "true" ]; then
+        echo "${AMDGPU_VERSION}"
     else
-        if [ ${WSL_INSTALL} == "true" ]; then
-            echo "AMDGPU latest (wsl): ${AMDGPU_VERSION}."
+        if [ "${WSL_INSTALL}" == "true" ]; then
+            echo "AMDGPU/DKMS latest (wsl): ${AMDGPU_VERSION}."
         else
-            echo "AMDGPU latest: ${AMDGPU_VERSION}."
+            echo "AMDGPU/DKMS latest: ${AMDGPU_VERSION} (package: ${AMDGPU_PKG_VERSION})."
         fi
     fi
 fi
 
-if [ ${ONLY_ONE} == "GRAPHICS" ] || [ ${ONLY_ONE} == "false" ]; then
-    if [ ${WSL_INSTALL} == "true" ]; then
+# Graphics repo is legacy-only; therock does not publish a separate graphics
+# stream on repo.radeon.com.
+if [ "${ONLY_ONE}" == "GRAPHICS" ] || [ "${ONLY_ONE}" == "false" ]; then
+    if [ "${WSL_INSTALL}" == "true" ] || [ "${REPO_STREAM}" == "therock" ]; then
         GRAPHICS_VERSION="none"
     else
-        GRAPHICS_VERSION=$(parse_repo $GRAPHICS_REMOTE)
+        GRAPHICS_VERSION=$(parse_repo "${GRAPHICS_REMOTE}")
     fi
-    if [ ${QUIET} == "true" ]; then
-        echo ${GRAPHICS_VERSION}
+    if [ "${QUIET}" == "true" ]; then
+        echo "${GRAPHICS_VERSION}"
     else
         echo "Graphics latest: ${GRAPHICS_VERSION}."
     fi
 fi
 
-if [ ${ONLY_ONE} == "METRICS_EXPORTER" ] || [ ${ONLY_ONE} == "false" ]; then
-    METRICS_EXPORTER_VERSION=$(parse_repo $METRICS_EXPORTER_REMOTE)
-    if [ ${QUIET} == "true" ]; then
-        echo ${METRICS_EXPORTER_VERSION}
+# Metrics exporter always lives on repo.radeon.com regardless of REPO_STREAM.
+if [ "${ONLY_ONE}" == "METRICS_EXPORTER" ] || [ "${ONLY_ONE}" == "false" ]; then
+    METRICS_EXPORTER_VERSION=$(parse_repo "${METRICS_EXPORTER_REMOTE}")
+    if [ "${QUIET}" == "true" ]; then
+        echo "${METRICS_EXPORTER_VERSION}"
     else
         echo "Device Metrics Exporter latest: ${METRICS_EXPORTER_VERSION}."
     fi

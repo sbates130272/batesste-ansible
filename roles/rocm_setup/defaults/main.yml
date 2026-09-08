@@ -6,7 +6,7 @@
 
 # Repo stream: 'legacy' uses repo.radeon.com (ROCm 7.2.x production);
 # 'therock' uses repo.amd.com (ROCm 7.13+ / TheRock preview/release stream).
-rocm_setup_repo_stream: legacy
+rocm_setup_repo_stream: therock
 
 # --- Legacy stream (repo.radeon.com) settings ---
 rocm_setup_repo_base_url: repo.radeon.com
@@ -33,7 +33,6 @@ rocm_setup_therock_keyring_path: /etc/apt/keyrings/amdrocm.gpg
 rocm_setup_therock_repo_path_map:
   noble: core/packages/ubuntu2404
   resolute: core/packages/ubuntu2604
-  jammy: core/packages/ubuntu2204
 
 # The version of ROCm to install (legacy stream only). Set to latest to
 # auto-detect via the rocm-latest script.
