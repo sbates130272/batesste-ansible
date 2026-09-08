@@ -40,3 +40,6 @@ dictionary.dic
 
 # AI assistant related
 .cline_storage/
+
+# AMD uprof install deb files
+roles/rocm_setup/files/amd-uprof-*.deb
