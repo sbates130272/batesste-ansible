@@ -204,50 +204,14 @@
   ansible.builtin.set_fact:
     rocm_setup_wsl_needs_dxg_detection: "{{ rocm_setup_wsl_hsa_enable_dxg_detection | bool }}"
 
-- name: Look up rocm_setup user home directory
-  ansible.builtin.getent:
-    database: passwd
-    key: "{{ rocm_setup_user }}"
-
-- name: Set rocm_setup user home directory fact
-  ansible.builtin.set_fact:
-    rocm_setup_wsl_user_home: "{{ ansible_facts.getent_passwd[rocm_setup_user][4] }}"
-
-- name: Ensure ROCm config directory exists for user
-  ansible.builtin.file:
-    path: "{{ rocm_setup_wsl_user_home }}/.config/rocm"
-    state: directory
-    owner: "{{ rocm_setup_user }}"
-    mode: '0755'
-  become: true
-
-- name: Install ROCDXG environment script for user
+- name: Install ROCDXG environment script system-wide
   ansible.builtin.template:
     src: rocm-wsl-env.sh.j2
-    dest: "{{ rocm_setup_wsl_user_home }}/.config/rocm/wsl-env.sh"
-    owner: "{{ rocm_setup_user }}"
+    dest: /etc/profile.d/rocm-wsl-env.sh
+    owner: root
+    group: root
     mode: '0644'
   become: true
-
-- name: Source ROCDXG environment from user shell startup files
-  ansible.builtin.blockinfile:
-    path: "{{ rocm_setup_wsl_shell_file }}"
-    marker_begin: BEGIN (rocm_setup wsl)
-    marker_end: END (rocm_setup wsl)
-    block: |
-      if [ -f "$HOME/.config/rocm/wsl-env.sh" ]; then
-        . "$HOME/.config/rocm/wsl-env.sh"
-      fi
-    create: true
-    owner: "{{ rocm_setup_user }}"
-    mode: '0644'
-  become: true
-  loop:
-    - "{{ rocm_setup_wsl_user_home }}/.bashrc"
-    - "{{ rocm_setup_wsl_user_home }}/.profile"
-  loop_control:
-    loop_var: rocm_setup_wsl_shell_file
-    label: "{{ rocm_setup_wsl_shell_file }}"
 
 # --- WSL-aware amd-smi build (amdsmi/ subdir of librocdxg) ---
 # The ROCm-packaged amd-smi requires kernel modules that are absent under WSL.
