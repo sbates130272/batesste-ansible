@@ -1,0 +1,78 @@
+name: rocm-latest CI
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+      - main
+    paths:
+      - roles/rocm_setup/files/rocm-latest
+      - .github/workflows/rocm-latest-ci.yml
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+      - name: shellcheck rocm-latest
+        run: shellcheck roles/rocm_setup/files/rocm-latest
+
+  functional:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: therock/noble (default)
+            env: {}
+          - name: therock/resolute
+            env:
+              DISTRO: resolute
+              REPO_STREAM: therock
+          - name: legacy/noble
+            env:
+              REPO_STREAM: legacy
+          - name: therock ROCM only
+            env:
+              ONLY_ONE: ROCM
+              QUIET: "true"
+          - name: AMDGPU_DKMS only
+            env:
+              ONLY_ONE: AMDGPU_DKMS
+              QUIET: "true"
+          - name: METRICS_EXPORTER only
+            env:
+              ONLY_ONE: METRICS_EXPORTER
+              QUIET: "true"
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Install dependencies
+        run: sudo apt-get install -y curl gzip
+      - name: Run rocm-latest (${{ matrix.name }})
+        id: run
+        env: ${{ matrix.env }}
+        run: |
+          chmod +x roles/rocm_setup/files/rocm-latest
+          output=$(roles/rocm_setup/files/rocm-latest)
+          echo "output=${output}"
+          echo "output<<EOF" >> "$GITHUB_OUTPUT"
+          echo "${output}" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+      - name: Validate output is non-empty
+        run: |
+          output='${{ steps.run.outputs.output }}'
+          if [ -z "${output}" ]; then
+            echo "ERROR: rocm-latest produced no output"
+            exit 1
+          fi
+          echo "Output: ${output}"
+      - name: Validate QUIET output is a version string
+        if: ${{ matrix.env.QUIET == 'true' }}
+        run: |
+          output='${{ steps.run.outputs.output }}'
+          if ! echo "${output}" | grep -qE '^[0-9]'; then
+            echo "ERROR: QUIET output '${output}' does not look like a version"
+            exit 1
+          fi
