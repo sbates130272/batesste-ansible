@@ -101,6 +101,22 @@ rocm_setup_wsl_hsa_enable_dxg_detection: true
 rocm_setup_wsl_hsa_override_gfx_version: ""
 rocm_setup_wsl_librocdxg_force: false
 
+# Build and install the WSL-aware amd-smi from the amdsmi/ subdirectory of
+# the librocdxg repository. Installs under /opt/rocm-wsl so it does not
+# conflict with the ROCm-packaged amd-smi-lib. Requires the same Windows SDK
+# that librocdxg itself uses. Set to false to skip this step.
+rocm_setup_wsl_amdsmi_build: true
+# Set to true to force a clean rebuild even if /opt/rocm-wsl already exists.
+rocm_setup_wsl_amdsmi_force: false
+
+# Build and install the LD_PRELOAD shim that routes gpuagent's amdsmi calls
+# through the WSL-aware libamd_smi (/opt/rocm-wsl/lib/libamd_smi.so) so that
+# the amdgpu-exporter's gpuagent can enumerate GPUs via /dev/dxg instead of
+# /dev/kfd. Requires rocm_setup_install_metrics_exporter: true.
+rocm_setup_wsl_gpuagent_shim_build: true
+# Install directory — must match LD_LIBRARY_PATH in gpuagent.conf.
+rocm_setup_wsl_gpuagent_shim_dir: /usr/local/metrics/lib
+
 # Run rocminfo when rocm_setup_run_checks is true (skipped for legacy WSL).
 # For rocdxg, optionally compile and run the HIP hello-world test too.
 rocm_setup_wsl_run_hip_check: true
@@ -128,6 +144,12 @@ rocm_setup_xrocmtop_install_dir: /usr/local/bin
 # https://github.com/ROCm/device-metrics-exporter
 rocm_setup_install_metrics_exporter: true
 rocm_setup_metrics_exporter_version: latest
+# Distro suite fallback map for the device-metrics-exporter APT repo.
+# Used when the repo does not publish a dist for the host's release.
+# 'resolute' (Ubuntu 26.04) falls back to 'noble' (Ubuntu 24.04) packages
+# which are binary-compatible and have no declared apt dependencies.
+rocm_setup_metrics_exporter_dist_fallback_map:
+  resolute: noble
 rocm_setup_metrics_exporter_repo_uri: >-
   https://{{ rocm_setup_repo_base_url }}/device-metrics-exporter/apt/{{
   rocm_setup_metrics_exporter_version }}

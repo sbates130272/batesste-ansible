@@ -1,5 +1,6 @@
-# ROCm WSL (ROCDXG) environment for {{ rocm_setup_user }}
-# Managed by Ansible rocm_setup role.
+# ROCm WSL (ROCDXG) environment — installed by Ansible rocm_setup role.
+# Sourced by login shells via /etc/profile.d/ and by bash interactive shells
+# via /etc/bash.bashrc on Ubuntu. Do not edit manually.
 
 {% if rocm_setup_wsl_needs_dxg_detection | default(false) %}
 export HSA_ENABLE_DXG_DETECTION=1

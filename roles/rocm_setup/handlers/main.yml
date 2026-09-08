@@ -7,3 +7,10 @@
     state: restarted
     daemon_reload: true
   become: true
+
+- name: Restart gpuagent
+  ansible.builtin.systemd:
+    name: gpuagent.service
+    state: restarted
+    daemon_reload: true
+  become: true

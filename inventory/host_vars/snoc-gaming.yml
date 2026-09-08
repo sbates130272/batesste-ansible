@@ -3,9 +3,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+ansible_host: 10.0.0.247
 ansible_user: batesste
 username: batesste
 user_setup_motd: true
-rdma_setup_install_rdma_exporter: true
-rdma_setup_motd: true
-nvme_exporter_setup_install: true
+rocm_setup_repo_stream: therock
+rocm_setup_wsl: rocdxg
+rocm_setup_run_checks: true
+rocm_setup_run_gpu_checks: true

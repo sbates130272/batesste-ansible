@@ -3,6 +3,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-ansible_user: batesste
-username: batesste
+ansible_user: stebates
+username: stebates
 user_setup_motd: true

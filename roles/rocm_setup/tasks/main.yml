@@ -21,12 +21,11 @@
                      and rocm_setup_wsl | default(false) in [false, none, ''])
         else rocm_setup_wsl | default(false)
       }}
-    rocm_setup_wsl_enabled: >-
-      {{
+    rocm_setup_wsl_enabled: "{{
         ('legacy' if (rocm_setup_wsl_install | default(false)
                        and rocm_setup_wsl | default(false) in [false, none, ''])
          else rocm_setup_wsl | default(false)) in ['legacy', 'rocdxg']
-      }}
+      }}"
 
 - name: Run the rocm_setup prerequisite steps
   ansible.builtin.import_tasks:
@@ -83,7 +82,6 @@
   when:
     - rocm_setup_repo_stream == 'therock'
     - rocm_setup_install_kernel_driver or rocm_setup_install_metrics_exporter
-    - not rocm_setup_wsl_enabled
 
 - name: Write ROCm sources file
   ansible.builtin.template:
@@ -141,6 +139,8 @@
            if rocm_setup_wsl_mode in [false, 'rocdxg'] else [])
         + (['hsa-runtime-rocr4wsl-amdgpu', 'rocm-core', 'rocm-dev']
            if rocm_setup_wsl_mode == 'legacy' else [])
+        + (['amdrocm-runtime-dev']
+           if rocm_setup_wsl_mode == 'rocdxg' and rocm_setup_repo_stream == 'therock' else [])
       }}
 
 - name: Install ROCm packages
@@ -227,9 +227,7 @@
 - name: Install and configure AMD Device Metrics Exporter
   ansible.builtin.import_tasks:
     file: metrics_exporter.yml
-  when:
-    - rocm_setup_install_metrics_exporter
-    - not rocm_setup_wsl_enabled
+  when: rocm_setup_install_metrics_exporter
 
 - name: Install xrocmtop AMD GPU monitoring tool
   ansible.builtin.import_tasks:
