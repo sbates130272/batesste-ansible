@@ -59,7 +59,10 @@ jobs:
                   rocm_setup_install_kernel_driver: false
                   rocm_setup_skip_reboot: true
                   rocm_setup_skip_system_upgrade: true
+                  rocm_setup_minimal: true
                   rocm_setup_install_xio: true
+                  rocm_setup_install_xrocmtop: false
+                  rocm_setup_install_rocm_cli: false
                   rocm_xio_setup_repo_version: v0.1.0
                   rocm_xio_setup_force_clone: true
                   rocm_xio_setup_run_basic_checks: false
