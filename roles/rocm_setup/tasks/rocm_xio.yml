@@ -97,6 +97,26 @@
   environment:
     GIT_SSL_CAINFO: "{{ rocm_xio_setup_git_ssl_cainfo | default('/etc/ssl/certs/ca-certificates.crt') }}"
 
+# therock's hsakmt cmake config has a hardcoded /usr/lib64/libc.so path that
+# does not exist on Ubuntu (libc lives under /usr/lib/x86_64-linux-gnu/).
+# Create a minimal compatibility symlink so the linker can resolve the target.
+- name: Create /usr/lib64 for hsakmt linker compatibility (therock on Ubuntu)
+  ansible.builtin.file:
+    path: /usr/lib64
+    state: directory
+    mode: '0755'
+  become: true
+  when: rocm_setup_repo_stream == 'therock'
+
+- name: Create /usr/lib64/libc.so symlink for hsakmt linker compatibility
+  ansible.builtin.file:
+    src: /usr/lib/x86_64-linux-gnu/libc.so
+    dest: /usr/lib64/libc.so
+    state: link
+    force: true
+  become: true
+  when: rocm_setup_repo_stream == 'therock'
+
 - name: Configure rocm-xio with CMake
   ansible.builtin.command:
     cmd: >-
