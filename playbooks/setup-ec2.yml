@@ -145,11 +145,9 @@
     setup_roles:
       - user_setup
       - fave_packages
-      - nvme_exporter_setup
       - git_setup
       - rdma_setup
       - rocm_setup
       - uprof_setup
       - cloud_setup
-      - aws_grub
       - rocm_xio_setup

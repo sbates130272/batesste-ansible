@@ -1,7 +1,0 @@
----
-- name: Test vm_create role
-  hosts: all
-  tasks:
-    - name: Include vm_create role
-      ansible.builtin.include_role:
-        name: vm_create

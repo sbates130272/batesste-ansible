@@ -89,8 +89,9 @@
     - nfs_rdma_setup_ufw_rules | length > 0
 
 - name: Enable and start NFS server
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: nfs-server
     enabled: true
     state: started
+    daemon_reload: true
   become: true

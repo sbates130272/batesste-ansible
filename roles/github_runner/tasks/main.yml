@@ -162,6 +162,7 @@
           {{ '--ephemeral' if github_runner_ephemeral | bool else '' }}
           {{ '--disableupdate' if github_runner_disable_auto_update | bool else '' }}
           {{ github_runner_extra_options }}
+      no_log: true
 
     - name: Configure runner
       ansible.builtin.command:

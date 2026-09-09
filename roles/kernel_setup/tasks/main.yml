@@ -38,7 +38,7 @@
 
 - name: Checkout kernel-tools repo
   ansible.builtin.git:
-    repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/kernel-tools.git', 'https://github.com/sbates130272/kernel-tools.git') }}"
+    repo: "{{ kernel_setup_use_ssh_git | bool | ternary('git@github.com:sbates130272/kernel-tools.git', 'https://github.com/sbates130272/kernel-tools.git') }}"
     dest: ~/Projects/kernel
     accept_newhostkey: true
     force: "{{ kernel_setup_tools_force }}"
@@ -66,7 +66,7 @@
   ansible.builtin.command:
     cmd: git init
     chdir: ~/Projects/kernel/src
-    creates: ~/kernel/src/.git
+    creates: ~/Projects/kernel/src/.git
 
 - name: Ensure remotes are added
   community.general.git_config:

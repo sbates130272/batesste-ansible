@@ -145,6 +145,12 @@
   become: true
   when: rocm_xio_setup_install
 
+- name: Clean up cmake modules temp directory
+  ansible.builtin.file:
+    path: /tmp/rocm-xio-cmake-modules
+    state: absent
+  when: rocm_setup_repo_stream == 'therock'
+
 - name: Gather package facts for dependency checks
   ansible.builtin.package_facts:
     manager: auto

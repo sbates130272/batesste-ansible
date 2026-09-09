@@ -68,7 +68,7 @@
 
 - name: Checkout fio-stuff repo
   ansible.builtin.git:
-    repo: "{{ (username == 'batesste') | ternary('git@github.com:sbates130272/fio-stuff.git', 'https://github.com/sbates130272/fio-stuff.git') }}"
+    repo: "{{ fio_devel_use_ssh_git | bool | ternary('git@github.com:sbates130272/fio-stuff.git', 'https://github.com/sbates130272/fio-stuff.git') }}"
     dest: ~/Projects/fio-stuff
     accept_newhostkey: true
     force: "{{ fio_devel_fio_stuff_force }}"

@@ -51,4 +51,5 @@
   ansible.builtin.template:
     src: aws-credentials.j2
     dest: ~/.aws/credentials
-    mode: "0644"
+    mode: "0600"
+  no_log: true

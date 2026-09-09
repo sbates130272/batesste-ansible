@@ -73,7 +73,6 @@ Includes `check_platform` automatically.
 
 ## Supported Platforms
 
-- Ubuntu jammy (22.04)
 - Ubuntu noble (24.04)
 - Ubuntu resolute (26.04)
 
