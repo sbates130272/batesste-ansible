@@ -63,6 +63,13 @@
 # therock's hsakmt-config.cmake calls find_dependency(NUMA) but therock does not
 # ship NUMAConfig.cmake.  Provide a FindNUMA module so CMake can locate the
 # system libnuma installed by libnuma-dev.
+- name: Ensure cmake modules directory exists (therock stream)
+  ansible.builtin.file:
+    path: /tmp/rocm-xio-cmake-modules
+    state: directory
+    mode: '0755'
+  when: rocm_setup_repo_stream == 'therock'
+
 - name: Create FindNUMA.cmake module for therock stream
   ansible.builtin.copy:
     dest: /tmp/rocm-xio-cmake-modules/FindNUMA.cmake
