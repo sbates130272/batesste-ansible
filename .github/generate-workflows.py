@@ -44,6 +44,7 @@ ROLE_CONFIGS = {
             "dpkg -l | grep rocm || true",
         ],
         "needs_vault": False,
+        "ubuntu_26_04_experimental": True,
         "extra_jobs": [
             {
                 "name_suffix": "therock",
@@ -157,6 +158,7 @@ ROLE_CONFIGS = {
         ],
         "needs_vault": False,
         "hold_snap_packages": True,
+        "ubuntu_26_04_experimental": True,
     },
     "git_setup": {
         "free_disk_space": False,
@@ -445,6 +447,9 @@ DEFAULT_CONFIG = {
     "needs_vault": False,
     "ignore_failure": False,
     "workflow_dispatch_only": False,
+    # Set to True for roles whose 26.04 job is allowed to fail (hardware-gated).
+    # All other roles are held strict on 26.04.
+    "ubuntu_26_04_experimental": False,
 }
 
 
@@ -498,7 +503,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         for version in ubuntu_versions:
             lines.append(f"          - ubuntu-{version}")
         lines.append("    runs-on: ${{ matrix.runs-on }}")
-        if "26.04" in ubuntu_versions and not config.get("ignore_failure", False):
+        if "26.04" in ubuntu_versions and config.get("ubuntu_26_04_experimental", False):
             lines.append(
                 "    continue-on-error: ${{ matrix.runs-on == 'ubuntu-26.04' }}"
             )
