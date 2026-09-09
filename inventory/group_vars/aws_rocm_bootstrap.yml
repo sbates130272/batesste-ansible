@@ -14,6 +14,7 @@ rocm_setup_extra_kernel_packages:
   - linux-modules-extra-aws
 expected_gpu_count: 1
 expected_nvme_count: 1
+rocm_setup_install_xio: true
 rocm_xio_setup_perf_endpoint: nvme-ep
 rocm_xio_setup_gpu_count: 1
 rocm_xio_setup_perf_nvme_controllers:

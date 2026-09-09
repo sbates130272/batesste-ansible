@@ -3,20 +3,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Build and validate ROCm XIO from source. This role depends on
-# rocm_setup in meta/main.yml and assumes ROCm prerequisites are present.
+# Build and validate rocm-xio from source.  Called from main.yml when
+# rocm_setup_install_xio is true.  ROCm prerequisites are assumed present.
 
-- name: Set a fact containing the current roles' path
-  ansible.builtin.set_fact:
-    rocm_xio_setup_calling_role_path_fact: "{{ role_path }}"
-
-- name: Test the host platform to see if it can support this role
-  ansible.builtin.include_role:
-    name: sbates130272.batesste.check_platform
-  vars:
-    calling_role_path: "{{ rocm_xio_setup_calling_role_path_fact }}"
-
-- name: Validate rocm_xio_setup endpoint selection
+- name: Validate rocm_xio endpoint selection
   ansible.builtin.assert:
     that:
       - rocm_xio_setup_perf_endpoint in ['nvme-ep', 'rdma-ep']
