@@ -134,13 +134,20 @@
   ansible.builtin.set_fact:
     rocm_setup_packages: >-
       {{
-        ['libstdc++-14-dev']
-        + ([rocm_setup_rocm_meta_pkg]
-           if rocm_setup_wsl_mode in [false, 'rocdxg'] else [])
-        + (['hsa-runtime-rocr4wsl-amdgpu', 'rocm-core', 'rocm-dev']
-           if rocm_setup_wsl_mode == 'legacy' else [])
-        + (['amdrocm-runtime-dev']
-           if rocm_setup_wsl_mode == 'rocdxg' and rocm_setup_repo_stream == 'therock' else [])
+        (rocm_setup_minimal_packages
+         if (rocm_setup_minimal | bool
+             and rocm_setup_repo_stream == 'therock'
+             and rocm_setup_wsl_mode in [false, 'rocdxg'])
+         else
+           ['libstdc++-14-dev']
+           + ([rocm_setup_rocm_meta_pkg]
+              if rocm_setup_wsl_mode in [false, 'rocdxg'] else [])
+           + (['hsa-runtime-rocr4wsl-amdgpu', 'rocm-core', 'rocm-dev']
+              if rocm_setup_wsl_mode == 'legacy' else [])
+           + (['amdrocm-runtime-dev']
+              if rocm_setup_wsl_mode == 'rocdxg'
+                 and rocm_setup_repo_stream == 'therock' else [])
+        )
       }}
 
 - name: Install ROCm packages
@@ -247,3 +254,8 @@
   ansible.builtin.import_tasks:
     file: rocm_cli.yml
   when: rocm_setup_install_rocm_cli
+
+- name: Build, install and test rocm-xio
+  ansible.builtin.import_tasks:
+    file: rocm_xio.yml
+  when: rocm_setup_install_xio | bool

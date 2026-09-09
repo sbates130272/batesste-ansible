@@ -4,6 +4,7 @@ rocm_xio_servers:
       ansible_connection: local
       rocm_setup_run_checks: false
       rocm_setup_install_metrics_exporter: false
+      rocm_setup_install_xio: true
       rocm_xio_setup_run_unit_tests: false
       rocm_xio_setup_run_perf_tests: false
   vars:

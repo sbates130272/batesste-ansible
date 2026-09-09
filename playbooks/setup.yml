@@ -223,15 +223,16 @@
       tags:
         - aws_grub
 
-    - name: Run rocm_xio_setup
+    - name: Run rocm_xio (via rocm_setup with xio enabled)
       ansible.builtin.include_role:
-        name: rocm_xio_setup
+        name: rocm_setup
         apply:
           remote_user: "{{ username }}"
           tags:
             - rocm_xio_setup
       vars:
         rocm_setup_user: "{{ username }}"  # noqa var-naming
+        rocm_setup_install_xio: true
       when: "'rocm_xio_setup' in setup_selected_roles"
       tags:
         - rocm_xio_setup

@@ -172,3 +172,62 @@ rocm_setup_install_hipfile: false
 rocm_setup_hipfile_packages:
   - hipfile
 rocm_setup_hipfile_fio_install_dir: /opt/fio-hipfile
+
+# Minimal install: skip the full amdrocm meta-package and install only the
+# packages needed to compile and run basic HIP programs.  Only meaningful on
+# the therock stream (non-WSL).  Use rocm_setup_extra_packages to layer on
+# additional packages afterwards.
+rocm_setup_minimal: false
+# Minimal therock package set for compiling and running basic HIP programs:
+#   ~107 packages / ~3.9 GB vs ~264 packages for the full amdrocm meta.
+# amdrocm-runtime-dev pulls in libamdhip64-5 + libamdhip64-dev (therock 10.x).
+# hipcc is the Ubuntu-universe wrapper (5.7.x / clang-17) which works for simple
+# programs; for the newer therock compiler use amdrocm-llvm instead.
+rocm_setup_minimal_packages:
+  - libstdc++-14-dev
+  - amdrocm-runtime-dev
+  - hipcc
+  - rocminfo
+
+# rocm-xio: source-built GPU IO library (RDMA/NVMe direct GPU IO).
+# Set rocm_setup_install_xio: true to clone, build, and optionally run
+# validation checks and performance tests for rocm-xio.
+rocm_setup_install_xio: false
+
+rocm_xio_setup_repo_url: "https://github.com/ROCm/rocm-xio.git"
+rocm_xio_setup_repo_version: "v0.1.0"
+rocm_xio_setup_source_dir: "{{ ansible_facts['env'].HOME }}/Projects/rocm-xio"
+rocm_xio_setup_force_clone: false
+
+rocm_xio_setup_install_dependencies: true
+rocm_xio_setup_remove_distro_hsa_runtime_dev: true
+rocm_xio_setup_build_type: "Release"
+rocm_xio_setup_build_clients: true
+rocm_xio_setup_build_testing: true
+rocm_xio_setup_install: false
+rocm_xio_setup_install_prefix: "/opt/rocm"
+rocm_xio_setup_parallel_jobs: "{{ ansible_facts['processor_vcpus'] | default(4) }}"
+
+rocm_xio_setup_run_basic_checks: true
+rocm_xio_setup_check_rocminfo: true
+rocm_xio_setup_run_unit_tests: true
+rocm_xio_setup_run_test_endpoint: true
+rocm_xio_setup_test_endpoint_emulate: true
+
+# Hardware performance runs are opt-in because NVMe endpoint tests issue I/O to
+# the configured block device.  Supported endpoints: rdma-ep, nvme-ep.
+rocm_xio_setup_run_perf_tests: false
+rocm_xio_setup_perf_endpoint: "nvme-ep"
+rocm_xio_setup_perf_provider: "bnxt"
+rocm_xio_setup_perf_rdma_device: ""
+rocm_xio_setup_perf_iterations: 128
+rocm_xio_setup_perf_transfer_size: 4096
+rocm_xio_setup_gpu_count: 1
+rocm_xio_setup_perf_nvme_controllers: []
+rocm_xio_setup_perf_read_io: 128
+# Optional: pass --batch-size when using an xio-tester build that supports it.
+rocm_xio_setup_perf_batch_size: ""
+rocm_xio_setup_perf_extra_args: ""
+
+rocm_xio_setup_force_fine_grain_pcie: true
+rocm_xio_setup_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt
