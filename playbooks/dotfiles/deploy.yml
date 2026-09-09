@@ -46,6 +46,7 @@
         force: "{{ dotfiles_force | default(false) }}"
       environment:
         GIT_SSL_CAINFO: "{{ dotfiles_git_ssl_cainfo }}"
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
       when: ansible_connection != 'local'
 
     - name: Unlock git-crypt
@@ -53,6 +54,8 @@
         cmd: "set -o pipefail && printf '%s' {{ vault_git_crypt_key_b64 | quote }} | base64 -d | git-crypt unlock -"
         chdir: "{{ dotfiles_dir }}"
         executable: /bin/bash
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
       no_log: true
       changed_when: true
       when:
@@ -75,16 +78,19 @@
       ansible.builtin.debug:
         msg: >-
           install.sh flags:
-          {{ '--proxy' if dotfiles_proxy | default(false) else '(no proxy)' }}
-          {{ '--force' if dotfiles_force | default(false) else '(no force)' }}
+          {{ '--proxy' if dotfiles_proxy | default(false) | bool else '(no proxy)' }}
+          {{ '--force' if dotfiles_force | default(false) | bool else '(no force)' }}
 
     - name: Run install.sh
       ansible.builtin.command:
         cmd: >-
           ./install.sh
-          {{ '--proxy' if dotfiles_proxy | default(false) else '' }}
-          {{ '--force' if dotfiles_force | default(false) else '' }}
+          {{ '--proxy' if dotfiles_proxy | default(false) | bool else '' }}
+          {{ '--force' if dotfiles_force | default(false) | bool else '' }}
         chdir: "{{ dotfiles_dir }}"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+        PERL5LIB: "{{ ansible_env.HOME }}/.local/lib/perl5"
       register: install_result
       changed_when: true
 
