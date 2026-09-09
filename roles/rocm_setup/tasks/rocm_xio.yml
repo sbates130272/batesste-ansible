@@ -50,6 +50,7 @@
       - cmake
       - ninja-build
       - libclang-rt-dev
+      - libnuma-dev
       - rocminfo
       - "{{ 'amdrocm-core-sdk' if rocm_setup_repo_stream == 'therock' else 'rocm-hip-sdk' }}"
       - libdrm-dev
