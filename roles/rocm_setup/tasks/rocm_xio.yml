@@ -51,7 +51,7 @@
       - ninja-build
       - libclang-rt-dev
       - rocminfo
-      - rocm-hip-sdk
+      - "{{ 'amdrocm-core-sdk' if rocm_setup_repo_stream == 'therock' else 'rocm-hip-sdk' }}"
       - libdrm-dev
       - libcli11-dev
       - pciutils
