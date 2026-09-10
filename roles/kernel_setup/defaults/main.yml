@@ -19,3 +19,6 @@ kernel_setup_linus_remote: https://git.kernel.org/pub/scm/linux/kernel/git/torva
 kernel_setup_stable_remote: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
 
 kernel_setup_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt
+
+# Use SSH URLs for git clones (requires SSH key on the target host)
+kernel_setup_use_ssh_git: false

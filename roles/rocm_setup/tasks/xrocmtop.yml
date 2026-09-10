@@ -100,6 +100,15 @@
     - rocm_setup_xrocmtop_needs_update
     - not ansible_check_mode
 
+- name: Clean up xrocmtop download artifacts
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/{{ rocm_setup_xrocmtop_tarball_name }}"
+    - "/tmp/{{ rocm_setup_xrocmtop_tarball_dir }}"
+  when: rocm_setup_xrocmtop_needs_update
+
 - name: Verify xrocmtop installation
   ansible.builtin.command:
     cmd: "{{ rocm_setup_xrocmtop_install_dir }}/xrocmtop --version"

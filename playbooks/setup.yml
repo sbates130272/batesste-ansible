@@ -16,21 +16,16 @@
       newmachine:
         - user_setup
         - fave_packages
-        - nvme_exporter_setup
         - git_setup
-        - tmux_scripts
         - cloud_setup
         - consul_setup
-        - mutt_setup
         - kernel_setup
         - fio_devel
         - docker_setup
         - qemu_setup
-        - vm_create
       amd:
         - user_setup
         - fave_packages
-        - nvme_exporter_setup
         - git_setup
         - rdma_setup
         - rocm_setup
@@ -55,7 +50,6 @@
     kernel_setup_force: "{{ force }}"
     kernel_setup_tools_force: "{{ force }}"
     qemu_setup_force: "{{ force }}"
-    tmux_scripts_force: "{{ force }}"
     fio_devel_fio_force: "{{ force }}"
     fio_devel_fio_stuff_force: "{{ force }}"
   pre_tasks:
@@ -111,17 +105,6 @@
       when: "'fave_packages' in setup_selected_roles"
       tags:
         - fave_packages
-
-    - name: Run nvme_exporter_setup
-      ansible.builtin.include_role:
-        name: nvme_exporter_setup
-        apply:
-          remote_user: "{{ username }}"
-          tags:
-            - nvme_exporter_setup
-      when: "'nvme_exporter_setup' in setup_selected_roles"
-      tags:
-        - nvme_exporter_setup
 
     - name: Run git_setup
       ansible.builtin.include_role:
@@ -210,19 +193,6 @@
       tags:
         - consul_setup
 
-    - name: Run aws_grub
-      ansible.builtin.include_role:
-        name: aws_grub
-        apply:
-          remote_user: "{{ username }}"
-          tags:
-            - aws_grub
-      when:
-        - "'aws_grub' in setup_selected_roles"
-        - inventory_hostname in groups.get('awsmachines', [])
-      tags:
-        - aws_grub
-
     - name: Run rocm_xio (via rocm_setup with xio enabled)
       ansible.builtin.include_role:
         name: rocm_setup
@@ -236,28 +206,6 @@
       when: "'rocm_xio_setup' in setup_selected_roles"
       tags:
         - rocm_xio_setup
-
-    - name: Run tmux_scripts
-      ansible.builtin.include_role:
-        name: tmux_scripts
-        apply:
-          remote_user: "{{ username }}"
-          tags:
-            - tmux_scripts
-      when: "'tmux_scripts' in setup_selected_roles"
-      tags:
-        - tmux_scripts
-
-    - name: Run mutt_setup
-      ansible.builtin.include_role:
-        name: mutt_setup
-        apply:
-          remote_user: "{{ username }}"
-          tags:
-            - mutt_setup
-      when: "'mutt_setup' in setup_selected_roles"
-      tags:
-        - mutt_setup
 
     - name: Run kernel_setup
       ansible.builtin.include_role:
@@ -308,20 +256,6 @@
         - inventory_hostname not in groups.get('runners', [])
       tags:
         - qemu_setup
-
-    - name: Run vm_create
-      ansible.builtin.include_role:
-        name: vm_create
-        apply:
-          remote_user: "{{ username }}"
-          tags:
-            - vm_create
-      when:
-        - "'vm_create' in setup_selected_roles"
-        - inventory_hostname not in groups.get('localvms', [])
-        - inventory_hostname not in groups.get('runners', [])
-      tags:
-        - vm_create
 
     - name: Run nfs_rdma_setup
       ansible.builtin.include_role:

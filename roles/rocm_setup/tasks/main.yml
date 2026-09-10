@@ -31,6 +31,15 @@
   ansible.builtin.import_tasks:
     file: rocm_pre.yml
 
+- name: Fail early when legacy stream is requested on resolute (26.04)
+  ansible.builtin.fail:
+    msg: >-
+      repo.radeon.com (legacy stream) does not publish a resolute (Ubuntu 26.04)
+      repository. Use rocm_setup_repo_stream: therock for Ubuntu 26.04 support.
+  when:
+    - rocm_setup_repo_stream != 'therock'
+    - ansible_facts['distribution_release'] == 'resolute'
+
 - name: Ensure keyrings directory exists
   ansible.builtin.file:
     path: /etc/apt/keyrings
@@ -38,28 +47,34 @@
     mode: '0755'
   become: true
 
-- name: Install ROCm GPG key (legacy stream — repo.radeon.com)
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      wget -qO- https://{{ rocm_setup_repo_base_url }}/rocm/rocm.gpg.key \
-        | gpg --dearmor \
-        | tee /etc/apt/keyrings/rocm.gpg > /dev/null
-  args:
-    executable: /bin/bash
+- name: Download ROCm GPG key (legacy stream — repo.radeon.com)
+  ansible.builtin.get_url:
+    url: "https://{{ rocm_setup_repo_base_url }}/rocm/rocm.gpg.key"
+    dest: /etc/apt/keyrings/rocm.gpg.key
+    mode: "0644"
+  become: true
+  when: rocm_setup_repo_stream != 'therock'
+
+- name: Dearmor ROCm GPG key (legacy stream)
+  ansible.builtin.command:
+    cmd: gpg --dearmor -o /etc/apt/keyrings/rocm.gpg /etc/apt/keyrings/rocm.gpg.key
     creates: /etc/apt/keyrings/rocm.gpg
   become: true
   when: rocm_setup_repo_stream != 'therock'
 
-- name: Install ROCm GPG key (therock stream — repo.amd.com)
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      wget -qO- {{ rocm_setup_therock_gpg_url }} \
-        | gpg --dearmor \
-        | tee {{ rocm_setup_therock_keyring_path }} > /dev/null
-  args:
-    executable: /bin/bash
+- name: Download ROCm GPG key (therock stream — repo.amd.com)
+  ansible.builtin.get_url:
+    url: "{{ rocm_setup_therock_gpg_url }}"
+    dest: "{{ rocm_setup_therock_keyring_path }}.key"
+    mode: "0644"
+  become: true
+  when: rocm_setup_repo_stream == 'therock'
+
+- name: Dearmor ROCm GPG key (therock stream)
+  ansible.builtin.command:
+    cmd: >-
+      gpg --dearmor -o {{ rocm_setup_therock_keyring_path }}
+      {{ rocm_setup_therock_keyring_path }}.key
     creates: "{{ rocm_setup_therock_keyring_path }}"
   become: true
   when: rocm_setup_repo_stream == 'therock'
@@ -68,15 +83,19 @@
 # key as the legacy ROCm stream.  When running the therock stream with kernel
 # driver installation, we need rocm.gpg present even though the therock ROCm
 # userspace repo uses amdrocm.gpg.
-- name: Install repo.radeon.com GPG key for therock (kernel driver or metrics exporter)
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      wget -qO- https://{{ rocm_setup_repo_base_url }}/rocm/rocm.gpg.key \
-        | gpg --dearmor \
-        | tee /etc/apt/keyrings/rocm.gpg > /dev/null
-  args:
-    executable: /bin/bash
+- name: Download repo.radeon.com GPG key for therock (kernel driver or metrics exporter)
+  ansible.builtin.get_url:
+    url: "https://{{ rocm_setup_repo_base_url }}/rocm/rocm.gpg.key"
+    dest: /etc/apt/keyrings/rocm.gpg.key
+    mode: "0644"
+  become: true
+  when:
+    - rocm_setup_repo_stream == 'therock'
+    - rocm_setup_install_kernel_driver or rocm_setup_install_metrics_exporter
+
+- name: Dearmor repo.radeon.com GPG key for therock
+  ansible.builtin.command:
+    cmd: gpg --dearmor -o /etc/apt/keyrings/rocm.gpg /etc/apt/keyrings/rocm.gpg.key
     creates: /etc/apt/keyrings/rocm.gpg
   become: true
   when:

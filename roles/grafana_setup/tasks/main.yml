@@ -25,13 +25,18 @@
     update_cache: true
   become: true
 
-- name: Add Grafana GPG key
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      curl -fsSL https://apt.grafana.com/gpg.key | \
+- name: Download Grafana GPG key
+  ansible.builtin.get_url:
+    url: https://apt.grafana.com/gpg.key
+    dest: /usr/share/keyrings/grafana-archive-keyring.asc
+    mode: "0644"
+  become: true
+
+- name: Dearmor Grafana GPG key
+  ansible.builtin.command:
+    cmd: >-
       gpg --dearmor -o /usr/share/keyrings/grafana-archive-keyring.gpg
-    executable: /bin/bash
+      /usr/share/keyrings/grafana-archive-keyring.asc
     creates: /usr/share/keyrings/grafana-archive-keyring.gpg
   become: true
 
@@ -192,6 +197,7 @@
     - grafana_setup_create_user
     - grafana_user_check.status == 200
   changed_when: true
+  no_log: true
 
 - name: Display additional user information
   ansible.builtin.debug:

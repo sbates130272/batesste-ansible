@@ -95,24 +95,40 @@
   when: not user_setup_unprivileged | default(false)
 
 - name: Restart procps service so dmesg rule takes effect # noqa: args[module]
-  ansible.builtin.service:
-    service: procps
+  ansible.builtin.systemd:
+    name: procps
     state: restarted
+  become: true
+  when: not user_setup_unprivileged | default(false)
+
+- name: Ensure systemd-networkd-wait-online drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/systemd-networkd-wait-online.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
   become: true
   when: not user_setup_unprivileged | default(false)
 
 - name: Disable systemd-networkd-wait-online to improve boot time
-  ansible.builtin.lineinfile:
-    path: /lib/systemd/system/systemd-networkd-wait-online.service
-    search_string: ExecStart
-    line: ExecStart=/lib/systemd/systemd-networkd-wait-online --any
+  ansible.builtin.copy:
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/lib/systemd/systemd-networkd-wait-online --any
+    dest: /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf
+    owner: root
+    group: root
+    mode: '0644'
   become: true
   when: not user_setup_unprivileged | default(false)
 
 - name: Restart network-online.target # noqa: args[module]
-  ansible.builtin.service:
-    service: network-online.target
+  ansible.builtin.systemd:
+    name: network-online.target
     state: restarted
+    daemon_reload: true
   become: true
   when: not user_setup_unprivileged | default(false)
 
@@ -335,7 +351,7 @@
     - not user_setup_unprivileged | default(false)
 
 - name: Perform a systemctl daemon-reload and start of mount
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: home-{{ username }}-Projects.mount
     state: started
     daemon_reload: true
