@@ -147,7 +147,10 @@
     repo: ppa:crazyguitar/rdmatop
     state: present
   become: true
-  when: rdma_setup_install_rdmatop | default(true) | bool
+  # PPA has no resolute (26.04) build yet; skip until it does
+  when:
+    - rdma_setup_install_rdmatop | default(true) | bool
+    - ansible_facts['distribution_release'] == 'noble'
 
 - name: Install rdmatop
   ansible.builtin.package:
@@ -155,4 +158,6 @@
     state: present
     update_cache: true
   become: true
-  when: rdma_setup_install_rdmatop | default(true) | bool
+  when:
+    - rdma_setup_install_rdmatop | default(true) | bool
+    - ansible_facts['distribution_release'] == 'noble'

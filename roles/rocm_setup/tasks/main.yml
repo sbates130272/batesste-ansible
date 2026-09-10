@@ -31,6 +31,15 @@
   ansible.builtin.import_tasks:
     file: rocm_pre.yml
 
+- name: Fail early when legacy stream is requested on resolute (26.04)
+  ansible.builtin.fail:
+    msg: >-
+      repo.radeon.com (legacy stream) does not publish a resolute (Ubuntu 26.04)
+      repository. Use rocm_setup_repo_stream: therock for Ubuntu 26.04 support.
+  when:
+    - rocm_setup_repo_stream != 'therock'
+    - ansible_facts['distribution_release'] == 'resolute'
+
 - name: Ensure keyrings directory exists
   ansible.builtin.file:
     path: /etc/apt/keyrings
