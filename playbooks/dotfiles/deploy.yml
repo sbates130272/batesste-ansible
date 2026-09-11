@@ -46,7 +46,7 @@
         force: "{{ dotfiles_force | default(false) }}"
       environment:
         GIT_SSL_CAINFO: "{{ dotfiles_git_ssl_cainfo }}"
-        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+        PATH: "{{ ansible_facts['env']['HOME'] }}/.local/bin:{{ ansible_facts['env']['PATH'] }}"
       when: ansible_connection != 'local'
 
     - name: Unlock git-crypt
@@ -55,7 +55,7 @@
         chdir: "{{ dotfiles_dir }}"
         executable: /bin/bash
       environment:
-        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+        PATH: "{{ ansible_facts['env']['HOME'] }}/.local/bin:{{ ansible_facts['env']['PATH'] }}"
       no_log: true
       changed_when: true
       when:
@@ -89,8 +89,8 @@
           {{ '--force' if dotfiles_force | default(false) | bool else '' }}
         chdir: "{{ dotfiles_dir }}"
       environment:
-        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
-        PERL5LIB: "{{ ansible_env.HOME }}/.local/lib/perl5"
+        PATH: "{{ ansible_facts['env']['HOME'] }}/.local/bin:{{ ansible_facts['env']['PATH'] }}"
+        PERL5LIB: "{{ ansible_facts['env']['HOME'] }}/.local/lib/perl5"
       register: install_result
       changed_when: true
 
