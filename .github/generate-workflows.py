@@ -28,7 +28,7 @@ ROLE_CONFIGS = {
     "rocm_setup": {
         "free_disk_space": True,
         "extra_vars": {
-            "rocm_setup_repo_stream": "legacy",
+            "rocm_setup_repo_stream": "${{ matrix.runs-on == 'ubuntu-26.04' && 'therock' || 'legacy' }}",
             "rocm_setup_wsl": False,
             "rocm_setup_rocm_version": "latest",
             "rocm_setup_amdgpu_version": "latest",
