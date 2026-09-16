@@ -1,4 +1,4 @@
-name: rocm-latest CI
+name: batesste-ansible - rocm-latest CI
 
 on:
   workflow_dispatch: {}

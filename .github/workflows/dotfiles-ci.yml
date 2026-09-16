@@ -1,4 +1,4 @@
-name: dotfiles CI
+name: batesste-ansible - dotfiles CI
 
 on:
   workflow_dispatch: {}

@@ -4,7 +4,7 @@
 # Individual role tests are in separate auto-generated workflow files.
 # See .github/README.md for details on the automated workflow system.
 
-name: batesste-ansible
+name: batesste-ansible - CI
 
 on:
   workflow_dispatch:
@@ -18,8 +18,7 @@ on:
       - '.github/check-readme.sh'
       - '.github/workflows/batesste-ansible-ci.yml'
       - '.ansible-lint'
-      - '.spellcheck.yml'
-      - '.wordlist.txt'
+      - '.codespellrc'
       - 'requirements.txt'
       - 'requirements.yml'
       - '.github/generate-workflows.py'
@@ -58,8 +57,8 @@ jobs:
           python-version: '3.12.3'
       - name: Install pip packages
         run: python3 -m pip install -r requirements.txt
-      - name: GitHub spellcheck action
-        uses: rojopolis/spellcheck-github-actions@0.66.0
+      - name: Spell check with codespell
+        uses: codespell-project/actions-codespell@v2
       - name: Render the checkout directory safe for the lint step
         run: git config --global --add safe.directory /github/workspace
       - name: Run ansible-galaxy to install collections
