@@ -1,0 +1,21 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Deploy the lemonade LLM server to one or more hosts.
+#
+# Usage:
+#   ansible-playbook playbooks/lemonade/deploy.yml \
+#     -e targets=<host-or-group> \
+#     --vault-password-file playbooks/vault-password \
+#     -e @playbooks/secrets.yml
+
+- name: Deploy lemonade server
+  hosts: "{{ targets | default('lemonade_servers') }}"
+  gather_facts: true
+
+  tasks:
+    - name: Include lemonade_setup role
+      ansible.builtin.include_role:
+        name: lemonade_setup

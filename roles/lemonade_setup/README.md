@@ -5,14 +5,10 @@ hosts. Lemonade provides an OpenAI-compatible HTTP API for
 running LLMs locally on CPU, GPU (ROCm/Vulkan), or NPU
 hardware.
 
-This role creates three systemd services that mirror a
-production deployment:
+This role creates two systemd services:
 
 - **lemonade-server** -- the main inference server
   (`lemonade-server serve --no-tray`).
-- **lemonade-preload** -- a oneshot unit that waits for the
-  server to become healthy and then pre-loads a configurable
-  list of models via the `/api/v1/load` endpoint.
 - **lemonade-exporter** -- an optional Prometheus exporter
   that scrapes `/api/v1/stats` and `/api/v1/health` and
   exposes metrics on a configurable port.
@@ -62,17 +58,9 @@ overridden per host or group.
 | Variable                          | Default                                            |
 |-----------------------------------|----------------------------------------------------|
 | `lemonade_setup_source_repo`     | `"https://github.com/lemonade-sdk/lemonade.git"`  |
-| `lemonade_setup_source_version`  | `"v10.2.0"`                                        |
+| `lemonade_setup_source_version`  | `"HEAD"`                                           |
 | `lemonade_setup_source_dir`      | `"~/Projects/lemonade"`                            |
 | `lemonade_setup_source_force`    | `false`                                            |
-
-### Model Preload
-
-| Variable                          | Default                                 |
-|------------------------------------|-----------------------------------------|
-| `lemonade_setup_preload_enabled`  | `true`                                  |
-| `lemonade_setup_preload_timeout`  | `600`                                   |
-| `lemonade_setup_preload_models`   | See `defaults/main.yml`                 |
 
 ### Prometheus Exporter
 
@@ -102,8 +90,6 @@ When set to `rocm` the role will automatically run the
       vars:
         lemonade_setup_install_method: deb
         lemonade_setup_llamacpp_backend: rocm
-        lemonade_setup_preload_models:
-          - "Qwen3.5-35B-A3B-GGUF"
 ```
 
 ## Dependencies

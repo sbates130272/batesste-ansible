@@ -11,3 +11,6 @@ rocm_setup_repo_stream: therock
 rocm_setup_wsl: rocdxg
 rocm_setup_run_checks: true
 rocm_setup_run_gpu_checks: true
+
+lemonade_setup_llamacpp_backend: rocm
+lemonade_setup_run_rocm_setup: false

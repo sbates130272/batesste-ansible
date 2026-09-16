@@ -28,14 +28,6 @@
     enabled: true
   become: true
 
-- name: Restart lemonade-preload
-  ansible.builtin.systemd:
-    name: lemonade-preload
-    state: restarted
-    enabled: true
-  become: true
-  when: lemonade_setup_preload_enabled
-
 - name: Restart lemonade-exporter
   ansible.builtin.systemd:
     name: lemonade-exporter
