@@ -9,6 +9,3 @@ user_setup_motd: true
 rdma_setup_install_rdma_exporter: true
 rdma_setup_motd: true
 nvme_exporter_setup_install: true
-
-lemonade_setup_llamacpp_backend: rocm
-lemonade_setup_run_rocm_setup: false
