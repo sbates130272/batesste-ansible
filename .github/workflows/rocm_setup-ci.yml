@@ -66,6 +66,7 @@ jobs:
                   rocm_setup_install_metrics_exporter: false
                   rocm_setup_install_kernel_driver: false
                   rocm_setup_skip_system_upgrade: true
+                  rocm_setup_install_rocm_cli: true
                   rocm_setup_install_hipfile: false
                   rocm_setup_install_xrocmtop: false
 
@@ -80,6 +81,8 @@ jobs:
         run: |
           systemctl status amdgpu-dkms || true
           dpkg -l | grep rocm || true
+          test -x /home/rocm_user/.local/bin/rocm
+          /home/rocm_user/.local/bin/rocm --version
 
   rocm_setup-therock-test:
     runs-on: ubuntu-24.04
@@ -125,6 +128,7 @@ jobs:
                   rocm_setup_install_metrics_exporter: true
                   rocm_setup_install_kernel_driver: false
                   rocm_setup_skip_system_upgrade: true
+                  rocm_setup_install_rocm_cli: true
                   rocm_setup_install_hipfile: false
                   rocm_setup_install_xrocmtop: false
 
@@ -140,3 +144,5 @@ jobs:
           dpkg -l | grep rocm || true
           dpkg -l | grep amdrocm || true
           cat /etc/apt/sources.list.d/rocm.sources || true
+          test -x /home/rocm_user/.local/bin/rocm
+          /home/rocm_user/.local/bin/rocm --version

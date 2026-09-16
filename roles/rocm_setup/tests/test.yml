@@ -1,6 +1,39 @@
 ---
 - name: The test playbook for the rocm_setup role
   hosts: all
-  roles:
-    - role: rocm_setup
-      become: false
+  tasks:
+    - name: Include rocm_setup role
+      ansible.builtin.include_role:
+        name: rocm_setup
+
+    - name: Look up the rocm_setup user
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ rocm_setup_user | default('rocm_user') }}"
+
+    - name: Check the installed rocm-cli binary
+      ansible.builtin.stat:
+        path: >-
+          {{ ansible_facts.getent_passwd[rocm_setup_user | default('rocm_user')][4]
+          }}/.local/bin/rocm
+      register: rocm_setup_rocm_cli_binary
+
+    - name: Assert rocm-cli is installed by rocm_setup
+      ansible.builtin.assert:
+        that:
+          - rocm_setup_rocm_cli_binary.stat.exists
+          - rocm_setup_rocm_cli_binary.stat.executable
+
+    - name: Check the installed rocm-cli version
+      ansible.builtin.command:
+        cmd: >-
+          {{ ansible_facts.getent_passwd[rocm_setup_user | default('rocm_user')][4]
+          }}/.local/bin/rocm --version
+      register: rocm_setup_rocm_cli_version
+      changed_when: false
+
+    - name: Assert rocm-cli returns version output
+      ansible.builtin.assert:
+        that:
+          - rocm_setup_rocm_cli_version.rc == 0
+          - rocm_setup_rocm_cli_version.stdout | trim | length > 0
