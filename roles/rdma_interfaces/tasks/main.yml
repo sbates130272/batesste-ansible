@@ -1,0 +1,41 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Discover RDMA-capable interfaces and their IPv4 addresses on this host.
+# Result is written to rdma_interfaces_result:
+#   [{ name: "ib0", address: "192.168.2.2" }, ...]
+# Callers should alias this to their own role-prefixed variable after include.
+
+- name: Get RDMA link netdev names
+  ansible.builtin.shell: |
+    set -o pipefail
+    rdma link show 2>/dev/null | awk '{print $8}' | sort -u
+  args:
+    executable: /bin/bash
+  register: rdma_interfaces_link_out
+  changed_when: false
+  failed_when: false
+
+- name: Initialize RDMA interfaces result list
+  ansible.builtin.set_fact:
+    rdma_interfaces_result: []
+  when: (rdma_interfaces_link_out.stdout_lines | default([]) | length) > 0
+
+- name: Build RDMA interfaces list with IPv4
+  ansible.builtin.set_fact:
+    rdma_interfaces_result: "{{
+      rdma_interfaces_result + [{'name': item, 'address': _iface_ipv4}]
+    }}"
+  loop: "{{ rdma_interfaces_link_out.stdout_lines | default([]) | map('trim') | select() | unique | list }}"
+  when:
+    - (rdma_interfaces_link_out.stdout_lines | default([]) | length) > 0
+    - _iface_fact.ipv4 is defined
+    - _iface_ipv4 | length > 0
+  vars:
+    _iface_fact: "{{ hostvars[inventory_hostname]['ansible_' ~ item] | default({}) }}"
+    _iface_ipv4: "{{
+      _iface_fact.ipv4.address
+      | default(_iface_fact.ipv4[0].address | default(''))
+    }}"

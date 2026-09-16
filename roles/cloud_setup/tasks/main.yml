@@ -14,25 +14,19 @@
   vars:
     calling_role_path: "{{ cloud_setup_calling_role_path_fact }}"  # noqa var-naming
 
-- name: Install GitHub CLI
-  ansible.builtin.package:
-    update_cache: true
-    state: present
-    name: gh
-  become: true
-  when: cloud_setup_install_gh
-
 - name: Install pip (for AWS CLI)
   ansible.builtin.package:
     state: present
     name: python3-pip
   become: true
 
-# awscli was removed from Ubuntu 24.04 (noble) repos; install via pip
+# awscli was removed from Ubuntu 24.04 (noble) repos; install via pip.
+# --break-system-packages is required on noble+ due to PEP 668.
 - name: Install AWS CLI via pip
   ansible.builtin.pip:
     name: awscli
     state: present
+    extra_args: --break-system-packages
   become: true
 
 - name: Ensure .aws folder exists

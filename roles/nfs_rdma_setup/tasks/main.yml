@@ -14,7 +14,15 @@
     calling_role_path: "{{ nfs_rdma_setup_calling_role_path_fact }}"  # noqa var-naming
 
 - name: Discover RDMA interfaces and IPv4 addresses on NFS server
-  ansible.builtin.include_tasks: resolve-rdma-addresses.yml
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.rdma_interfaces
+  when:
+    - nfs_rdma_setup_enable_rdma | bool
+    - nfs_rdma_setup_mode == 'target'
+
+- name: Alias RDMA interfaces result to role-prefixed variable
+  ansible.builtin.set_fact:
+    nfs_rdma_rdma_interfaces: "{{ rdma_interfaces_result | default([]) }}"
   when:
     - nfs_rdma_setup_enable_rdma | bool
     - nfs_rdma_setup_mode == 'target'

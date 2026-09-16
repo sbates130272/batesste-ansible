@@ -14,7 +14,13 @@
     calling_role_path: "{{ nvmeof_setup_calling_role_path_fact }}"  # noqa var-naming
 
 - name: Discover RDMA interfaces and IPv4 addresses
-  ansible.builtin.include_tasks: resolve-rdma-addresses.yml
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.rdma_interfaces
+  when: nvmeof_setup_transport == 'rdma'
+
+- name: Alias RDMA interfaces result to role-prefixed variable
+  ansible.builtin.set_fact:
+    nvmeof_rdma_interfaces: "{{ rdma_interfaces_result | default([]) }}"
   when: nvmeof_setup_transport == 'rdma'
 
 - name: Configure host RDMA for DHCP and re-gather facts

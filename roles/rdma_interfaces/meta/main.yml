@@ -1,0 +1,23 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+galaxy_info:
+  author: Stephen Bates
+  company: Raithlin Semiconductors
+  role_name: rdma_interfaces
+  description: >-
+    Discover RDMA-capable interfaces and their IPv4 addresses; result in
+    rdma_interfaces_result
+  license: Apache-2.0
+  min_ansible_version: "2.15.0"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+        - resolute
+  galaxy_tags:
+    - rdma
+    - networking
+
+dependencies: []
