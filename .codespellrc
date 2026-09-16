@@ -1,1 +1,2 @@
+[codespell]
 skip = .git,*.lock,*.tar.gz,requirements.txt
