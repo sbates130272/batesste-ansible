@@ -1,5 +1,5 @@
 ---
-name: Collection Build and Publish
+name: batesste-ansible - Collection Build and Publish
 
 "on":
   workflow_dispatch: {}

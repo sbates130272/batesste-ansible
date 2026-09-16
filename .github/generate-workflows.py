@@ -474,7 +474,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
 
     # Header and triggers: dispatch-only workflows run only on manual run
     lines = [
-        f"name: {role_name} CI",
+        f"name: batesste-ansible - {role_name} CI",
         "'on':",
         "  workflow_dispatch: {}",
     ]
