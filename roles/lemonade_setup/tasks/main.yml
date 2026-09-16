@@ -86,30 +86,6 @@
     - Reload systemd
     - Restart lemonade-server
 
-- name: Install lemonade-preload systemd service
-  ansible.builtin.template:
-    src: lemonade-preload.service.j2
-    dest: /etc/systemd/system/lemonade-preload.service
-    owner: root
-    group: root
-    mode: "0644"
-  become: true
-  when: lemonade_setup_preload_enabled
-  notify:
-    - Reload systemd
-    - Restart lemonade-preload
-
-- name: Install lemonade-preload script
-  ansible.builtin.template:
-    src: lemonade-preload.sh.j2
-    dest: /usr/local/bin/lemonade-preload.sh
-    owner: root
-    group: root
-    mode: "0755"
-  become: true
-  when: lemonade_setup_preload_enabled
-  notify: Restart lemonade-preload
-
 - name: Install and configure lemonade Prometheus exporter
   ansible.builtin.include_tasks: exporter.yml
   when: lemonade_setup_exporter_enabled
@@ -123,14 +99,6 @@
     enabled: "{{ lemonade_setup_start_service }}"
     state: "{{ 'started' if lemonade_setup_start_service else 'stopped' }}"
   become: true
-
-- name: Enable and start lemonade-preload service
-  ansible.builtin.systemd:
-    name: lemonade-preload
-    enabled: "{{ lemonade_setup_start_service }}"
-    state: "{{ 'started' if lemonade_setup_start_service else 'stopped' }}"
-  become: true
-  when: lemonade_setup_preload_enabled
 
 - name: Enable and start lemonade-exporter service
   ansible.builtin.systemd:

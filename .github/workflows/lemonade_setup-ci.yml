@@ -58,7 +58,6 @@ jobs:
                   lemonade_setup_llamacpp_backend: cpu
                   lemonade_setup_run_rocm_setup: false
                   lemonade_setup_start_service: false
-                  lemonade_setup_preload_enabled: false
                   lemonade_setup_exporter_enabled: false
                   vault_lemonade_setup_api_key: test_ci_api_key_placeholder
 

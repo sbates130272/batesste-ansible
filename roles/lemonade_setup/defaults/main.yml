@@ -30,16 +30,9 @@ lemonade_setup_start_service: true
 
 # Source-build specific settings
 lemonade_setup_source_repo: "https://github.com/lemonade-sdk/lemonade.git"
-lemonade_setup_source_version: "v10.2.0"
+lemonade_setup_source_version: "HEAD"
 lemonade_setup_source_dir: "~/Projects/lemonade"
 lemonade_setup_source_force: false
-
-# Model preload configuration
-lemonade_setup_preload_enabled: true
-lemonade_setup_preload_timeout: 600
-lemonade_setup_preload_models:
-  - "Qwen3.5-35B-A3B-GGUF"
-  - "Qwen3-Coder-30B-A3B-Instruct-GGUF"
 
 # Prometheus exporter configuration
 lemonade_setup_exporter_enabled: true
