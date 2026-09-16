@@ -205,7 +205,7 @@
   when:
     - not rocm_setup_need_rocm_latest
     - rocm_setup_wsl_mode == 'legacy'
-    - rocm_latest_wsl_version is defined
+    - rocm_latest_wsl_version.stdout is defined
     - rocm_latest_wsl_version.stdout | default('none') != rocm_setup_rocm_version
 
 - name: Fail if pinned amdgpu version is not the latest available
@@ -216,7 +216,7 @@
       set it to 'latest'.
   when:
     - not rocm_setup_need_amdgpu_latest
-    - amdgpu_latest_version is defined
+    - amdgpu_latest_version.stdout is defined
     - amdgpu_latest_version.stdout != rocm_setup_amdgpu_version
 
 - name: Fail if pinned graphics version is not the latest available
@@ -227,7 +227,7 @@
       rocm_setup_graphics_version or set it to 'latest'.
   when:
     - not rocm_setup_need_graphics_latest
-    - graphics_latest_version is defined
+    - graphics_latest_version.stdout is defined
     - graphics_latest_version.stdout != rocm_setup_graphics_version
 
 - name: Fail if pinned metrics-exporter version is not the latest available
@@ -239,7 +239,7 @@
   when:
     - not rocm_setup_need_metrics_exporter_latest
     - rocm_setup_install_metrics_exporter | default(false)
-    - metrics_exporter_latest_version is defined
+    - metrics_exporter_latest_version.stdout is defined
     - metrics_exporter_latest_version.stdout | default('') !=
         (rocm_setup_metrics_exporter_version | default('latest'))
 

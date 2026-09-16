@@ -263,6 +263,7 @@ Each role ships a `README.md` with variables, requirements, and usage notes.
 | [git_setup](roles/git_setup/README.md) | Git global config, signing, and dotfiles |
 | [github_runner](roles/github_runner/README.md) | GitHub Actions self-hosted runner setup |
 | [grafana_setup](roles/grafana_setup/README.md) | Grafana, Prometheus, and Node Exporter stack |
+| [hashicorp_repo](roles/hashicorp_repo/README.md) | Add HashiCorp APT repository and GPG key (shared utility role) |
 | [kernel_setup](roles/kernel_setup/README.md) | Custom kernel build and install |
 | [lemonade_setup](roles/lemonade_setup/README.md) | Lemonade clipboard tool setup |
 | [mutt_setup](roles/mutt_setup/README.md) | Mutt email client configuration |
@@ -270,6 +271,7 @@ Each role ships a `README.md` with variables, requirements, and usage notes.
 | [nvme_exporter_setup](roles/nvme_exporter_setup/README.md) | NVMe Prometheus exporter |
 | [nvmeof_setup](roles/nvmeof_setup/README.md) | NVMe-oF target and initiator setup |
 | [qemu_setup](roles/qemu_setup/README.md) | QEMU/KVM hypervisor install and configuration |
+| [rdma_interfaces](roles/rdma_interfaces/README.md) | Discover RDMA-capable interfaces and IPv4 addresses (shared utility role) |
 | [rdma_setup](roles/rdma_setup/README.md) | RDMA/InfiniBand drivers and tools |
 | [rocm_hipfile_setup](roles/rocm_hipfile_setup/README.md) | ROCm hipFile package install |
 | [rocm_setup](roles/rocm_setup/README.md) | AMD ROCm stack install and DKMS configuration |
