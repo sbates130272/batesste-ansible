@@ -17,7 +17,7 @@ rdma_setup_motd: false
 
 # Optional: install Prometheus rdma_exporter (https://github.com/yuuki/rdma_exporter)
 rdma_setup_install_rdma_exporter: false
-rdma_exporter_version: "0.3.0"
+rdma_exporter_version: "0.7.3"
 rdma_exporter_install_dir: "/usr/local/bin"
 rdma_exporter_listen_address: ":9879"
 rdma_exporter_metrics_path: "/metrics"

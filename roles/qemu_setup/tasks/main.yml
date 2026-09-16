@@ -49,6 +49,7 @@
     path: /etc/apparmor.d/abstractions/libvirt-qemu
     line: "  /var/lib/libvirt/images/* rwk,"
   become: true
+  notify: Restart libvirtd
 
 - name: Check for libvirt_guest in nsswitch.conf
   ansible.builtin.lineinfile:
@@ -72,7 +73,7 @@
 - name: Enable and start libvirtd service
   ansible.builtin.systemd:
     name: libvirtd
-    state: restarted
+    state: started
     daemon_reload: true
     enabled: true
   become: true

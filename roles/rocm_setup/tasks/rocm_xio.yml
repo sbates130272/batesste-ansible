@@ -96,6 +96,7 @@
     update: true
   environment:
     GIT_SSL_CAINFO: "{{ rocm_xio_setup_git_ssl_cainfo | default('/etc/ssl/certs/ca-certificates.crt') }}"
+  register: rocm_xio_git_clone
 
 # therock's hsakmt cmake config has a hardcoded /usr/lib64/libc.so path that
 # does not exist on Ubuntu (libc lives under /usr/lib/x86_64-linux-gnu/).
@@ -127,23 +128,27 @@
       -DBUILD_TESTING={{ 'ON' if rocm_xio_setup_build_testing else 'OFF' }}
       {{ '-DCMAKE_MODULE_PATH=/tmp/rocm-xio-cmake-modules'
          if rocm_setup_repo_stream == 'therock' else '' }}
-  changed_when: false
+  changed_when: true
+  when: rocm_xio_git_clone.changed or rocm_xio_setup_force_clone
 
 - name: Build rocm-xio
   ansible.builtin.command:
     cmd: >-
       cmake --build {{ rocm_xio_setup_source_dir }}/build --target all
       --parallel {{ rocm_xio_setup_parallel_jobs }}
-  changed_when: false
+  changed_when: true
+  when: rocm_xio_git_clone.changed or rocm_xio_setup_force_clone
 
 - name: Install rocm-xio into install prefix
   ansible.builtin.command:
     cmd: >-
       cmake --install {{ rocm_xio_setup_source_dir }}/build
       --prefix {{ rocm_xio_setup_install_prefix }}
-  changed_when: false
+  changed_when: true
   become: true
-  when: rocm_xio_setup_install
+  when:
+    - rocm_xio_setup_install
+    - rocm_xio_git_clone.changed or rocm_xio_setup_force_clone
 
 - name: Clean up cmake modules temp directory
   ansible.builtin.file:

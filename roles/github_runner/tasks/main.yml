@@ -15,6 +15,18 @@
   vars:
     calling_role_path: "{{ github_runner_calling_role_path_fact }}"  # noqa var-naming
 
+- name: Set architecture for GitHub runner download
+  ansible.builtin.set_fact:
+    github_runner_arch: >-
+      {{ 'x64' if ansible_facts['architecture'] == 'x86_64'
+         else 'arm64' if ansible_facts['architecture'] == 'aarch64'
+         else '' }}
+
+- name: Fail on unsupported architecture for GitHub runner
+  ansible.builtin.fail:
+    msg: "GitHub runner not available for arch {{ ansible_facts['architecture'] }}"
+  when: github_runner_arch == ''
+
 - name: Validate required variables
   ansible.builtin.assert:
     that:
@@ -109,7 +121,7 @@
       ansible.builtin.get_url:
         url: >-
           https://github.com/actions/runner/releases/download/v{{ github_runner_actual_version }}/
-          actions-runner-linux-x64-{{ github_runner_actual_version }}.tar.gz
+          actions-runner-linux-{{ github_runner_arch }}-{{ github_runner_actual_version }}.tar.gz
         dest: "{{ github_runner_temp_dir.path }}/actions-runner.tar.gz"
         mode: '0644'
 

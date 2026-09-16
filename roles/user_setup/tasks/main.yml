@@ -271,10 +271,12 @@
         cmd: "gpg --batch --import {{ user_setup_gpg_key_tempfile.path }}"
       changed_when: true
 
+  always:
     - name: Remove GPG private key tempfile
       ansible.builtin.file:
         path: "{{ user_setup_gpg_key_tempfile.path }}"
         state: absent
+      when: user_setup_gpg_key_tempfile is defined
 
 - name: Unlock git-crypt secrets in dotfiles repo
   ansible.builtin.command:

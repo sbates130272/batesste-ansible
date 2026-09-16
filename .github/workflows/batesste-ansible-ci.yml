@@ -33,7 +33,7 @@ jobs:
       - name: Setup python and pip
         uses: actions/setup-python@v7
         with:
-          python-version: '3.12.3'
+          python-version: '3.12.14'
       - name: Install PyYAML
         run: python3 -m pip install pyyaml
       - name: Regenerate workflow files
@@ -54,7 +54,7 @@ jobs:
       - name: Setup python and pip
         uses: actions/setup-python@v7
         with:
-          python-version: '3.12.3'
+          python-version: '3.12.14'
       - name: Install pip packages
         run: python3 -m pip install -r requirements.txt
       - name: Spell check with codespell

@@ -184,41 +184,62 @@
     rocm_setup_metrics_exporter_version | default('latest') == 'latest'
     and rocm_setup_need_metrics_exporter_latest
 
-- name: Fail if rocm_latest_version does not match rocm_setup_version
+- name: Fail if pinned rocm version is not the latest available
   ansible.builtin.fail:
-    msg: "You are not requesting the latest rocm version!"
+    msg: >-
+      Pinned rocm version {{ rocm_setup_rocm_version }} is not the latest
+      ({{ rocm_latest_version.stdout }}). Update rocm_setup_rocm_version or
+      set it to 'latest'.
   when:
-    - rocm_setup_need_rocm_latest
+    - not rocm_setup_need_rocm_latest
     - rocm_setup_wsl_mode != 'legacy'
+    - rocm_latest_version is defined
     - rocm_latest_version.stdout != rocm_setup_rocm_version
 
-- name: Fail if rocm_latest_wsl_version does not match rocm_setup_version (legacy wsl)
+- name: Fail if pinned rocm version is not the latest available (legacy wsl)
   ansible.builtin.fail:
-    msg: "You are not requesting the latest rocm version!"
+    msg: >-
+      Pinned rocm version {{ rocm_setup_rocm_version }} is not the latest
+      ({{ rocm_latest_wsl_version.stdout }}). Update rocm_setup_rocm_version or
+      set it to 'latest'.
   when:
-    - rocm_setup_need_rocm_latest
+    - not rocm_setup_need_rocm_latest
     - rocm_setup_wsl_mode == 'legacy'
+    - rocm_latest_wsl_version.stdout is defined
     - rocm_latest_wsl_version.stdout | default('none') != rocm_setup_rocm_version
 
-- name: Fail if amdgpu_latest_version does not match rocm_setup_amdgpu_version
+- name: Fail if pinned amdgpu version is not the latest available
   ansible.builtin.fail:
-    msg: "You are not requesting the latest amdgpu version!"
+    msg: >-
+      Pinned amdgpu version {{ rocm_setup_amdgpu_version }} is not the latest
+      ({{ amdgpu_latest_version.stdout }}). Update rocm_setup_amdgpu_version or
+      set it to 'latest'.
   when:
-    - rocm_setup_need_amdgpu_latest
+    - not rocm_setup_need_amdgpu_latest
+    - amdgpu_latest_version.stdout is defined
     - amdgpu_latest_version.stdout != rocm_setup_amdgpu_version
 
-- name: Fail if graphics_latest_version does not match
+- name: Fail if pinned graphics version is not the latest available
   ansible.builtin.fail:
-    msg: "You are not requesting the latest graphics version!"
+    msg: >-
+      Pinned graphics version {{ rocm_setup_graphics_version }} is not the
+      latest ({{ graphics_latest_version.stdout }}). Update
+      rocm_setup_graphics_version or set it to 'latest'.
   when:
-    - rocm_setup_need_graphics_latest
+    - not rocm_setup_need_graphics_latest
+    - graphics_latest_version.stdout is defined
     - graphics_latest_version.stdout != rocm_setup_graphics_version
 
-- name: Fail if metrics_exporter_latest_version does not match
+- name: Fail if pinned metrics-exporter version is not the latest available
   ansible.builtin.fail:
-    msg: "You are not requesting the latest device-metrics-exporter version!"
+    msg: >-
+      Pinned metrics-exporter version {{ rocm_setup_metrics_exporter_version }}
+      is not the latest ({{ metrics_exporter_latest_version.stdout }}). Update
+      rocm_setup_metrics_exporter_version or set it to 'latest'.
   when:
-    - rocm_setup_need_metrics_exporter_latest
+    - not rocm_setup_need_metrics_exporter_latest
+    - rocm_setup_install_metrics_exporter | default(false)
+    - metrics_exporter_latest_version.stdout is defined
     - metrics_exporter_latest_version.stdout | default('') !=
         (rocm_setup_metrics_exporter_version | default('latest'))
 

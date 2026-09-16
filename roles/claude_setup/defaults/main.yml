@@ -72,7 +72,7 @@ claude_setup_dotfiles_enable: false
 claude_setup_unprivileged: false
 
 # nvm version to install in unprivileged mode.
-claude_setup_nvm_version: "v0.40.3"
+claude_setup_nvm_version: "v0.40.7"
 
 # Node.js version alias to install via nvm in unprivileged mode.
 # Uses "node" (latest stable) since the lts/* alias requires network LTS index lookup.

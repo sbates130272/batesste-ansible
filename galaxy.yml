@@ -30,7 +30,7 @@ tags:
 
 dependencies:
   ansible.posix: ">=2.2.2"
-  community.general: ">=13.3.0"
+  community.general: ">=13.4.0"
   community.libvirt: ">=2.3.0"
   amazon.aws: ">=11.4.0"
 

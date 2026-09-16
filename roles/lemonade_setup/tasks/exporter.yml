@@ -25,6 +25,7 @@
     cmd: python3 -m venv /opt/lemonade-exporter/.venv
     creates: /opt/lemonade-exporter/.venv/bin/python3
   become: true
+  become_user: "{{ lemonade_setup_user }}"
 
 - name: Install exporter Python dependencies
   ansible.builtin.pip:
@@ -33,6 +34,7 @@
       - "requests>=2.32.5"
     virtualenv: /opt/lemonade-exporter/.venv
   become: true
+  become_user: "{{ lemonade_setup_user }}"
 
 - name: Copy lemonade-exporter.py to installation directory
   ansible.builtin.copy:
