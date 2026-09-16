@@ -5,9 +5,50 @@
 #
 # Install lemonade-server from the official PPA.
 
+- name: Create keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Download lemonade-team PPA signing key
+  ansible.builtin.get_url:
+    url: "{{ lemonade_setup_ppa_key_url }}"
+    dest: /etc/apt/keyrings/lemonade-team.asc
+    mode: "0644"
+  become: true
+
+- name: Dearmor lemonade-team PPA signing key
+  ansible.builtin.command:
+    cmd: >-
+      gpg --dearmor -o /usr/share/keyrings/lemonade-team.gpg
+      /etc/apt/keyrings/lemonade-team.asc
+    creates: /usr/share/keyrings/lemonade-team.gpg
+  become: true
+
+- name: Ensure lemonade-team GPG keyring is world-readable
+  ansible.builtin.file:
+    path: /usr/share/keyrings/lemonade-team.gpg
+    mode: "0644"
+  become: true
+
+- name: Determine dpkg architecture for lemonade repo
+  ansible.builtin.command:
+    cmd: dpkg --print-architecture
+  register: lemonade_setup_dpkg_arch
+  changed_when: false
+
 - name: Add lemonade-team PPA repository
   ansible.builtin.apt_repository:
-    repo: ppa:lemonade-team/stable
+    repo: >-
+      deb [arch={{ lemonade_setup_dpkg_arch.stdout }}
+      signed-by=/usr/share/keyrings/lemonade-team.gpg]
+      https://ppa.launchpadcontent.net/lemonade-team/stable/ubuntu
+      {{ ansible_facts['distribution_release'] }} main
+    filename: lemonade-team
     state: present
   become: true
 
