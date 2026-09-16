@@ -18,4 +18,4 @@
   tasks:
     - name: Include lemonade_setup role
       ansible.builtin.include_role:
-        name: sbates130272.batesste.lemonade_setup
+        name: lemonade_setup

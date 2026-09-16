@@ -50,11 +50,21 @@
       {{ ansible_facts['distribution_release'] }} main
     filename: lemonade-team
     state: present
+    update_cache: false
   become: true
+
+- name: Update apt cache for lemonade PPA only
+  ansible.builtin.command:
+    cmd: >-
+      apt-get update
+      -o Dir::Etc::sourcelist="sources.list.d/lemonade-team.list"
+      -o Dir::Etc::sourceparts="-"
+      -o APT::Get::List-Cleanup="0"
+  become: true
+  changed_when: false
 
 - name: Install lemonade-server package
   ansible.builtin.package:
     name: lemonade-server
     state: present
-    update_cache: true
   become: true
