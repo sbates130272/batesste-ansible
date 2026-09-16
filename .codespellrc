@@ -1,2 +1,3 @@
 [codespell]
 skip = .git,*.lock,*.tar.gz,requirements.txt
+ignore-words-list = hsa
