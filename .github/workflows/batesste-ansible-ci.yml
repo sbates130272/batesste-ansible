@@ -18,7 +18,7 @@ on:
       - '.github/check-readme.sh'
       - '.github/workflows/batesste-ansible-ci.yml'
       - '.ansible-lint'
-      - 'setup.cfg'
+      - '.codespellrc'
       - 'requirements.txt'
       - 'requirements.yml'
       - '.github/generate-workflows.py'
