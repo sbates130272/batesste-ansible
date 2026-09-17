@@ -24,6 +24,7 @@
       tailscale serve --bg
       --https={{ lemonade_setup_tailscale_https_port }}
       http://127.0.0.1:{{ lemonade_setup_port }}
+  changed_when: true
   when: >-
     lemonade_setup_ts_serve_status.rc != 0
     or (lemonade_setup_tailscale_https_port | string)

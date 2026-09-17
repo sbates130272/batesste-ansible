@@ -32,6 +32,7 @@
     | select('search', item.split(':')[1])
     | select('search', 'installed')
     | list | length) == 0
+  changed_when: true
   become: true
   become_user: lemonade
   notify: Restart lemond
