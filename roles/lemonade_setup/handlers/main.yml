@@ -21,17 +21,9 @@
     daemon_reload: true
   become: true
 
-- name: Restart lemonade-server
+- name: Restart lemond
   ansible.builtin.systemd:
-    name: lemonade-server
+    name: lemond
     state: restarted
     enabled: true
   become: true
-
-- name: Restart lemonade-exporter
-  ansible.builtin.systemd:
-    name: lemonade-exporter
-    state: restarted
-    enabled: true
-  become: true
-  when: lemonade_setup_exporter_enabled

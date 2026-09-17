@@ -41,23 +41,32 @@
   register: lemonade_setup_dpkg_arch
   changed_when: false
 
-- name: Add lemonade-team PPA repository
-  ansible.builtin.apt_repository:
-    repo: >-
-      deb [arch={{ lemonade_setup_dpkg_arch.stdout }}
-      signed-by=/usr/share/keyrings/lemonade-team.gpg]
-      https://ppa.launchpadcontent.net/lemonade-team/stable/ubuntu
-      {{ ansible_facts['distribution_release'] }} main
-    filename: lemonade-team
-    state: present
-    update_cache: false
+- name: Remove all lemonade-team source files before writing canonical one
+  ansible.builtin.shell:
+    cmd: rm -f /etc/apt/sources.list.d/lemonade*.list /etc/apt/sources.list.d/lemonade*.sources
+  become: true
+  changed_when: false
+
+- name: Write lemonade-team deb822 sources file
+  ansible.builtin.copy:
+    content: |
+      Types: deb
+      URIs: https://ppa.launchpadcontent.net/lemonade-team/stable/ubuntu
+      Suites: {{ ansible_facts['distribution_release'] }}
+      Components: main
+      Architectures: {{ lemonade_setup_dpkg_arch.stdout }}
+      Signed-By: /usr/share/keyrings/lemonade-team.gpg
+    dest: /etc/apt/sources.list.d/lemonade-team.sources
+    owner: root
+    group: root
+    mode: "0644"
   become: true
 
 - name: Update apt cache for lemonade PPA only
   ansible.builtin.command:
     cmd: >-
       apt-get update
-      -o Dir::Etc::sourcelist="sources.list.d/lemonade-team.list"
+      -o Dir::Etc::sourcelist="sources.list.d/lemonade-team.sources"
       -o Dir::Etc::sourceparts="-"
       -o APT::Get::List-Cleanup="0"
   become: true

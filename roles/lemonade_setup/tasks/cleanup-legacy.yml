@@ -1,0 +1,64 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Assert that legacy lemonade artifacts are absent. lemond 11.9.0 serves
+# /metrics natively; no separate exporter process is needed or wanted.
+# The custom lemonade-server.service unit has been superseded by a drop-in
+# on the package-shipped lemond.service.
+
+- name: Gather service facts for legacy units
+  ansible.builtin.service_facts:
+
+- name: Stop and disable lemonade-exporter service if present
+  ansible.builtin.systemd:
+    name: lemonade-exporter
+    state: stopped
+    enabled: false
+  become: true
+  when: "'lemonade-exporter.service' in ansible_facts.services"
+
+- name: Stop and disable lemonade-server service if present
+  ansible.builtin.systemd:
+    name: lemonade-server
+    state: stopped
+    enabled: false
+  become: true
+  when: "'lemonade-server.service' in ansible_facts.services"
+
+- name: Stop and disable lemonade-preload service if present
+  ansible.builtin.systemd:
+    name: lemonade-preload
+    state: stopped
+    enabled: false
+  become: true
+  when: "'lemonade-preload.service' in ansible_facts.services"
+
+- name: Remove legacy lemonade unit files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  become: true
+  loop:
+    - /etc/systemd/system/lemonade-exporter.service
+    - /etc/systemd/system/lemonade-server.service
+    - /etc/systemd/system/lemonade-preload.service
+  notify: Reload systemd
+
+- name: Remove legacy lemonade-exporter installation directory
+  ansible.builtin.file:
+    path: /opt/lemonade-exporter
+    state: absent
+  become: true
+
+- name: Remove /etc/lemonade env-file artifacts from earlier role versions
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  become: true
+  loop:
+    - /etc/lemonade/lemonade.conf
+    - /etc/lemonade/secrets.conf
+    - /etc/lemonade/lemonade.conf.superseded-2026-09-17
+    - /etc/lemonade/secrets.conf.superseded-2026-09-17

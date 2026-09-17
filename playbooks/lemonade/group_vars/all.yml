@@ -4,10 +4,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 lemonade_setup_install_method: deb
-lemonade_setup_host: "0.0.0.0"
-lemonade_setup_port: 8000
+lemonade_setup_port: 13305
 lemonade_setup_log_level: info
 lemonade_setup_max_loaded_models: 3
-lemonade_setup_ctx_size: 131072
-lemonade_setup_exporter_enabled: true
-lemonade_setup_exporter_port: 9091
+lemonade_setup_ctx_size: 65536
+lemonade_setup_no_broadcast: true
+lemonade_setup_inhibit_suspend: true

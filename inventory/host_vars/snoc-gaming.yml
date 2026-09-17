@@ -5,6 +5,10 @@
 
 ansible_host: 10.0.0.247
 ansible_user: batesste
+# WSL2 filesystems don't support the ACL-based chmod Ansible uses when
+# writing temp files for become_user to an unprivileged user. Pipelining
+# avoids temp file creation entirely.
+ansible_pipelining: true
 username: batesste
 user_setup_motd: true
 rocm_setup_repo_stream: therock
@@ -13,4 +17,16 @@ rocm_setup_run_checks: true
 rocm_setup_run_gpu_checks: true
 
 lemonade_setup_llamacpp_backend: rocm
+lemonade_setup_llamacpp_rocm_args: "-fa on -ctk q8_0 -ctv q8_0"
+lemonade_setup_llamacpp_rocm_bin: "latest"
+# gfx1201: max 1 loaded model (limited VRAM vs strix).
+# llamacpp:cpu not installed on gaming; no NPU; llamacpp-hrx unsupported on gfx1201.
+lemonade_setup_max_loaded_models: 1
+lemonade_setup_ctx_size: 65536
 lemonade_setup_run_rocm_setup: false
+# tailscale runs natively on Windows; `tailscale serve` must be
+# configured manually: tailscale serve --bg --https=13305 http://127.0.0.1:13305
+lemonade_setup_tailscale_serve: false
+lemonade_setup_backends:
+  - llamacpp:rocm
+  - llamacpp:vulkan

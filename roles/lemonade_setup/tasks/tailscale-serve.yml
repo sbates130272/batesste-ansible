@@ -1,0 +1,31 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Idempotently configure `tailscale serve` to reverse-proxy the lemond
+# API port over HTTPS using the host's ts.net TLS certificate.
+#
+# This task file is Linux-only. On snoc-gaming (WSL2 with Mirrored
+# networking), tailscale runs natively on Windows. Run the equivalent
+# command manually on that host:
+#   tailscale serve --bg --https=13305 http://127.0.0.1:13305
+
+- name: Query current tailscale serve configuration
+  ansible.builtin.command:
+    cmd: tailscale serve status --json
+  register: lemonade_setup_ts_serve_status
+  changed_when: false
+  failed_when: false
+
+- name: Configure tailscale https serve for lemond
+  ansible.builtin.command:
+    cmd: >-
+      tailscale serve --bg
+      --https={{ lemonade_setup_tailscale_https_port }}
+      http://127.0.0.1:{{ lemonade_setup_port }}
+  changed_when: true
+  when: >-
+    lemonade_setup_ts_serve_status.rc != 0
+    or (lemonade_setup_tailscale_https_port | string)
+    not in (lemonade_setup_ts_serve_status.stdout | default('{}'))

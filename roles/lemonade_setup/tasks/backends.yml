@@ -1,0 +1,38 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Assert that the required lemonade backends are installed.  The set of
+# supported backends is GPU-specific (gfx1151 vs gfx1201 differ), so the
+# list is driven by lemonade_setup_backends in host_vars.
+#
+# `lemonade backends install` downloads ~1.9 GB per backend.  We gate
+# each install on whether the backend already appears as "installed" in
+# `lemonade backends` output to avoid re-downloading on every play.
+
+- name: Query installed lemonade backends
+  ansible.builtin.command:
+    cmd: lemonade backends
+  environment:
+    LEMONADE_API_KEY: "{{ lemonade_setup_api_key }}"
+  register: lemonade_setup_backends_status
+  changed_when: false
+  become: true
+  become_user: lemonade
+
+- name: Install missing lemonade backends
+  ansible.builtin.command:
+    cmd: lemonade backends install {{ item }}
+  environment:
+    LEMONADE_API_KEY: "{{ lemonade_setup_api_key }}"
+  loop: "{{ lemonade_setup_backends }}"
+  when: >-
+    (lemonade_setup_backends_status.stdout_lines
+    | select('search', item.split(':')[1])
+    | select('search', 'installed')
+    | list | length) == 0
+  changed_when: true
+  become: true
+  become_user: lemonade
+  notify: Restart lemond
