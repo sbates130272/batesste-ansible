@@ -1,0 +1,14 @@
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Managed by Ansible — do not edit manually.
+#
+# Systemd drop-in for lemond.service: loads API key env vars from the
+# secrets file. The shipped unit only sources /etc/default/lemond (with
+# a leading - so a missing file is silently ignored). This drop-in is
+# the sole mechanism that injects LEMONADE_API_KEY and
+# LEMONADE_ADMIN_API_KEY into the server process.
+
+[Service]
+EnvironmentFile=/etc/lemonade/lemonade-auth.env

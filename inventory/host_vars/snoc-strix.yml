@@ -9,3 +9,14 @@ user_setup_motd: true
 rdma_setup_install_rdma_exporter: true
 rdma_setup_motd: true
 nvme_exporter_setup_install: true
+
+lemonade_setup_llamacpp_backend: rocm
+lemonade_setup_llamacpp_rocm_args: "-fa on -ctk q8_0 -ctv q8_0"
+lemonade_setup_llamacpp_rocm_bin: "latest"
+lemonade_setup_run_rocm_setup: false
+lemonade_setup_tailscale_serve: true
+# gfx1151: llamacpp-hrx is supported here but benchmarked poorly; excluded.
+lemonade_setup_backends:
+  - llamacpp:rocm
+  - llamacpp:vulkan
+  - llamacpp:cpu

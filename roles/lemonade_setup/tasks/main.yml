@@ -3,8 +3,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Install and configure Lemonade LLM server with systemd
-# services and an optional Prometheus exporter.
+# Install and configure Lemonade LLM server (lemond) with a systemd
+# drop-in for API auth and a tailscale serve proxy for TLS exposure.
 #
 # See this Role's README.md for more information.
 
@@ -45,7 +45,14 @@
   ansible.builtin.include_tasks: install-snap.yml
   when: lemonade_setup_install_method == 'snap'
 
-- name: Create lemonade configuration directory
+- name: Remove legacy lemonade artifacts
+  ansible.builtin.include_tasks: cleanup-legacy.yml
+
+- name: Assert required lemonade backends are installed
+  ansible.builtin.include_tasks: backends.yml
+  when: lemonade_setup_backends | length > 0
+
+- name: Create /etc/lemonade configuration directory
   ansible.builtin.file:
     path: /etc/lemonade
     state: directory
@@ -54,56 +61,73 @@
     mode: "0755"
   become: true
 
-- name: Template lemonade environment configuration
+- name: Template lemonade auth secrets
   ansible.builtin.template:
-    src: lemonade.conf.j2
-    dest: /etc/lemonade/lemonade.conf
+    src: lemonade-auth.env.j2
+    dest: /etc/lemonade/lemonade-auth.env
     owner: root
     group: root
     mode: "0600"
-  become: true
-  notify: Restart lemonade-server
-
-- name: Template lemonade secrets configuration
-  ansible.builtin.template:
-    src: secrets.conf.j2
-    dest: /etc/lemonade/secrets.conf
-    owner: root
-    group: root
-    mode: "0600"
-  become: true
-  notify: Restart lemonade-server
-
-- name: Install lemonade-server systemd service
-  ansible.builtin.template:
-    src: lemonade-server.service.j2
-    dest: /etc/systemd/system/lemonade-server.service
-    owner: root
-    group: root
-    mode: "0644"
   become: true
   notify:
     - Reload systemd
-    - Restart lemonade-server
+    - Restart lemond
 
-- name: Install and configure lemonade Prometheus exporter
-  ansible.builtin.include_tasks: exporter.yml
-  when: lemonade_setup_exporter_enabled
+- name: Create lemond systemd drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/lemond.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
 
-- name: Flush handlers to reload systemd
+- name: Install auth drop-in for lemond.service
+  ansible.builtin.template:
+    src: 10-auth.conf.j2
+    dest: /etc/systemd/system/lemond.service.d/10-auth.conf
+    owner: root
+    group: root
+    mode: "0600"
+  become: true
+  notify:
+    - Reload systemd
+    - Restart lemond
+
+- name: Apply lemonade server configuration via config set
+  ansible.builtin.command:
+    cmd: >-
+      lemonade config set
+      port={{ lemonade_setup_port }}
+      log_level={{ lemonade_setup_log_level }}
+      max_loaded_models={{ lemonade_setup_max_loaded_models }}
+      ctx_size={{ lemonade_setup_ctx_size }}
+      no_broadcast={{ lemonade_setup_no_broadcast | lower }}
+      inhibit_suspend={{ lemonade_setup_inhibit_suspend | lower }}
+      llamacpp.backend={{ lemonade_setup_llamacpp_backend }}
+      llamacpp.rocm_bin={{ lemonade_setup_llamacpp_rocm_bin }}
+      {% if lemonade_setup_llamacpp_rocm_args %}
+      llamacpp.rocm_args={{ lemonade_setup_llamacpp_rocm_args | quote }}
+      {% endif %}
+  environment:
+    LEMONADE_API_KEY: "{{ lemonade_setup_api_key }}"
+    LEMONADE_ADMIN_API_KEY: "{{ lemonade_setup_admin_api_key }}"
+  become: true
+  become_user: lemonade
+  register: lemonade_setup_config_result
+  changed_when: lemonade_setup_config_result.stdout != ''
+  notify: Restart lemond
+
+- name: Flush handlers to apply systemd changes
   ansible.builtin.meta: flush_handlers
 
-- name: Enable and start lemonade-server service
+- name: Enable and start lemond service
   ansible.builtin.systemd:
-    name: lemonade-server
+    name: lemond
     enabled: "{{ lemonade_setup_start_service }}"
     state: "{{ 'started' if lemonade_setup_start_service else 'stopped' }}"
   become: true
 
-- name: Enable and start lemonade-exporter service
-  ansible.builtin.systemd:
-    name: lemonade-exporter
-    enabled: "{{ lemonade_setup_start_service }}"
-    state: "{{ 'started' if lemonade_setup_start_service else 'stopped' }}"
-  become: true
-  when: lemonade_setup_exporter_enabled
+- name: Configure tailscale serve for lemond
+  ansible.builtin.include_tasks: tailscale-serve.yml
+  when: lemonade_setup_tailscale_serve

@@ -6,27 +6,54 @@
 # Installation method: "deb", "source", or "snap"
 lemonade_setup_install_method: "deb"
 
-# Lemonade server configuration
-lemonade_setup_host: "0.0.0.0"
-lemonade_setup_port: 8000
+# API authentication.  Both keys are written to
+# /etc/lemonade/lemonade-auth.env and injected into lemond via a
+# systemd drop-in.  LEMONADE_API_KEY gates all inference and model
+# endpoints; LEMONADE_ADMIN_API_KEY additionally covers /internal/*.
+lemonade_setup_api_key: "{{ vault_lemonade_setup_api_key }}"
+lemonade_setup_admin_api_key: "{{ vault_lemonade_setup_admin_api_key }}"
+
+# Server settings applied via `lemonade config set`.  lemond binds
+# loopback only (127.0.0.1); do NOT set a bind host here — exposure
+# over the tailnet is handled by `tailscale serve`, not lemond.
+lemonade_setup_port: 13305
 lemonade_setup_log_level: "info"
 lemonade_setup_max_loaded_models: 3
-lemonade_setup_ctx_size: 131072
-lemonade_setup_api_key: "{{ vault_lemonade_setup_api_key }}"
+lemonade_setup_ctx_size: 65536
+lemonade_setup_no_broadcast: true
+lemonade_setup_inhibit_suspend: true
 
 # llama.cpp backend: "rocm", "vulkan", "cpu", or "metal"
 lemonade_setup_llamacpp_backend: "rocm"
+
+# Extra arguments passed to the llama-server binary for the rocm backend.
+# "-fa on -ctk q8_0 -ctv q8_0" enables flash attention and quantized KV
+# cache, cutting VRAM usage significantly at negligible throughput cost.
+lemonade_setup_llamacpp_rocm_args: ""
+
+# Binary selection for the rocm backend: "latest" or a pinned build ID.
+# "latest" gives automatic fixes but can introduce regressions; a pinned
+# build ID gives reproducibility.  Both hosts are currently on "latest".
+lemonade_setup_llamacpp_rocm_bin: "latest"
+
+# Backends to assert are installed, as `lemonade backends install` names
+# (e.g. "llamacpp:rocm").  The supported set is GPU-specific — gfx1151
+# (strix) and gfx1201 (gaming) differ — so override this in host_vars.
+# An empty list means no backend management; lemond will use whatever is
+# already present.
+lemonade_setup_backends: []
 
 # Run the rocm_setup role before installing lemonade when the
 # llama.cpp backend is set to "rocm".
 lemonade_setup_run_rocm_setup: true
 
-# Service user/group (defaults to the ansible remote user)
-lemonade_setup_user: "{{ ansible_user }}"
-lemonade_setup_group: "{{ ansible_user }}"
-
-# Whether to enable and start the lemonade-server service
+# Whether to enable and start the lemond service
 lemonade_setup_start_service: true
+
+# Whether to manage `tailscale serve` on this host.  Set false for
+# hosts where tailscale runs outside Linux (e.g. snoc-gaming / WSL2).
+lemonade_setup_tailscale_serve: true
+lemonade_setup_tailscale_https_port: 13305
 
 # deb install: PPA signing key (fetched over HTTPS to avoid HKP proxy blocks)
 lemonade_setup_ppa_key_url: >-
@@ -37,9 +64,5 @@ lemonade_setup_source_repo: "https://github.com/lemonade-sdk/lemonade.git"
 lemonade_setup_source_version: "HEAD"
 lemonade_setup_source_dir: "~/Projects/lemonade"
 lemonade_setup_source_force: false
-
-# Prometheus exporter configuration
-lemonade_setup_exporter_enabled: true
-lemonade_setup_exporter_port: 9091
 
 lemonade_setup_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt
