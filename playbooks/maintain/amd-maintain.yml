@@ -8,7 +8,7 @@
 #
 # amd-laptop runs locally (connection: local); amd_fleet is reached via SSH.
 #
-# ansible-playbook playbooks/amd-maintain.yml -e @playbooks/secrets.yml
+# ansible-playbook playbooks/maintain/amd-maintain.yml -e @playbooks/secrets.yml
 
 - name: Update amd-laptop (local)
   hosts: amd-laptop
@@ -22,7 +22,7 @@
     - role: rocm_setup
 
 - name: Deploy dotfiles to amd-laptop (local)
-  import_playbook: dotfiles/deploy.yml
+  import_playbook: ../dotfiles/deploy.yml
   vars:
     targets: amd-laptop
 
@@ -35,6 +35,6 @@
     - role: claude_setup
 
 - name: Deploy dotfiles to amd_fleet
-  import_playbook: dotfiles/deploy.yml
+  import_playbook: ../dotfiles/deploy.yml
   vars:
     targets: amd_fleet

@@ -106,9 +106,8 @@ ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force -p coll
 
 ## Example Usage
 
-The unified entry point is [setup.yml](./playbooks/setup.yml). Select a recipe
-with `-e setup_recipe=<name>` or the `RECIPE` environment variable used by
-`playbooks/run-ansible`. Tags are optional filters inside the selected recipe,
+The unified entry point is [setup.yml](./playbooks/setup/setup.yml). Select a recipe
+with `-e setup_recipe=<name>`. Tags are optional filters inside the selected recipe,
 for example `--tags rocm_setup`. Example inventory:
 [hosts.yml](./inventory/hosts.yml) (a gitignored local override also works for
 private lists). For a new host you may use [qemu-minimal][qemu-minimal] to build
@@ -134,7 +133,7 @@ username=batesste
 Then run:
 
 ```
-ansible-playbook -i hosts setup.yml \
+ansible-playbook -i hosts playbooks/setup/setup.yml \
   -e setup_recipe=newmachine \
   -e targets=mymachines \
   --ask-vault-pass
@@ -148,7 +147,7 @@ variable reference.
 
 ### AMD ROCm Example
 
-For AMD machines (ROCm, RDMA, ROCm XIO, uProf, Claude Code) use `setup.yml` with
+For AMD machines (ROCm, RDMA, ROCm XIO, uProf, Claude Code) use `setup/setup.yml` with
 `-e setup_recipe=amd`. It runs `user_setup`, `fave_packages`,
 `nvme_exporter_setup`, `git_setup`, `rdma_setup`, `rocm_setup`,
 `rocm_xio_setup`, `uprof_setup`, and `claude_setup`. The `uprof_setup`
@@ -156,7 +155,7 @@ role requires the AMD uProf `.deb` from [amd.com][amd-uprof] after accepting the
 EULA, and its path via `uprof_setup_deb_path`. Example:
 
 ```bash
-ansible-playbook playbooks/setup.yml \
+ansible-playbook playbooks/setup/setup.yml \
   -e setup_recipe=amd \
   -e targets=<group> \
   -e @playbooks/secrets.yml
@@ -164,7 +163,7 @@ ansible-playbook playbooks/setup.yml \
 
 ### Other Recipes
 
-`setup.yml` also ships these focused recipes:
+`setup/setup.yml` also ships these focused recipes:
 
 | Recipe | Roles run |
 | ------ | --------- |
@@ -223,14 +222,14 @@ password file, and become password file automatically.
 
 ```bash
 # Bootstrap a new machine
-ansible-playbook playbooks/setup.yml \
+ansible-playbook playbooks/setup/setup.yml \
   -e targets=<host-or-group> \
   -e setup_recipe=newmachine \
   -e @playbooks/secrets.yml
 
 # Weekly maintenance
-ansible-playbook playbooks/homelan-maintain.yml -e @playbooks/secrets.yml
-ansible-playbook playbooks/amd-maintain.yml -e @playbooks/secrets.yml
+ansible-playbook playbooks/maintain/homelan-maintain.yml -e @playbooks/secrets.yml
+ansible-playbook playbooks/maintain/amd-maintain.yml -e @playbooks/secrets.yml
 ```
 
 Pass `-e targets=<group>` to override the default target for maintenance

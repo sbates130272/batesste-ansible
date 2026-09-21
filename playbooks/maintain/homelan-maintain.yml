@@ -5,7 +5,7 @@
 #
 # Weekly maintenance playbook for homelan machines.
 #
-# ansible-playbook playbooks/homelan-maintain.yml -e @playbooks/secrets.yml
+# ansible-playbook playbooks/maintain/homelan-maintain.yml -e @playbooks/secrets.yml
 
 - name: Update packages (homelan)
   hosts: homelan
@@ -15,7 +15,7 @@
       become: true
 
 - name: Deploy dotfiles (homelan)
-  import_playbook: dotfiles/deploy.yml
+  import_playbook: ../dotfiles/deploy.yml
   vars:
     targets: homelan
 
