@@ -18,8 +18,21 @@
     cmd: >-
       gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
       /etc/apt/keyrings/hashicorp-archive-keyring.asc
-    creates: /usr/share/keyrings/hashicorp-archive-keyring.gpg
   become: true
+  changed_when: false
+
+- name: Verify HashiCorp GPG key fingerprint
+  ansible.builtin.command:
+    cmd: >-
+      gpg --no-default-keyring
+      --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg
+      --fingerprint
+  register: hashicorp_repo_fingerprint
+  changed_when: false
+  become: true
+  failed_when: >-
+    'D55C0D1AC78A8D8126CB631CFC9CA96ACA026560' not in
+    hashicorp_repo_fingerprint.stdout | replace(' ', '') | upper
 
 - name: Ensure HashiCorp GPG keyring is world-readable
   ansible.builtin.file:

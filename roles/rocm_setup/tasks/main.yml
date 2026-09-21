@@ -164,8 +164,8 @@
            + (['hsa-runtime-rocr4wsl-amdgpu', 'rocm-core', 'rocm-dev']
               if rocm_setup_wsl_mode == 'legacy' else [])
            + (['amdrocm-runtime-dev']
-              if rocm_setup_wsl_mode == 'rocdxg'
-                 and rocm_setup_repo_stream == 'therock' else [])
+              if rocm_setup_repo_stream == 'therock'
+                 and rocm_setup_wsl_mode != 'legacy' else [])
         )
       }}
 
@@ -181,7 +181,7 @@
   ansible.builtin.copy:
     content: |
       /opt/rocm/lib
-      /opt/rocm/lib64
+      {{ '/opt/rocm/lib64' if rocm_setup_wsl_mode == 'rocdxg' else '' }}
     dest: /etc/ld.so.conf.d/rocm.conf
     owner: root
     group: root
