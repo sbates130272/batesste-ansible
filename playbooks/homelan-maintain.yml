@@ -1,0 +1,32 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Weekly maintenance playbook for homelan machines.
+#
+# ansible-playbook playbooks/homelan-maintain.yml -e @playbooks/secrets.yml
+
+- name: Update packages (homelan)
+  hosts: homelan
+  gather_facts: true
+  roles:
+    - role: fave_packages
+      become: true
+
+- name: Deploy dotfiles (homelan)
+  import_playbook: dotfiles/deploy.yml
+  vars:
+    targets: homelan
+
+- name: Update lemonade servers
+  hosts: lemonade_servers
+  gather_facts: true
+  roles:
+    - role: lemonade_setup
+
+- name: Update ROCm (homelan GPU machines)
+  hosts: homelan:&rocm_hosts
+  gather_facts: true
+  roles:
+    - role: rocm_setup

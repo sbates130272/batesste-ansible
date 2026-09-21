@@ -7,6 +7,7 @@ ansible_host: amd-aic-spur
 ansible_user: stebates
 username: stebates
 user_setup_motd: true
+host_sudo: none
 user_setup_unprivileged: true
 git_setup_unprivileged: true
 claude_setup_unprivileged: true
