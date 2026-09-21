@@ -115,7 +115,7 @@ an image first.
 
 ### User Setup Example
 
-The `newmachine` recipe bootstraps a fresh host: creates the user account,
+The `setup-default` recipe bootstraps a fresh host: creates the user account,
 installs preferred packages, configures git, tmux, mutt, Docker, QEMU, and
 more. `user_setup` runs as `root_user` (typically `root` or `ubuntu`); all
 subsequent roles run as `username`.
@@ -134,7 +134,7 @@ Then run:
 
 ```
 ansible-playbook -i hosts playbooks/setup/setup.yml \
-  -e setup_recipe=newmachine \
+  -e setup_recipe=setup-default \
   -e targets=mymachines \
   --ask-vault-pass
 ```
@@ -148,7 +148,7 @@ variable reference.
 ### AMD ROCm Example
 
 For AMD machines (ROCm, RDMA, ROCm XIO, uProf, Claude Code) use `setup/setup.yml` with
-`-e setup_recipe=amd`. It runs `user_setup`, `fave_packages`,
+`-e setup_recipe=setup-amd`. It runs `user_setup`, `fave_packages`,
 `nvme_exporter_setup`, `git_setup`, `rdma_setup`, `rocm_setup`,
 `rocm_xio_setup`, `uprof_setup`, and `claude_setup`. The `uprof_setup`
 role requires the AMD uProf `.deb` from [amd.com][amd-uprof] after accepting the
@@ -156,22 +156,10 @@ EULA, and its path via `uprof_setup_deb_path`. Example:
 
 ```bash
 ansible-playbook playbooks/setup/setup.yml \
-  -e setup_recipe=amd \
+  -e setup_recipe=setup-amd \
   -e targets=<group> \
   -e @playbooks/secrets.yml
 ```
-
-### Other Recipes
-
-`setup/setup.yml` also ships these focused recipes:
-
-| Recipe | Roles run |
-| ------ | --------- |
-| `nfs_rdma` | `nfs_rdma_setup` |
-| `nvmeof` | `nvmeof_setup` |
-| `rocm_xio` | `rocm_xio_setup` |
-
-Select them with `-e setup_recipe=<name>` like any other recipe.
 
 ### Dotfiles Deployment
 
@@ -224,7 +212,7 @@ password file, and become password file automatically.
 # Bootstrap a new machine
 ansible-playbook playbooks/setup/setup.yml \
   -e targets=<host-or-group> \
-  -e setup_recipe=newmachine \
+  -e setup_recipe=setup-default \
   -e @playbooks/secrets.yml
 
 # Weekly maintenance

@@ -18,7 +18,6 @@
   roles:
     - role: fave_packages
       become: true
-    - role: claude_setup
     - role: rocm_setup
 
 - name: Deploy dotfiles to amd-laptop (local)
@@ -32,7 +31,6 @@
   roles:
     - role: fave_packages
       become: true
-    - role: claude_setup
 
 - name: Deploy dotfiles to amd_fleet
   import_playbook: ../dotfiles/deploy.yml
