@@ -19,6 +19,8 @@
     - role: fave_packages
       become: true
     - role: rocm_setup
+    - role: amd_llm_exporter
+      tags: amd_llm_exporter
 
 - name: Deploy dotfiles to amd-laptop (local)
   import_playbook: ../dotfiles/deploy.yml

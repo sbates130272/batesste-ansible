@@ -1,0 +1,11 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
+
+- name: Restart amd-llm-exporter
+  ansible.builtin.systemd:
+    name: amd-llm-exporter
+    state: restarted
+  become: true
