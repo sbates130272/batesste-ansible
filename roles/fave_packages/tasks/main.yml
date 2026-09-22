@@ -31,6 +31,7 @@
       - gettext-base
       - git
       - git-crypt
+      - git-extras
       - gnuplot
       - gpg-agent
       - libaio-dev

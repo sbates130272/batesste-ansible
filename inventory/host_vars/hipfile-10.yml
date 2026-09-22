@@ -3,6 +3,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-ansible_host: ctr2-alola-login-03.adc.amd.com
+ansible_host: ctr2-mlse-smc-alola-s98-10.amd.com
 ansible_user: stebates
-host_sudo: none
+ansible_ssh_common_args: '-o ProxyJump=alola'

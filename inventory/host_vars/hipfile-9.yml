@@ -3,7 +3,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-ansible_host: amd-apex
+ansible_host: ctr2-mlse-smc-alola-s98-9.adc.amd.com
 ansible_user: stebates
-user_setup_motd: true
-nvme_exporter_setup_install: true
+ansible_ssh_common_args: '-o ProxyJump=alola'

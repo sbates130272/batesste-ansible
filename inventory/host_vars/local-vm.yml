@@ -3,6 +3,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+ansible_host: localhost
+ansible_port: 2222
+ansible_user: stebates
 username: stebates
 user_setup_vm_fstab: true
 user_setup_motd: true
