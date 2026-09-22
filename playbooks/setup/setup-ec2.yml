@@ -138,7 +138,7 @@
             expected_nvme_count: "{{ expected_nvme_count }}"
 
 - name: Configure the EC2 ROCm XIO host
-  import_playbook: playbooks/setup/setup.yml
+  import_playbook: setup.yml
   vars:
     targets: aws_rocm_bootstrap
     setup_user_setup_remote_user: "{{ root_user }}"

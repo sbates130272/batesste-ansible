@@ -15,7 +15,7 @@
       become: true
 
 - name: Deploy dotfiles (homelan)
-  import_playbook: playbooks/dotfiles/deploy.yml
+  import_playbook: ../dotfiles/deploy.yml
   vars:
     targets: homelan
 

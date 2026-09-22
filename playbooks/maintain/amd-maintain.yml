@@ -21,7 +21,7 @@
     - role: rocm_setup
 
 - name: Deploy dotfiles to amd-laptop (local)
-  import_playbook: playbooks/dotfiles/deploy.yml
+  import_playbook: ../dotfiles/deploy.yml
   vars:
     targets: amd-laptop
   tags: dotfiles
@@ -38,7 +38,7 @@
       when: host_sudo | default('password') != 'none'
 
 - name: Deploy dotfiles to amd_hosts
-  import_playbook: playbooks/dotfiles/deploy.yml
+  import_playbook: ../dotfiles/deploy.yml
   vars:
     targets: amd_hosts:!amd-laptop
   tags: dotfiles
