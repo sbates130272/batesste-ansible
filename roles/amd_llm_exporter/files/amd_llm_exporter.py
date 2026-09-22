@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Prometheus exporter for AMD LLM API (Anthropic) token usage statistics."""
 
 import logging
@@ -67,7 +66,7 @@ def _parse_auth_header(raw: str) -> dict[str, str]:
             "ANTHROPIC_CUSTOM_HEADER must be 'Header-Name: value', got: %r", raw
         )
         sys.exit(1)
-    name, _, value = raw.partition(":")
+    name, _sep, value = raw.partition(":")
     return {name.strip(): value.strip()}
 
 
