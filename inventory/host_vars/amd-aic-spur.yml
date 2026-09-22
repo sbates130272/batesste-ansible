@@ -3,8 +3,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-ansible_host: amd-aic-spur
+ansible_host: crs-spur.crusoe.amd.com
 ansible_user: stebates
+ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
 username: stebates
 user_setup_motd: true
 host_sudo: none
