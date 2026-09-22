@@ -230,6 +230,7 @@ Each role ships a `README.md` with variables, requirements, and usage notes.
 | Role | Description |
 | ---- | ----------- |
 | [aws_ec2_setup](roles/aws_ec2_setup/README.md) | AWS EC2 instance configuration helpers |
+| [amd_llm_exporter](roles/amd_llm_exporter/README.md) | Prometheus exporter for AMD LLM API (Anthropic) token usage |
 | [aws_grub](roles/aws_grub/README.md) | GRUB configuration for AWS instances |
 | [check_platform](roles/check_platform/README.md) | Assert supported Ubuntu release |
 | [claude_setup](roles/claude_setup/README.md) | Install and configure Claude Code via a local proxy |
