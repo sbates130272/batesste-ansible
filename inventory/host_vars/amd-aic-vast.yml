@@ -1,7 +1,0 @@
----
-# Copyright (c) Stephen Bates, 2026
-#
-# SPDX-License-Identifier: Apache-2.0
-
-ansible_host: amd-aic-vast
-ansible_user: stebates

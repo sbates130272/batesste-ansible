@@ -7,6 +7,11 @@
   hosts: "{{ targets }}"
   gather_facts: true
 
+  pre_tasks:
+    - name: Skip dotfiles deploy if disabled for this host
+      ansible.builtin.meta: end_host
+      when: not (dotfiles_deploy | default(true) | bool)
+
   tasks:
     - name: Install prerequisites
       ansible.builtin.package:
