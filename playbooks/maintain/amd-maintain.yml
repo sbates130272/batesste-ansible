@@ -28,9 +28,13 @@
 - name: Update amd_fleet (SSH)
   hosts: amd_fleet
   gather_facts: true
-  roles:
-    - role: fave_packages
-      become: true
+  tasks:
+    - name: Update packages
+      ansible.builtin.include_role:
+        name: fave_packages
+        apply:
+          become: true
+      when: host_sudo | default('password') != 'none'
 
 - name: Deploy dotfiles to amd_fleet
   import_playbook: ../dotfiles/deploy.yml
