@@ -33,6 +33,9 @@ jobs:
       - name: Create fake vault-password
         run: echo "ci-dummy" > playbooks/vault-password
 
+      - name: Create fake sudo-password (runner has passwordless sudo)
+        run: echo "" > playbooks/sudo-password
+
       - name: Create an SSH keypair
         run: mkdir -p .ssh && ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
 
