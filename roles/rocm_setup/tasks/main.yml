@@ -164,10 +164,36 @@
            + (['hsa-runtime-rocr4wsl-amdgpu', 'rocm-core', 'rocm-dev']
               if rocm_setup_wsl_mode == 'legacy' else [])
            + (['amdrocm-runtime-dev']
-              if rocm_setup_wsl_mode == 'rocdxg'
-                 and rocm_setup_repo_stream == 'therock' else [])
+              if rocm_setup_repo_stream == 'therock'
+                 and rocm_setup_wsl_mode != 'legacy' else [])
         )
       }}
+
+- name: Find competing-stream ROCm packages to purge
+  ansible.builtin.shell:
+    cmd: >-
+      set -o pipefail;
+      apt list --installed 2>/dev/null |
+      grep -E '{{ rocm_setup_therock_package_pattern
+                  if rocm_setup_repo_stream != "therock"
+                  else rocm_setup_legacy_package_pattern }}' |
+      cut -d/ -f1 || true
+    executable: /bin/bash
+  register: rocm_setup_other_stream_installed
+  changed_when: false
+  become: true
+  when: rocm_setup_purge_other_stream | bool
+
+- name: Purge competing-stream ROCm packages
+  ansible.builtin.apt:
+    name: "{{ rocm_setup_other_stream_installed.stdout_lines }}"
+    state: absent
+    purge: true
+    autoremove: true
+  become: true
+  when:
+    - rocm_setup_purge_other_stream | bool
+    - rocm_setup_other_stream_installed.stdout_lines | default([]) | length > 0
 
 - name: Install ROCm packages
   ansible.builtin.package:
@@ -177,11 +203,20 @@
   become: true
   when: rocm_setup_packages | length > 0
 
+- name: Discover therock versioned library paths
+  ansible.builtin.shell:
+    cmd: ls -d /opt/rocm/core-*/lib 2>/dev/null || true
+    executable: /bin/bash
+  register: rocm_setup_therock_lib_paths
+  changed_when: false
+  when: rocm_setup_repo_stream == 'therock'
+
 - name: Update the library linker with rocm library paths
   ansible.builtin.copy:
     content: |
       /opt/rocm/lib
-      /opt/rocm/lib64
+      {{ '/opt/rocm/lib64' if rocm_setup_wsl_mode == 'rocdxg' else '' }}
+      {{ rocm_setup_therock_lib_paths.stdout if rocm_setup_repo_stream == 'therock' and rocm_setup_therock_lib_paths.stdout | default('') else '' }}
     dest: /etc/ld.so.conf.d/rocm.conf
     owner: root
     group: root

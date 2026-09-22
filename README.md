@@ -90,12 +90,14 @@ ansible-galaxy collection install -r requirements.yml
 
 Roles included from playbooks use short names from `roles/`, but internal
 `include_role` calls use the collection FQCN (for example
-`sbates130272.batesste.check_platform`). `playbooks/run-ansible` installs
-collection dependencies from `requirements.yml` automatically on first run
-(and again whenever `requirements.yml` is newer than the marker file
-`collections/.deps-installed`).
+`sbates130272.batesste.check_platform`). Install collection dependencies
+before running any playbook:
 
-To manually build and install the collection from your checkout:
+```
+ansible-galaxy collection install -r requirements.yml
+```
+
+To build and install the collection from your checkout:
 
 ```
 ansible-galaxy collection build --force
@@ -104,9 +106,8 @@ ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force -p coll
 
 ## Example Usage
 
-The unified entry point is [setup.yml](./playbooks/setup.yml). Select a recipe
-with `-e setup_recipe=<name>` or the `RECIPE` environment variable used by
-`playbooks/run-ansible`. Tags are optional filters inside the selected recipe,
+The unified entry point is [setup.yml](./playbooks/setup/setup.yml). Select a recipe
+with `-e setup_recipe=<name>`. Tags are optional filters inside the selected recipe,
 for example `--tags rocm_setup`. Example inventory:
 [hosts.yml](./inventory/hosts.yml) (a gitignored local override also works for
 private lists). For a new host you may use [qemu-minimal][qemu-minimal] to build
@@ -114,7 +115,7 @@ an image first.
 
 ### User Setup Example
 
-The `newmachine` recipe bootstraps a fresh host: creates the user account,
+The `setup-default` recipe bootstraps a fresh host: creates the user account,
 installs preferred packages, configures git, tmux, mutt, Docker, QEMU, and
 more. `user_setup` runs as `root_user` (typically `root` or `ubuntu`); all
 subsequent roles run as `username`.
@@ -132,8 +133,8 @@ username=batesste
 Then run:
 
 ```
-ansible-playbook -i hosts setup.yml \
-  -e setup_recipe=newmachine \
+ansible-playbook -i hosts playbooks/setup/setup.yml \
+  -e setup_recipe=setup-default \
   -e targets=mymachines \
   --ask-vault-pass
 ```
@@ -146,36 +147,19 @@ variable reference.
 
 ### AMD ROCm Example
 
-For AMD machines (ROCm, RDMA, ROCm XIO, uProf, Claude Code) use `setup.yml` with
-`-e setup_recipe=amd`. It runs `user_setup`, `fave_packages`,
+For AMD machines (ROCm, RDMA, ROCm XIO, uProf, Claude Code) use `setup/setup.yml` with
+`-e setup_recipe=setup-amd`. It runs `user_setup`, `fave_packages`,
 `nvme_exporter_setup`, `git_setup`, `rdma_setup`, `rocm_setup`,
 `rocm_xio_setup`, `uprof_setup`, and `claude_setup`. The `uprof_setup`
 role requires the AMD uProf `.deb` from [amd.com][amd-uprof] after accepting the
 EULA, and its path via `uprof_setup_deb_path`. Example:
 
+```bash
+ansible-playbook playbooks/setup/setup.yml \
+  -e setup_recipe=setup-amd \
+  -e targets=<group> \
+  -e @playbooks/secrets.yml
 ```
-ansible-playbook -i <host-file> setup.yml \
-  -e setup_recipe=amd \
-  -e targets=<group>
-```
-
-Or with `run-ansible` (defaults to `RECIPE=newmachine`):
-
-```
-RECIPE=amd HOSTS=<host-file> TARGETS=<target-group> playbooks/run-ansible
-```
-
-### Other Recipes
-
-`setup.yml` also ships these focused recipes:
-
-| Recipe | Roles run |
-| ------ | --------- |
-| `nfs_rdma` | `nfs_rdma_setup` |
-| `nvmeof` | `nvmeof_setup` |
-| `rocm_xio` | `rocm_xio_setup` |
-
-Select them with `-e setup_recipe=<name>` like any other recipe.
 
 ### Dotfiles Deployment
 
@@ -210,41 +194,34 @@ it from a host where the repo is already unlocked:
 cd ~/.batesste-dotfiles && git-crypt export-key - | base64 -w0
 ```
 
-### run-ansible
+### Credential files
 
-[`playbooks/run-ansible`](playbooks/run-ansible) is a wrapper around
-`ansible-playbook` that handles boilerplate. It:
+Place these in `playbooks/`; never commit them:
 
-- Sets `ANSIBLE_ROLES_PATH` to `roles/` in this checkout
-- Installs collection dependencies from `requirements.yml` into
-  `collections/` on first run (re-runs when `requirements.yml` changes)
-- Passes `vault-password` and `sudo-password` files automatically when present
+- `vault-password` — ansible-vault password; read automatically via `ansible.cfg`
+- `sudo-password` — become password; read automatically via `ansible.cfg`
+- `secrets.yml` — vault-encrypted extra vars; pass explicitly with `-e @playbooks/secrets.yml`
 
-**Environment variables (all optional — defaults shown):**
+### Running playbooks
 
-| Variable | Default | Purpose |
-| -------- | ------- | ------- |
-| `PLAYBOOK` | `setup.yml` | Playbook to run |
-| `HOSTS` | `../inventory/hosts.yml` | Inventory file |
-| `TARGETS` | `localvms` | Host group passed as `targets` |
-| `RECIPE` | `newmachine` | Recipe passed as `setup_recipe` |
-| `TAGS` | _(none)_ | Passed to `--tags` to narrow a recipe |
-| `RUN_ANSIBLE_NO_VAULT` | _(unset)_ | Set to `1` to skip `vault-password` |
-| `RUN_ANSIBLE_NO_SUDO_PASS` | _(unset)_ | Set to `1` to skip `sudo-password` |
-
-**Credential files** (place in `playbooks/`; never commit these):
-
-- `vault-password` — ansible-vault password; required unless `RUN_ANSIBLE_NO_VAULT=1`
-- `sudo-password` — become password for the remote user; required unless `RUN_ANSIBLE_NO_SUDO_PASS=1`
-- `secrets.yml` — extra vars file included automatically when present alongside `vault-password`
-
-**Typical invocation:**
+All playbooks are invoked directly with `ansible-playbook` from the repo root.
+`ansible.cfg` wires up the inventory, roles path, collections path, vault
+password file, and become password file automatically.
 
 ```bash
-RECIPE=newmachine HOSTS=<host-file> TARGETS=<group> playbooks/run-ansible
+# Bootstrap a new machine
+ansible-playbook playbooks/setup/setup.yml \
+  -e targets=<host-or-group> \
+  -e setup_recipe=setup-default \
+  -e @playbooks/secrets.yml
+
+# Weekly maintenance
+ansible-playbook playbooks/maintain/homelan-maintain.yml -e @playbooks/secrets.yml
+ansible-playbook playbooks/maintain/amd-maintain.yml -e @playbooks/secrets.yml
 ```
 
-Any additional arguments are appended verbatim to the `ansible-playbook` command.
+Pass `-e targets=<group>` to override the default target for maintenance
+playbooks, or `--limit <host>` to restrict to a single host within the group.
 
 ## Roles
 

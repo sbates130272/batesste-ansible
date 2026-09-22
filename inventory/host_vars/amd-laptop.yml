@@ -13,3 +13,6 @@ rocm_setup_run_checks: true
 rocm_setup_wsl_hsa_enable_dxg_detection: true
 rocm_setup_wsl_run_hip_check: true
 rocm_setup_install_metrics_exporter: true
+# Skip dotfiles during maintenance — amd-laptop is the dotfiles dev machine.
+# Override with -e dotfiles_deploy=true to force a deploy.
+dotfiles_deploy: false

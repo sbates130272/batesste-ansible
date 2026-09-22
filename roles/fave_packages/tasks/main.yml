@@ -31,12 +31,12 @@
       - gettext-base
       - git
       - git-crypt
+      - git-extras
       - gnuplot
       - gpg-agent
       - libaio-dev
       - liburing-dev
       - linux-generic
-      - npm
       - prometheus-node-exporter
       - prometheus-node-exporter-collectors
       - python-is-python3
@@ -203,14 +203,3 @@
     mode: '0644'
   become: true
   notify: Restart prometheus-node-exporter
-
-- name: Add HashiCorp APT repository and GPG key
-  ansible.builtin.include_role:
-    name: sbates130272.batesste.hashicorp_repo
-
-- name: Install packer
-  ansible.builtin.apt:
-    name: packer
-    state: present
-    update_cache: true
-  become: true

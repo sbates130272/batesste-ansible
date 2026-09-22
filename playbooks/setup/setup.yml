@@ -11,9 +11,9 @@
   hosts: "{{ targets }}"
   gather_facts: false
   vars:
-    setup_recipe_name: "{{ setup_recipe | default(recipe | default('newmachine')) }}"
+    setup_recipe_name: "{{ setup_recipe | default(recipe | default('setup-default')) }}"
     setup_recipes:
-      newmachine:
+      setup-default:
         - user_setup
         - fave_packages
         - git_setup
@@ -23,7 +23,7 @@
         - fio_devel
         - docker_setup
         - qemu_setup
-      amd:
+      setup-amd:
         - user_setup
         - fave_packages
         - git_setup
@@ -32,12 +32,6 @@
         - rocm_xio_setup
         - uprof_setup
         - claude_setup
-      nfs_rdma:
-        - nfs_rdma_setup
-      nvmeof:
-        - nvmeof_setup
-      rocm_xio:
-        - rocm_xio_setup
     setup_selected_roles: >-
       {{
         (setup_roles.split(',') if setup_roles is string else setup_roles)
@@ -45,7 +39,7 @@
       }}
     setup_user_setup_remote_user_effective: >-
       {{ setup_user_setup_remote_user | default(root_user
-         if setup_recipe_name == 'newmachine' else username) }}
+         if setup_recipe_name == 'setup-default' else username) }}
     force: false
     kernel_setup_force: "{{ force }}"
     kernel_setup_tools_force: "{{ force }}"
@@ -256,28 +250,6 @@
         - inventory_hostname not in groups.get('runners', [])
       tags:
         - qemu_setup
-
-    - name: Run nfs_rdma_setup
-      ansible.builtin.include_role:
-        name: nfs_rdma_setup
-        apply:
-          remote_user: "{{ username }}"
-          tags:
-            - nfs_rdma_setup
-      when: "'nfs_rdma_setup' in setup_selected_roles"
-      tags:
-        - nfs_rdma_setup
-
-    - name: Run nvmeof_setup
-      ansible.builtin.include_role:
-        name: nvmeof_setup
-        apply:
-          remote_user: "{{ username }}"
-          tags:
-            - nvmeof_setup
-      when: "'nvmeof_setup' in setup_selected_roles"
-      tags:
-        - nvmeof_setup
 
     - name: Run aws_ec2_setup
       ansible.builtin.include_role:

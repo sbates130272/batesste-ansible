@@ -1,0 +1,44 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Weekly maintenance playbook for AMD machines.
+# Intended to be run from amd-laptop (the control node).
+#
+# amd-laptop runs locally (connection: local); amd_fleet is reached via SSH.
+#
+# ansible-playbook playbooks/maintain/amd-maintain.yml -e @playbooks/secrets.yml
+
+- name: Update amd-laptop (local)
+  hosts: amd-laptop
+  gather_facts: true
+  vars:
+    ansible_connection: local
+  roles:
+    - role: fave_packages
+      become: true
+    - role: rocm_setup
+
+- name: Deploy dotfiles to amd-laptop (local)
+  import_playbook: ../dotfiles/deploy.yml
+  vars:
+    targets: amd-laptop
+  tags: dotfiles
+
+- name: Update amd_hosts (SSH)
+  hosts: amd_hosts:!amd-laptop
+  gather_facts: true
+  tasks:
+    - name: Update packages
+      ansible.builtin.include_role:
+        name: fave_packages
+        apply:
+          become: true
+      when: host_sudo | default('password') != 'none'
+
+- name: Deploy dotfiles to amd_hosts
+  import_playbook: ../dotfiles/deploy.yml
+  vars:
+    targets: amd_hosts:!amd-laptop
+  tags: dotfiles

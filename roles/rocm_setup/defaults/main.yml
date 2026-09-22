@@ -72,6 +72,14 @@ rocm_setup_skip_reboot: true
 # Useful in CI where full distro upgrades can be slow and noisy.
 rocm_setup_skip_system_upgrade: false
 
+# Purge packages from the competing ROCm stream when switching streams.
+# Set to false to manage both installs manually.
+rocm_setup_purge_other_stream: true
+rocm_setup_legacy_package_pattern: >-
+  ^(rocm[0-9]|hsa-rocr|amdgpu-install|rock-dkms)
+rocm_setup_therock_package_pattern: >-
+  ^(amdrocm)
+
 # Install kernel-facing AMDGPU pieces (headers, modules, amdgpu-dkms).
 # Disable in CI where no GPU/kernel-driver validation is possible, or on AWS
 # when using a vendor kernel image that already ships AMDGPU (see

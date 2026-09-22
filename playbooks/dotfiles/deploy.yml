@@ -7,6 +7,11 @@
   hosts: "{{ targets }}"
   gather_facts: true
 
+  pre_tasks:
+    - name: Skip dotfiles deploy if disabled for this host
+      ansible.builtin.meta: end_host
+      when: not (dotfiles_deploy | default(true) | bool)
+
   tasks:
     - name: Install prerequisites
       ansible.builtin.package:
@@ -61,6 +66,36 @@
       when:
         - ansible_connection != 'local'
         - vault_git_crypt_key_b64 | default('') | length > 0
+
+    - name: Import GPG private key into user keyring
+      when:
+        - ansible_connection != 'local'
+        - user_setup_gpg_private_key | default('') | length > 0
+      no_log: true
+      block:
+        - name: Write GPG private key to tempfile
+          ansible.builtin.tempfile:
+            state: file
+            suffix: .asc
+          register: _dotfiles_gpg_tempfile
+
+        - name: Copy armored GPG private key into tempfile
+          ansible.builtin.copy:
+            content: "{{ user_setup_gpg_private_key }}"
+            dest: "{{ _dotfiles_gpg_tempfile.path }}"
+            mode: "0600"
+
+        - name: Import GPG private key
+          ansible.builtin.command:
+            cmd: "gpg --batch --import {{ _dotfiles_gpg_tempfile.path }}"
+          changed_when: true
+
+      always:
+        - name: Remove GPG private key tempfile
+          ansible.builtin.file:
+            path: "{{ _dotfiles_gpg_tempfile.path }}"
+            state: absent
+          when: _dotfiles_gpg_tempfile is defined
 
     - name: Get dotfiles version
       ansible.builtin.command:
