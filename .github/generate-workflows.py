@@ -930,7 +930,7 @@ def main() -> None:
             config = {**config, "ubuntu_versions": args.ubuntu_versions}
         workflow_content = generate_workflow_yaml(role_name, config)
 
-        workflow_file = workflows_dir / f"{role_name}-ci.yml"
+        workflow_file = workflows_dir / f"batesste-ansible-{role_name}-ci.yml"
         print(f"Generating {workflow_file}...")
 
         with open(workflow_file, "w") as f:
