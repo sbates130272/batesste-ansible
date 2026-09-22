@@ -1,0 +1,106 @@
+name: batesste-ansible - maintain CI
+
+'on':
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+      - main
+    paths:
+      - playbooks/maintain/**
+      - playbooks/dotfiles/**
+      - .github/workflows/batesste-ansible-maintain-ci.yml
+      - requirements.txt
+      - requirements.yml
+
+jobs:
+  maintain-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+
+      - name: Install pip packages
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Run ansible-galaxy to install collections
+        run: ansible-galaxy collection install -r requirements.yml
+
+      - name: Build and install the collection locally
+        run: |
+          ansible-galaxy collection build --force
+          ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force
+
+      - name: Create fake vault-password
+        run: echo "ci-dummy" > playbooks/vault-password
+
+      - name: Create an SSH keypair
+        run: mkdir -p .ssh && ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+
+      - name: Create a GNU PGP folder
+        run: mkdir -p .gnupg
+
+      - name: Write CI inventory with required groups
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: ./playbooks/hosts-maintain-ci
+          write-mode: overwrite
+          contents: |
+            all:
+              children:
+                homelan:
+                  hosts:
+                    localhost:
+                      ansible_connection: local
+                      ansible_user: runner
+                      username: runner
+                lemonade_servers:
+                rocm_hosts:
+                  hosts:
+                    localhost:
+                amd_hosts:
+                  hosts:
+                    localhost:
+                      ansible_connection: local
+                      ansible_user: runner
+                      username: runner
+                proxy:
+                  children:
+                    homelan:
+
+      - name: Syntax-check homelan-maintain playbook
+        run: >-
+          ansible-playbook --syntax-check
+          playbooks/maintain/homelan-maintain.yml
+          -i playbooks/hosts-maintain-ci
+        env:
+          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
+
+      - name: Syntax-check amd-maintain playbook
+        run: >-
+          ansible-playbook --syntax-check
+          playbooks/maintain/amd-maintain.yml
+          -i playbooks/hosts-maintain-ci
+        env:
+          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
+
+      - name: Run fave_packages against local runner
+        run: |
+          cat > /tmp/test-maintain-fave.yml << 'PLAYBOOK'
+          ---
+          - name: Test fave_packages (maintain CI)
+            hosts: all
+            gather_facts: true
+            roles:
+              - role: fave_packages
+                become: true
+          PLAYBOOK
+          ansible-playbook -v /tmp/test-maintain-fave.yml \
+            -i "localhost," \
+            -e "ansible_connection=local" \
+            -e "username=runner" \
+            -e "fave_packages_uv_enable=false"
+        env:
+          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections

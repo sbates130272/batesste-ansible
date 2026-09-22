@@ -113,3 +113,27 @@ jobs:
           TARGETS: runners
           HOSTS: playbooks/hosts-ci
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+
+      - name: Run the setup-amd recipe (software roles only, no hardware)
+        # Exercises the setup-amd recipe dispatcher with roles that run safely
+        # on a CI runner. Hardware-gated roles (rdma_setup, rocm_setup,
+        # uprof_setup) are excluded via setup_roles override.
+        continue-on-error: true
+        run: |
+          ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} \
+            --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD") \
+            -e "targets=${TARGETS}" \
+            -e "setup_recipe=${RECIPE}" \
+            -e "setup_roles=user_setup,fave_packages,git_setup,claude_setup" \
+            -e "user_setup_unprivileged=true" \
+            -e "user_setup_dotfiles_enable=false" \
+            -e "git_setup_enable_gpg_signing=false" \
+            -e "git_setup_gh_authenticate=false" \
+            -e "vault_claude_setup_api_key=test_ci_api_key_placeholder" \
+            -e "claude_setup_proxy_upstream=http://localhost:8000"
+        env:
+          PLAYBOOK: playbooks/setup/setup.yml
+          RECIPE: setup-amd
+          TARGETS: runners
+          HOSTS: playbooks/hosts-ci
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
