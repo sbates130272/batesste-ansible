@@ -9,7 +9,7 @@
 
   pre_tasks:
     - name: Skip dotfiles deploy if disabled for this host
-      ansible.builtin.meta: end_host
+      meta: end_host
       when: not (dotfiles_deploy | default(true) | bool)
 
   tasks:

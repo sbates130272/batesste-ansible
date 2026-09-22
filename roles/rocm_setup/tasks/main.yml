@@ -172,6 +172,7 @@
 - name: Find competing-stream ROCm packages to purge
   ansible.builtin.shell:
     cmd: >-
+      set -o pipefail;
       apt list --installed 2>/dev/null |
       grep -E '{{ rocm_setup_therock_package_pattern
                   if rocm_setup_repo_stream != "therock"
