@@ -522,7 +522,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
     if config.get("free_disk_space", False):
         lines.extend([
             "      - name: Free Disk Space (Ubuntu)",
-            "        uses: jlumbroso/free-disk-space@v1.3.1",
+            "        uses: jlumbroso/free-disk-space@v2.0.0",
         ])
 
     # Standard setup steps
@@ -645,7 +645,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         if config.get("free_disk_space", False):
             lines.extend([
                 "      - name: Free Disk Space (Ubuntu)",
-                "        uses: jlumbroso/free-disk-space@v1.3.1",
+                "        uses: jlumbroso/free-disk-space@v2.0.0",
             ])
         lines.extend([
             "      - name: Checkout code",
@@ -749,7 +749,7 @@ def generate_workflow(role_name: str, config: Dict) -> Dict:
     if config.get("free_disk_space", False):
         steps.append({
             "name": "Free Disk Space (Ubuntu)",
-            "uses": "jlumbroso/free-disk-space@v1.3.1"
+            "uses": "jlumbroso/free-disk-space@v2.0.0"
         })
 
     # Standard setup steps

@@ -6,3 +6,4 @@
 ansible_user: stebates
 username: stebates
 user_setup_motd: true
+dotfiles_proxy: true

@@ -5,6 +5,7 @@
 
 ansible_host: 10.0.0.247
 ansible_user: batesste
+dotfiles_proxy: true
 # WSL2 filesystems don't support the ACL-based chmod Ansible uses when
 # writing temp files for become_user to an unprivileged user. Pipelining
 # avoids temp file creation entirely.
