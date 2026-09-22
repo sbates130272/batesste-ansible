@@ -32,6 +32,7 @@
         - rocm_xio_setup
         - uprof_setup
         - claude_setup
+        - amd_llm_exporter
     setup_selected_roles: >-
       {{
         (setup_roles.split(',') if setup_roles is string else setup_roles)
@@ -261,3 +262,14 @@
       when: "'aws_ec2_setup' in setup_selected_roles"
       tags:
         - aws_ec2_setup
+
+    - name: Run amd_llm_exporter
+      ansible.builtin.include_role:
+        name: amd_llm_exporter
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - amd_llm_exporter
+      when: "'amd_llm_exporter' in setup_selected_roles"
+      tags:
+        - amd_llm_exporter

@@ -1,0 +1,13 @@
+# Copyright (c) Stephen Bates. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+amd_llm_exporter_port: 9876
+amd_llm_exporter_window_days: 30
+amd_llm_exporter_refresh_seconds: 300
+amd_llm_exporter_endpoint: "https://llm-api.amd.com/api/UsageStats"
+amd_llm_exporter_install_dir: /opt/amd_llm_exporter
+amd_llm_exporter_user: amd-llm-exporter
+
+# Full "Header-Name: value" string — set via vault.
+# The ANTHROPIC_CUSTOM_HEADER env var in the user's shell already holds this.
+amd_llm_exporter_custom_header: "{{ vault_amd_llm_exporter_custom_header | default('') }}"

@@ -1,0 +1,16 @@
+[Unit]
+Description=AMD LLM Usage Prometheus Exporter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ amd_llm_exporter_user }}
+EnvironmentFile={{ amd_llm_exporter_install_dir }}/amd_llm_exporter.env
+ExecStart={{ amd_llm_exporter_install_dir }}/venv/bin/python3 \
+    {{ amd_llm_exporter_install_dir }}/amd_llm_exporter.py
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
