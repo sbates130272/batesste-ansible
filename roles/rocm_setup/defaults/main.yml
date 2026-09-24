@@ -86,6 +86,16 @@ rocm_setup_therock_package_pattern: >-
 # rocm_setup_extra_kernel_packages).
 rocm_setup_install_kernel_driver: true
 
+# When true: suppress the postinst DKMS build by placing /etc/dkms/no-autoinstall
+# and diverting /usr/sbin/update-initramfs to a no-op before the package install.
+# Both are left in place afterward for the consumer to patch the source and build.
+# Restore with:
+#   dpkg-divert --remove --rename /usr/sbin/update-initramfs
+#   ansible.builtin.file: path=/etc/dkms/no-autoinstall state=absent
+# Note: while the marker is set, dkms status prints nothing — derive the version
+# from /usr/src/amdgpu-<version> instead.
+rocm_setup_amdgpu_dkms_defer_build: false
+
 # Optional extra kernel image / module metapackages (installed before amdgpu-dkms).
 # Example on Ubuntu EC2 with DKMS: linux-modules-extra-aws; without DKMS, a pinned
 # linux-image-*-aw only.
