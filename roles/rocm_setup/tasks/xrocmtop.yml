@@ -9,6 +9,7 @@
     return_content: true
     headers:
       Accept: application/vnd.github.v3+json
+      Authorization: "{{ 'Bearer ' + rocm_setup_github_api_token if rocm_setup_github_api_token | length > 0 else omit }}"
   register: rocm_setup_xrocmtop_latest_release
   when: rocm_setup_xrocmtop_version == 'latest'
   changed_when: false

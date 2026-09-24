@@ -216,6 +216,7 @@
     return_content: true
     headers:
       Accept: "application/vnd.github+json"
+      Authorization: "{{ 'Bearer ' + user_setup_github_api_token if user_setup_github_api_token | length > 0 else omit }}"
   register: _dotfiles_latest_release
   when:
     - user_setup_dotfiles_enable | default(false)

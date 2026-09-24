@@ -103,6 +103,8 @@
   ansible.builtin.uri:
     url: https://api.github.com/repos/trentas/ptop/releases/latest
     return_content: true
+    headers:
+      Authorization: "{{ 'Bearer ' + fave_packages_github_api_token if fave_packages_github_api_token | length > 0 else omit }}"
   register: fave_packages_ptop_latest_release
   changed_when: false
 

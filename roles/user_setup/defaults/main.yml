@@ -58,5 +58,9 @@ user_setup_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt
 # update-ca-certificates before the dotfiles git clone.
 user_setup_install_amd_ca: false
 
+# GitHub API token for releases/latest lookups. Set to avoid the 60/hr anonymous
+# rate limit when multiple CI runners share an IP. Defaults to GITHUB_TOKEN env var.
+user_setup_github_api_token: "{{ lookup('env', 'GITHUB_TOKEN') | default('') }}"
+
 # HuggingFace token — no longer written by this role. When dotfiles is enabled with the
 # secrets package, HF_TOKEN is delivered via ~/.secrets.env (git-crypt encrypted in dotfiles).

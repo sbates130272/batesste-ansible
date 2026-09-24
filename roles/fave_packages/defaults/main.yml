@@ -9,3 +9,6 @@
 # is disabled upstream by default; this enables it.
 fave_packages_node_exporter_extra_args: "--collector.wifi"
 fave_packages_uv_enable: true
+
+# GitHub API token for releases/latest lookups. Defaults to GITHUB_TOKEN env var.
+fave_packages_github_api_token: "{{ lookup('env', 'GITHUB_TOKEN') | default('') }}"
