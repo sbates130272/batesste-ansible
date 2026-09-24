@@ -270,7 +270,7 @@
     - rocm_setup_amdgpu_dkms_defer_build | bool
 
 - name: Check whether update-initramfs is already diverted
-  ansible.builtin.command:
+  ansible.builtin.command:  # noqa command-instead-of-module
     cmd: dpkg-divert --list /usr/sbin/update-initramfs
   register: rocm_setup_divert_check
   changed_when: false
@@ -281,8 +281,9 @@
     - rocm_setup_amdgpu_dkms_defer_build | bool
 
 - name: Divert /usr/sbin/update-initramfs to a no-op for deferred amdgpu-dkms install
-  ansible.builtin.command:
+  ansible.builtin.command:  # noqa command-instead-of-module
     cmd: dpkg-divert --add --rename --divert /usr/sbin/update-initramfs.distrib /usr/sbin/update-initramfs
+  changed_when: true
   become: true
   when:
     - not rocm_setup_wsl_enabled
