@@ -246,6 +246,64 @@
   become: true
   register: rocm_setup_extra_kernel_install
 
+- name: Create /etc/dkms directory for defer-build marker
+  ansible.builtin.file:
+    path: /etc/dkms
+    state: directory
+    mode: '0755'
+  become: true
+  when:
+    - not rocm_setup_wsl_enabled
+    - rocm_setup_install_kernel_driver
+    - rocm_setup_amdgpu_dkms_defer_build | bool
+
+- name: Place /etc/dkms/no-autoinstall marker
+  ansible.builtin.copy:
+    content: ""
+    dest: /etc/dkms/no-autoinstall
+    force: false
+    mode: '0644'
+  become: true
+  when:
+    - not rocm_setup_wsl_enabled
+    - rocm_setup_install_kernel_driver
+    - rocm_setup_amdgpu_dkms_defer_build | bool
+
+- name: Check whether update-initramfs is already diverted
+  ansible.builtin.command:
+    cmd: dpkg-divert --list /usr/sbin/update-initramfs
+  register: rocm_setup_divert_check
+  changed_when: false
+  become: true
+  when:
+    - not rocm_setup_wsl_enabled
+    - rocm_setup_install_kernel_driver
+    - rocm_setup_amdgpu_dkms_defer_build | bool
+
+- name: Divert /usr/sbin/update-initramfs to a no-op for deferred amdgpu-dkms install
+  ansible.builtin.command:
+    cmd: dpkg-divert --add --rename --divert /usr/sbin/update-initramfs.distrib /usr/sbin/update-initramfs
+  become: true
+  when:
+    - not rocm_setup_wsl_enabled
+    - rocm_setup_install_kernel_driver
+    - rocm_setup_amdgpu_dkms_defer_build | bool
+    - (rocm_setup_divert_check.stdout | default('')) == ""
+
+- name: Place no-op /usr/sbin/update-initramfs for deferred amdgpu-dkms install
+  ansible.builtin.copy:
+    content: "#!/bin/sh\nexit 0\n"
+    dest: /usr/sbin/update-initramfs
+    mode: '0755'
+    owner: root
+    group: root
+  become: true
+  when:
+    - not rocm_setup_wsl_enabled
+    - rocm_setup_install_kernel_driver
+    - rocm_setup_amdgpu_dkms_defer_build | bool
+    - (rocm_setup_divert_check.stdout | default('')) == ""
+
 - name: Install or upgrade amdgpu-dkms to latest available  # noqa package-latest
   ansible.builtin.package:
     update_cache: true
