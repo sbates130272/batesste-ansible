@@ -149,6 +149,9 @@ rocm_setup_run_checks: true
 # validate package/service state without requiring GPU hardware.
 rocm_setup_run_gpu_checks: "{{ rocm_setup_run_checks }}"
 
+# GitHub API token for releases/latest lookups. Defaults to GITHUB_TOKEN env var.
+rocm_setup_github_api_token: "{{ lookup('env', 'GITHUB_TOKEN') | default('') }}"
+
 # xrocmtop - btop-style terminal UI for AMD ROCm and Vulkan GPU monitoring
 # https://github.com/argakiig/xrocmtop
 # Install by default; set to false to skip.
