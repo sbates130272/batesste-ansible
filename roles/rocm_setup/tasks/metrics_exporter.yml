@@ -20,7 +20,7 @@
   ansible.builtin.shell:
     cmd: |
       set -o pipefail
-      wget -qO- https://repo.radeon.com/rocm/rocm.gpg.key \
+      wget -qO- https://{{ rocm_setup_repo_base_url }}/rocm/rocm.gpg.key \
         | gpg --dearmor \
         | tee /etc/apt/keyrings/rocm.gpg > /dev/null
   args:
@@ -106,7 +106,7 @@
     delay: 2
     timeout: 30
   when:
-    - rocm_setup_run_checks
+    - rocm_setup_run_gpu_checks | default(rocm_setup_run_checks)
     - metrics_exporter_status.status is defined
     - metrics_exporter_status.status.ActiveState == 'active'
   register: metrics_exporter_ready
@@ -120,7 +120,7 @@
   register: metrics_exporter_health
   failed_when: false
   when:
-    - rocm_setup_run_checks
+    - rocm_setup_run_gpu_checks | default(rocm_setup_run_checks)
     - metrics_exporter_ready is defined
     - metrics_exporter_ready is not skipped
     - metrics_exporter_ready is not failed
@@ -128,7 +128,7 @@
 - name: Display AMD Device Metrics Exporter status
   ansible.builtin.debug:
     msg:
-      - "✓ AMD Device Metrics Exporter is running"
+      - "AMD Device Metrics Exporter is running"
       - "Listening on: {{ rocm_setup_metrics_exporter_port }}"
       - "Access from LAN: http://{{ ansible_facts['default_ipv4'].address }}:{{ rocm_setup_metrics_exporter_port }}/metrics"
       - ""
@@ -137,7 +137,7 @@
       - "  - Older versions: Reports unavailable metrics as 0"
       - "  - Check logs for details: journalctl -u device-metrics-exporter"
   when:
-    - rocm_setup_run_checks
+    - rocm_setup_run_gpu_checks | default(rocm_setup_run_checks)
     - metrics_exporter_health is defined
     - metrics_exporter_health.status is defined
     - metrics_exporter_health.status == 200
