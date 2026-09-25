@@ -203,20 +203,32 @@
   become: true
   when: rocm_setup_packages | length > 0
 
-- name: Discover therock versioned library paths
+- name: Discover therock versioned install prefix
   ansible.builtin.shell:
-    cmd: ls -d /opt/rocm/core-*/lib 2>/dev/null || true
+    cmd: ls -d /opt/rocm/core-* 2>/dev/null | sort -V | tail -1 || true
     executable: /bin/bash
-  register: rocm_setup_therock_lib_paths
+  register: _rocm_therock_prefix_raw
   changed_when: false
   when: rocm_setup_repo_stream == 'therock'
 
+- name: Set therock install prefix fact
+  ansible.builtin.set_fact:
+    rocm_setup_therock_prefix: "{{ _rocm_therock_prefix_raw.stdout | trim }}"
+  when:
+    - rocm_setup_repo_stream == 'therock'
+    - _rocm_therock_prefix_raw.stdout | default('') | trim | length > 0
+
 - name: Update the library linker with rocm library paths
   ansible.builtin.copy:
-    content: |
-      /opt/rocm/lib
-      {{ '/opt/rocm/lib64' if rocm_setup_wsl_mode == 'rocdxg' else '' }}
-      {{ rocm_setup_therock_lib_paths.stdout if rocm_setup_repo_stream == 'therock' and rocm_setup_therock_lib_paths.stdout | default('') else '' }}
+    content: >-
+      {{
+        ((['/opt/rocm/lib'] if rocm_setup_repo_stream != 'therock' else [])
+         + (['/opt/rocm/lib64'] if rocm_setup_wsl_mode == 'rocdxg' else [])
+         + ([rocm_setup_therock_prefix + '/lib']
+            if rocm_setup_repo_stream == 'therock' and rocm_setup_therock_prefix is defined
+            else []))
+        | join('\n') + '\n'
+      }}
     dest: /etc/ld.so.conf.d/rocm.conf
     owner: root
     group: root
@@ -228,6 +240,16 @@
     cmd: ldconfig
   become: true
   changed_when: false
+
+- name: Write /etc/profile.d/rocm.sh with therock PATH and LD_LIBRARY_PATH
+  ansible.builtin.template:
+    src: rocm-profile.sh.j2
+    dest: /etc/profile.d/rocm.sh
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  when: rocm_setup_repo_stream == 'therock'
 
 - name: Update the PCIe ID tables (for new GPU support)
   ansible.builtin.command:
