@@ -103,7 +103,7 @@ jobs:
             -i "localhost," \
             -e "ansible_connection=local" \
             -e "username=runner" \
-            -e '{"fave_packages_uv_enable": false}'
+            -e '{"fave_packages_uv_enable": false, "fave_packages_ansible_enable": false, "fave_packages_github_api_token": "${{ github.token }}"}'
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
           ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
