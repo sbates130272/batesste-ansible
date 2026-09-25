@@ -14,38 +14,30 @@
   vars:
     calling_role_path: "{{ fave_packages_calling_role_path_fact }}"  # noqa var-naming
 
-- name: Install my favourite packages
+- name: Install base packages
   ansible.builtin.package:
     update_cache: true
     name:
-      - ansible
-      - ansible-lint
       - aspell
       - bmon
       - build-essential
       - cmake
       - driverctl
-      - emacs-nox
       - expect
       - fio
       - gettext-base
       - git
       - git-crypt
       - git-extras
-      - gnuplot
       - gpg-agent
       - libaio-dev
       - liburing-dev
-      - linux-generic
-      - prometheus-node-exporter
-      - prometheus-node-exporter-collectors
       - python-is-python3
       - python3
       - pipx
       - python3-pip
       - python3-venv
       - ripgrep
-      - mutt
       - stow
       - sysstat
       - tmux
@@ -53,6 +45,41 @@
       - xfsprogs
     state: present
   become: true
+
+- name: Install ansible tools
+  ansible.builtin.package:
+    name:
+      - ansible
+      - ansible-lint
+    state: present
+  become: true
+  when: fave_packages_ansible_enable | default(true)
+
+- name: Install desktop/editor packages
+  ansible.builtin.package:
+    name:
+      - emacs-nox
+      - gnuplot
+      - mutt
+    state: present
+  become: true
+  when: fave_packages_desktop_enable | default(true)
+
+- name: Install linux-generic kernel meta-package
+  ansible.builtin.package:
+    name: linux-generic
+    state: present
+  become: true
+  when: fave_packages_linux_generic_enable | default(false)
+
+- name: Install prometheus-node-exporter
+  ansible.builtin.package:
+    name:
+      - prometheus-node-exporter
+      - prometheus-node-exporter-collectors
+    state: present
+  become: true
+  when: fave_packages_node_exporter_enable | default(true)
 
 - name: Set noble extra package list (skip git-email if git >= 2.43)
   ansible.builtin.set_fact:
@@ -205,3 +232,4 @@
     mode: '0644'
   become: true
   notify: Restart prometheus-node-exporter
+  when: fave_packages_node_exporter_enable | default(true)

@@ -11,6 +11,9 @@
     git_setup_gh_authenticate: true
     # Use GitHub's built-in token from environment
     git_setup_gh_token: "{{ lookup('env', 'GITHUB_TOKEN') }}"
+    # Required since 3.0.0 — no default to prevent writing wrong identity
+    git_setup_user_name: "CI Test User"
+    git_setup_user_email: "ci@example.com"
 
   tasks:
     - name: Include git_setup role

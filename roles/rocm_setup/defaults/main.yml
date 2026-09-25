@@ -70,7 +70,7 @@ rocm_setup_skip_reboot: true
 
 # Skip apt safe-upgrade/autoremove system update pass in rocm_pre.
 # Useful in CI where full distro upgrades can be slow and noisy.
-rocm_setup_skip_system_upgrade: false
+rocm_setup_skip_system_upgrade: true
 
 # Purge packages from the competing ROCm stream when switching streams.
 # Set to false to manage both installs manually.
@@ -100,6 +100,14 @@ rocm_setup_amdgpu_dkms_defer_build: false
 # Example on Ubuntu EC2 with DKMS: linux-modules-extra-aws; without DKMS, a pinned
 # linux-image-*-aw only.
 rocm_setup_extra_kernel_packages: []
+
+# Install linux-generic alongside linux-headers when rocm_setup_install_kernel_driver
+# is true. Set false when a pinned or custom kernel is in use (e.g. ernic guests).
+rocm_setup_install_kernel_meta: true
+
+# Run update-pciids to refresh /usr/share/misc/pci.ids. Set false in CI or on
+# hosts with custom pci.ids entries that must not be overwritten.
+rocm_setup_update_pciids: false
 
 # WSL install mode: false (Linux), legacy (roc4wsl), or rocdxg (librocdxg).
 rocm_setup_wsl: false
@@ -155,7 +163,7 @@ rocm_setup_github_api_token: "{{ lookup('env', 'GITHUB_TOKEN') | default('') }}"
 # xrocmtop - btop-style terminal UI for AMD ROCm and Vulkan GPU monitoring
 # https://github.com/argakiig/xrocmtop
 # Install by default; set to false to skip.
-rocm_setup_install_xrocmtop: true
+rocm_setup_install_xrocmtop: false
 rocm_setup_xrocmtop_version: latest
 rocm_setup_xrocmtop_install_dir: /usr/local/bin
 
@@ -182,7 +190,7 @@ rocm_setup_metrics_exporter_open_firewall: true
 # Install by default; set to false to skip.
 # Channel: 'nightly' (current only option until a stable release is published)
 #          or 'release' (default, used once stable releases exist).
-rocm_setup_install_rocm_cli: true
+rocm_setup_install_rocm_cli: false
 rocm_setup_rocm_cli_channel: nightly
 
 # Install hipFile packages via apt (ROCm 7.14+).
