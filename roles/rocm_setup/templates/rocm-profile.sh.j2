@@ -1,0 +1,11 @@
+# ROCm environment — installed by Ansible rocm_setup role.
+# Sourced by login shells via /etc/profile.d/. Do not edit manually.
+{% if rocm_setup_therock_prefix is defined %}
+
+export PATH={{ rocm_setup_therock_prefix }}/bin:${PATH}
+export LD_LIBRARY_PATH={{ rocm_setup_therock_prefix }}/lib:${LD_LIBRARY_PATH:-}
+{% else %}
+
+export PATH=/opt/rocm/bin:${PATH}
+export LD_LIBRARY_PATH=/opt/rocm/lib:${LD_LIBRARY_PATH:-}
+{% endif %}
