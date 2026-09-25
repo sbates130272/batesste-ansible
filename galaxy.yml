@@ -1,7 +1,7 @@
 ---
 namespace: sbates130272
 name: batesste
-version: 2.5.0
+version: 3.0.0
 readme: README.md
 
 authors:
@@ -32,7 +32,6 @@ dependencies:
   ansible.posix: ">=2.2.2"
   community.general: ">=13.4.0"
   community.libvirt: ">=2.3.0"
-  amazon.aws: ">=11.4.0"
 
 repository: https://github.com/sbates130272/batesste-ansible
 documentation: https://github.com/sbates130272/batesste-ansible
