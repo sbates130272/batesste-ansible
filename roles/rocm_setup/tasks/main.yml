@@ -235,6 +235,7 @@
   become: true
   failed_when: false
   changed_when: false
+  when: rocm_setup_update_pciids | default(false)
 
 - name: Install extra kernel-related packages (e.g. linux-modules-extra-aws)
   ansible.builtin.package:

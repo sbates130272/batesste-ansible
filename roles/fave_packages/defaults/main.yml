@@ -10,5 +10,12 @@
 fave_packages_node_exporter_extra_args: "--collector.wifi"
 fave_packages_uv_enable: true
 
+# Per-component enable flags. Set false to skip that component.
+fave_packages_ansible_enable: true       # ansible, ansible-lint
+fave_packages_desktop_enable: true       # emacs-nox, gnuplot, mutt
+fave_packages_linux_generic_enable: false  # linux-generic meta-package (off by default)
+fave_packages_node_exporter_enable: true   # prometheus-node-exporter
+fave_packages_ptop_enable: true            # ptop from GitHub releases
+
 # GitHub API token for releases/latest lookups. Defaults to GITHUB_TOKEN env var.
 fave_packages_github_api_token: "{{ lookup('env', 'GITHUB_TOKEN') | default('') }}"

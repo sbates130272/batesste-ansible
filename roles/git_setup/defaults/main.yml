@@ -2,12 +2,19 @@
 # Copyright (c) Stephen Bates. All rights reserved.
 #
 # SPDX-License-Identifier: Apache-2.0
-git_setup_signingkey: CB05CB5CFA5DFD9850BB814DE0C020C1975548AE
+git_setup_signingkey: ""
 git_setup_enable_gpg_signing: true  # Set to false to disable GPG signing (e.g., in CI)
 git_setup_install_gh: true
 git_setup_gh_token: ""  # Set this in vault to enable gh authentication
 git_setup_gh_authenticate: false  # Set to true to authenticate gh with token
 git_setup_unprivileged: false  # Set to true to skip tasks that require root/sudo
 git_setup_dotfiles_enable: false  # Set to true when dotfiles repo owns .gitconfig (skips git config --global tasks)
-git_setup_user_name: "Stephen Bates"
-git_setup_user_email: "sbates@raithlin.com"
+
+# Must be set explicitly; no default to avoid writing the wrong identity to ~/.gitconfig.
+# Ignored when git_setup_dotfiles_enable is true.
+git_setup_user_name: ""
+git_setup_user_email: ""
+
+# Set to true to push ~/.gnupg/ from the controller to the target.
+# Opt-in only; the previous default relied on private inventory groups.
+git_setup_deploy_gnupg: false

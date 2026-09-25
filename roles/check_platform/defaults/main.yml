@@ -1,0 +1,10 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+# defaults file for check_platform
+
+# When true (default), an unsupported platform causes a hard fail instead of
+# silently ending the host. Set to false only when you want the old skip
+# behaviour and understand that subsequent tasks in the same play will not run.
+check_platform_fail_on_unsupported: true

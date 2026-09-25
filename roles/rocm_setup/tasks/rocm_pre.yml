@@ -386,7 +386,8 @@
     update_cache: true
     cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
     name: >-
-      {{ ['linux-generic', 'linux-headers-' + ansible_facts['kernel']]
+      {{ (['linux-generic'] if rocm_setup_install_kernel_meta | default(true) else [])
+         + ['linux-headers-' + ansible_facts['kernel']]
          + (['linux-modules-extra-' + ansible_facts['kernel']]
             if rocm_setup_modules_extra_check.rc == 0
             else []) }}

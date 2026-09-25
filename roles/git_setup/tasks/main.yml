@@ -72,6 +72,16 @@
     - git_setup_gh_status is defined
     - git_setup_gh_status.rc != 0
 
+- name: Assert git user identity is configured when dotfiles is not managing it
+  ansible.builtin.assert:
+    that:
+      - git_setup_user_name | length > 0
+      - git_setup_user_email | length > 0
+    msg: >-
+      git_setup_user_name and git_setup_user_email must be set in host_vars or
+      group_vars. Set git_setup_dotfiles_enable: true if dotfiles owns .gitconfig.
+  when: not git_setup_dotfiles_enable | default(false)
+
 - name: Copy over gnupg folder to ensure PGP keys are on target(s)
   ansible.posix.synchronize:
     src: ~/.gnupg/
@@ -82,8 +92,7 @@
       - --exclude=*.conf
   when:
     - git_setup_enable_gpg_signing | default(true)
-    - inventory_hostname not in groups['locals'] | default([]) and
-      inventory_hostname not in groups['runners'] | default([])
+    - git_setup_deploy_gnupg | default(false)
 
 - name: Configure emacs as git editor
   community.general.git_config:

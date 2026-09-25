@@ -1,7 +1,7 @@
 ---
 # Copyright (c) Stephen Bates, 2023
 #
-# Test the host(s) to ensure they are running a supported patform
+# Test the host(s) to ensure they are running a supported platform
 # based on data contained in the meta section of this role. Code based
 # on an example found at [1].
 #
@@ -14,35 +14,55 @@
 - name: Include the calling roles' meta data
   ansible.builtin.include_vars:
     file: "{{ calling_role_path }}/meta/main.yml"
+    name: _cp_meta
 
 - name: Set a fact that contains the supported distributions
   ansible.builtin.set_fact:
-    supported_distributions: "{{ galaxy_info.platforms | json_query('[].name') }}"
+    check_platform_supported_distributions: >-
+      {{ _cp_meta.galaxy_info.platforms | map(attribute='name') | list }}
 
-- name: Test for supported distribution on this host and end_host if not found
-  when: ansible_facts['distribution'] not in supported_distributions
+- name: Test for supported distribution on this host
+  when: ansible_facts['distribution'] not in check_platform_supported_distributions
   block:
 
     - name: Print a debug message when the distribution is not supported
       ansible.builtin.debug:
         msg: "{{ ansible_facts['distribution'] }} not supported."
 
-    - name: End the role on this host because the distribution is not supported
+    - name: Fail when distribution is not supported
+      ansible.builtin.fail:
+        msg: >-
+          {{ ansible_facts['distribution'] }} is not supported by this role.
+          Set check_platform_fail_on_unsupported: false to skip instead.
+      when: check_platform_fail_on_unsupported | default(true)
+
+    - name: End host when distribution is not supported (non-fatal mode)
       ansible.builtin.meta: end_host
+      when: not (check_platform_fail_on_unsupported | default(true))
 
 - name: Set a fact that contains the supported releases
   ansible.builtin.set_fact:
-    supported_releases: "{{ (galaxy_info.platforms |
-                            selectattr('name', 'match', ansible_facts['distribution']) |
-                            list | first).versions }}"
+    check_platform_supported_releases: >-
+      {{ (_cp_meta.galaxy_info.platforms
+          | selectattr('name', 'match', ansible_facts['distribution'])
+          | list | first).versions }}
 
-- name: Test for supported {{ ansible_facts['distribution'] }} release and end_host if not found
-  when: ansible_facts['distribution_release'] not in supported_releases
+- name: Test for supported {{ ansible_facts['distribution'] }} release
+  when: ansible_facts['distribution_release'] not in check_platform_supported_releases
   block:
 
     - name: Print a debug message when the release is not supported
       ansible.builtin.debug:
         msg: "{{ ansible_facts['distribution_release'] }} not supported."
 
-    - name: End the role on this host because the release is not supported
+    - name: Fail when release is not supported
+      ansible.builtin.fail:
+        msg: >-
+          {{ ansible_facts['distribution_release'] }} is not a supported release for
+          {{ ansible_facts['distribution'] }}. Supported: {{ check_platform_supported_releases }}.
+          Set check_platform_fail_on_unsupported: false to skip instead.
+      when: check_platform_fail_on_unsupported | default(true)
+
+    - name: End host when release is not supported (non-fatal mode)
       ansible.builtin.meta: end_host
+      when: not (check_platform_fail_on_unsupported | default(true))
