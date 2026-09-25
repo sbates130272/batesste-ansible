@@ -4,3 +4,14 @@
     cmd: update-ca-certificates
   become: true
   changed_when: true
+
+- name: Reload procps
+  ansible.builtin.systemd:
+    name: procps
+    state: restarted
+  become: true
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
