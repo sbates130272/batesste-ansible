@@ -205,18 +205,20 @@
 
 - name: Discover therock versioned install prefix
   ansible.builtin.shell:
-    cmd: ls -d /opt/rocm/core-* 2>/dev/null | sort -V | tail -1 || true
+    cmd: |
+      set -o pipefail
+      ls -d /opt/rocm/core-* 2>/dev/null | sort -V | tail -1 || true
     executable: /bin/bash
-  register: _rocm_therock_prefix_raw
+  register: rocm_setup_therock_prefix_raw
   changed_when: false
   when: rocm_setup_repo_stream == 'therock'
 
 - name: Set therock install prefix fact
   ansible.builtin.set_fact:
-    rocm_setup_therock_prefix: "{{ _rocm_therock_prefix_raw.stdout | trim }}"
+    rocm_setup_therock_prefix: "{{ rocm_setup_therock_prefix_raw.stdout | trim }}"
   when:
     - rocm_setup_repo_stream == 'therock'
-    - _rocm_therock_prefix_raw.stdout | default('') | trim | length > 0
+    - rocm_setup_therock_prefix_raw.stdout | default('') | trim | length > 0
 
 - name: Update the library linker with rocm library paths
   ansible.builtin.copy:
