@@ -10,7 +10,7 @@ name: batesste-ansible - grafana_setup CI
       - main
     paths:
       - roles/grafana_setup/**
-      - .github/workflows/grafana_setup-ci.yml
+      - .github/workflows/batesste-ansible-grafana_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

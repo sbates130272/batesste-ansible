@@ -10,7 +10,7 @@ name: batesste-ansible - docker_setup CI
       - main
     paths:
       - roles/docker_setup/**
-      - .github/workflows/docker_setup-ci.yml
+      - .github/workflows/batesste-ansible-docker_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

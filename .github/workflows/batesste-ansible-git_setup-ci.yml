@@ -10,7 +10,7 @@ name: batesste-ansible - git_setup CI
       - main
     paths:
       - roles/git_setup/**
-      - .github/workflows/git_setup-ci.yml
+      - .github/workflows/batesste-ansible-git_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

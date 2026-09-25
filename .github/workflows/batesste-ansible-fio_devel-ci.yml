@@ -10,7 +10,7 @@ name: batesste-ansible - fio_devel CI
       - main
     paths:
       - roles/fio_devel/**
-      - .github/workflows/fio_devel-ci.yml
+      - .github/workflows/batesste-ansible-fio_devel-ci.yml
       - requirements.txt
       - requirements.yml
 

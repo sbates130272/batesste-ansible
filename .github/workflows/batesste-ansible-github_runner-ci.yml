@@ -10,7 +10,7 @@ name: batesste-ansible - github_runner CI
       - main
     paths:
       - roles/github_runner/**
-      - .github/workflows/github_runner-ci.yml
+      - .github/workflows/batesste-ansible-github_runner-ci.yml
       - requirements.txt
       - requirements.yml
 
