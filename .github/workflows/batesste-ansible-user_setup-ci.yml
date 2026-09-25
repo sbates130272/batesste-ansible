@@ -10,7 +10,7 @@ name: batesste-ansible - user_setup CI
       - main
     paths:
       - roles/user_setup/**
-      - .github/workflows/user_setup-ci.yml
+      - .github/workflows/batesste-ansible-user_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

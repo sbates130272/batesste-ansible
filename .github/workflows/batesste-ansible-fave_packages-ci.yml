@@ -10,7 +10,7 @@ name: batesste-ansible - fave_packages CI
       - main
     paths:
       - roles/fave_packages/**
-      - .github/workflows/fave_packages-ci.yml
+      - .github/workflows/batesste-ansible-fave_packages-ci.yml
       - requirements.txt
       - requirements.yml
 

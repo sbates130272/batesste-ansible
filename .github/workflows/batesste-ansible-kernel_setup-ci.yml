@@ -10,7 +10,7 @@ name: batesste-ansible - kernel_setup CI
       - main
     paths:
       - roles/kernel_setup/**
-      - .github/workflows/kernel_setup-ci.yml
+      - .github/workflows/batesste-ansible-kernel_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

@@ -10,7 +10,7 @@ name: batesste-ansible - cloud_setup CI
       - main
     paths:
       - roles/cloud_setup/**
-      - .github/workflows/cloud_setup-ci.yml
+      - .github/workflows/batesste-ansible-cloud_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

@@ -10,7 +10,7 @@ name: batesste-ansible - check_platform CI
       - main
     paths:
       - roles/check_platform/**
-      - .github/workflows/check_platform-ci.yml
+      - .github/workflows/batesste-ansible-check_platform-ci.yml
       - requirements.txt
       - requirements.yml
 

@@ -10,7 +10,7 @@ name: batesste-ansible - claude_setup CI
       - main
     paths:
       - roles/claude_setup/**
-      - .github/workflows/claude_setup-ci.yml
+      - .github/workflows/batesste-ansible-claude_setup-ci.yml
       - requirements.txt
       - requirements.yml
 

@@ -10,7 +10,7 @@ name: batesste-ansible - lemonade_setup CI
       - main
     paths:
       - roles/lemonade_setup/**
-      - .github/workflows/lemonade_setup-ci.yml
+      - .github/workflows/batesste-ansible-lemonade_setup-ci.yml
       - requirements.txt
       - requirements.yml
 
