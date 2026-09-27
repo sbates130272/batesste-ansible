@@ -222,15 +222,14 @@
 
 - name: Update the library linker with rocm library paths
   ansible.builtin.copy:
-    content: >-
-      {{
+    content: "{{
         ((['/opt/rocm/lib'] if rocm_setup_repo_stream != 'therock' else [])
          + (['/opt/rocm/lib64'] if rocm_setup_wsl_mode == 'rocdxg' else [])
          + ([rocm_setup_therock_prefix + '/lib']
             if rocm_setup_repo_stream == 'therock' and rocm_setup_therock_prefix is defined
             else []))
         | join('\n') + '\n'
-      }}
+      }}"
     dest: /etc/ld.so.conf.d/rocm.conf
     owner: root
     group: root

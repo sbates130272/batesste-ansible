@@ -112,6 +112,7 @@
   environment:
     LEMONADE_API_KEY: "{{ lemonade_setup_api_key }}"
     LEMONADE_ADMIN_API_KEY: "{{ lemonade_setup_admin_api_key }}"
+    LEMONADE_PORT: "{{ lemonade_setup_port }}"
   become: true
   become_user: lemonade
   register: lemonade_setup_config_result
