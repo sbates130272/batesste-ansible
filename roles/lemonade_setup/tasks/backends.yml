@@ -16,6 +16,7 @@
     cmd: lemonade backends
   environment:
     LEMONADE_API_KEY: "{{ lemonade_setup_api_key }}"
+    LEMONADE_PORT: "{{ lemonade_setup_port }}"
   register: lemonade_setup_backends_status
   changed_when: false
   become: true
@@ -26,6 +27,7 @@
     cmd: lemonade backends install {{ item }}
   environment:
     LEMONADE_API_KEY: "{{ lemonade_setup_api_key }}"
+    LEMONADE_PORT: "{{ lemonade_setup_port }}"
   loop: "{{ lemonade_setup_backends }}"
   when: >-
     (lemonade_setup_backends_status.stdout_lines
