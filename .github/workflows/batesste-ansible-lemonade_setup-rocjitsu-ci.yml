@@ -169,6 +169,7 @@ jobs:
           ${{ github.workspace }}/batesste-ansible/collections:~/.ansible/collections
       run: |
         echo "placeholder" > playbooks/sudo-password
+        echo "placeholder" > playbooks/vault-password
         ansible-playbook -v \
           -i /tmp/hosts-lemonade-rocjitsu.yml \
           playbooks/lemonade/deploy.yml
