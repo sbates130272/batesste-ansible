@@ -461,6 +461,11 @@ jobs:
         ansible-playbook -v \\
           -i /tmp/hosts-lemonade-rocjitsu.yml \\
           playbooks/lemonade/deploy.yml
+    - name: Ensure lemond is started on VM
+      run: |
+        ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \\
+            -p 2222 ubuntu@qemu \\
+            "sudo systemctl daemon-reload && sudo systemctl restart lemond || true"
     - name: Wait for lemond healthy (120s timeout)
       run: |
         elapsed=0
