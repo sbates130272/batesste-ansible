@@ -167,6 +167,7 @@ jobs:
         ANSIBLE_ROLES_PATH: ${{ github.workspace }}/batesste-ansible/roles
         ANSIBLE_COLLECTIONS_PATH: >-
           ${{ github.workspace }}/batesste-ansible/collections:~/.ansible/collections
+        ANSIBLE_BECOME_PASSWORD_FILE: /dev/null
       run: |
         ansible-playbook -v \
           -i /tmp/hosts-lemonade-rocjitsu.yml \
