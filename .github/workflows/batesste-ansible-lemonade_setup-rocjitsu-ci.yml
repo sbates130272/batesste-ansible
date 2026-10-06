@@ -173,18 +173,21 @@ jobs:
         ansible-playbook -v \
           -i /tmp/hosts-lemonade-rocjitsu.yml \
           playbooks/lemonade/deploy.yml
-    - name: Wait for lemond healthy (60s timeout)
+    - name: Wait for lemond healthy (120s timeout)
       run: |
         elapsed=0
-        while [ $elapsed -lt 60 ]; do
-          status=$(ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \
+        healthy=0
+        while [ $elapsed -lt 120 ]; do
+          if ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \
               -p 2222 ubuntu@qemu \
-              "LEMONADE_API_KEY=ci_lemonade_api_key_rocjitsu lemonade status 2>/dev/null | grep -c 'running'" \
-              2>/dev/null || echo 0)
-          [ "$status" -ge 1 ] && break
-          sleep 3; elapsed=$((elapsed + 3))
+              "curl -sf -H 'Authorization: Bearer ci_lemonade_api_key_rocjitsu' http://127.0.0.1:13305/api/v0/health | grep -q '"status":"ok"'" \
+              2>/dev/null; then
+            healthy=1
+            break
+          fi
+          sleep 5; elapsed=$((elapsed + 5))
         done
-        [ "$status" -ge 1 ] || { echo "lemond not healthy after ${elapsed}s"; exit 1; }
+        [ $healthy -eq 1 ] || { echo "lemond not healthy after ${elapsed}s"; exit 1; }
         echo "lemond healthy after ${elapsed}s"
     - name: Run minimal LLM inference test
       timeout-minutes: 10
