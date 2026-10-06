@@ -167,6 +167,11 @@ jobs:
         ANSIBLE_ROLES_PATH: ${{ github.workspace }}/batesste-ansible/roles
         ANSIBLE_COLLECTIONS_PATH: >-
           ${{ github.workspace }}/batesste-ansible/collections:~/.ansible/collections
+        ANSIBLE_SSH_ARGS: >-
+          -o StrictHostKeyChecking=no
+          -o NoHostAuthenticationForLocalhost=yes
+          -o ControlMaster=auto
+          -o ControlPersist=60s
       run: |
         echo "placeholder" > playbooks/sudo-password
         echo "placeholder" > playbooks/vault-password
