@@ -44,6 +44,12 @@
         (rocm_setup_install_metrics_exporter | default(false))
         and (rocm_setup_metrics_exporter_version | default('latest') == 'latest')
       }}
+    rocm_setup_need_therock_version_latest: >-
+      {{
+        rocm_setup_repo_stream == 'therock'
+        and rocm_setup_minimal | bool
+        and rocm_setup_therock_rocm_version == 'latest'
+      }}
 
 - name: Run the rocm-latest script and register results
   ansible.builtin.command:
@@ -242,6 +248,41 @@
     - metrics_exporter_latest_version.stdout is defined
     - metrics_exporter_latest_version.stdout | default('') !=
         (rocm_setup_metrics_exporter_version | default('latest'))
+
+- name: Run rocm-latest for therock versioned package suffix
+  ansible.builtin.command:
+    cmd: rocm-latest
+  environment:
+    QUIET: "true"
+    ONLY_ONE: THEROCK_ROCM_VERSION
+    THEROCK_CHANNEL: "{{ rocm_setup_therock_channel }}"
+    DISTRO: "{{ ansible_facts['distribution_release'] }}"
+  register: rocm_setup_therock_version_latest
+  changed_when: false
+  when:
+    - rocm_setup_repo_stream == 'therock'
+    - rocm_setup_minimal | bool
+
+- name: Resolve rocm_setup_therock_rocm_version from latest
+  ansible.builtin.set_fact:
+    rocm_setup_therock_rocm_version: "{{ rocm_setup_therock_version_latest.stdout }}"
+  when:
+    - rocm_setup_need_therock_version_latest
+    - rocm_setup_therock_version_latest.stdout | default('') | length > 0
+
+- name: Fail if pinned therock version suffix is not the latest available
+  ansible.builtin.fail:
+    msg: >-
+      rocm_setup_therock_rocm_version {{ rocm_setup_therock_rocm_version }} does not
+      match the current therock suffix {{ rocm_setup_therock_version_latest.stdout }}.
+      Update rocm_setup_therock_rocm_version or set it to 'latest'.
+  when:
+    - not rocm_setup_need_therock_version_latest
+    - rocm_setup_repo_stream == 'therock'
+    - rocm_setup_minimal | bool
+    - rocm_setup_therock_version_latest is defined
+    - rocm_setup_therock_version_latest.stdout | default('') | length > 0
+    - rocm_setup_therock_version_latest.stdout != rocm_setup_therock_rocm_version
 
 - name: Print out the ROCm version being installed
   ansible.builtin.debug:
