@@ -460,6 +460,7 @@ jobs:
         echo "placeholder" > playbooks/vault-password
         ansible-playbook -v \\
           -i /tmp/hosts-lemonade-rocjitsu.yml \\
+          -e targets=all \\
           playbooks/lemonade/deploy.yml
     - name: Ensure lemond is started on VM
       run: |
