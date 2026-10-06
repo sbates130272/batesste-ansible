@@ -288,6 +288,248 @@ jobs:
         # lemonade-server package not yet available in the PPA on ubuntu-24.04;
         # ignore until the role is updated for the current lemonade release.
         "ignore_failure": True,
+        "raw_workflow_files": {
+            "rocjitsu": """\
+name: batesste-ansible - lemonade_setup rocjitsu CI
+'on':
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+      - main
+    paths:
+      - roles/lemonade_setup/**
+      - roles/rocm_setup/**
+      - .github/workflows/batesste-ansible-lemonade_setup-rocjitsu-ci.yml
+
+env:
+  ROCJITSU_IMAGE: docker.io/sbates130272/batesste-ci-images-ubuntu-rocm-rocjitsu:20260929.g2bdbd16-rocjitsu.f2d13fb
+  QEMU_IMAGE: docker.io/sbates130272/batesste-ci-images-ubuntu-qemu-libvfio-user:20260929.g2bdbd16-qemu11.1.2-vfu.8039244
+  VM_IMAGES_DIR: /var/lib/qemu-tool/images
+  LEMONADE_API_KEY: ci_lemonade_api_key_rocjitsu
+  LEMONADE_ADMIN_API_KEY: ci_lemonade_admin_api_key_rocjitsu
+
+jobs:
+  lemonade_setup-rocjitsu-test:
+    name: lemonade_setup - rocjitsu vfio-pci LLM inference CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    container:
+      image: docker.io/sbates130272/batesste-ci-images-ubuntu-qemu-libvfio-user:20260929.g2bdbd16-qemu11.1.2-vfu.8039244
+      options: >-
+        --device /dev/kvm
+        -v /var/run/docker.sock:/var/run/docker.sock
+        -v /var/lib/qemu-tool:/var/lib/qemu-tool
+    steps:
+    - name: Check out batesste-ansible
+      uses: actions/checkout@v7.0.1
+      with:
+        path: batesste-ansible
+    - name: Check out qemu-minimal
+      uses: actions/checkout@v4.3.1
+      with:
+        repository: sbates130272/qemu-minimal
+        path: qemu-minimal
+    - name: Verify KVM is available
+      run: |
+        test -c /dev/kvm || { echo "::error::/dev/kvm missing"; exit 1; }
+        python3 -c "import os, fcntl; fcntl.ioctl(os.open('/dev/kvm', os.O_RDWR), 0xAE00, 0)"
+    - name: Install qemu-tool from qemu-minimal source
+      run: pip install --break-system-packages -e ./qemu-minimal/qemu
+    - name: Generate SSH keypair
+      run: |
+        mkdir -p "$HOME/.ssh"
+        ssh-keygen -t rsa -q -f "$HOME/.ssh/id_rsa" -N ""
+        [ "$HOME" = /root ] || { rm -rf /root/.ssh && ln -s "$HOME/.ssh" /root/.ssh; }
+    - name: Stage qemu-tool source for QEMU sibling container
+      run: |
+        mkdir -p /var/lib/qemu-tool/src
+        cp -r qemu-minimal/qemu /var/lib/qemu-tool/src/
+    - name: Install batesste-ansible pip packages
+      run: python3 -m pip install --break-system-packages -r batesste-ansible/requirements.txt
+    - name: Install batesste Ansible collections
+      run: |
+        ansible-galaxy collection install -r batesste-ansible/requirements.yml
+        ansible-galaxy collection install -r qemu-minimal/ansible/requirements.yml
+        cd batesste-ansible && ansible-galaxy collection build --force
+        ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force
+    - name: Pull CI images
+      run: |
+        docker pull "$ROCJITSU_IMAGE"
+        docker pull "$QEMU_IMAGE"
+    - name: Generate VM with vm-rocjitsu playbook
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ANSIBLE_EXTRA_ARGS: >-
+          -e
+          {"git_setup_enable_gpg_signing":false,"user_setup_dotfiles_enable":false,"rocm_setup_skip_system_upgrade":true}
+      run: |
+        qemu-tool gen-vm \\
+          --vm-name lemonade-test \\
+          --release resolute \\
+          --username ubuntu \\
+          --password password \\
+          --packages none \\
+          --size 32 \\
+          --images /var/lib/qemu-tool/images \\
+          --ansible-playbook qemu-minimal/ansible/playbooks/vm-rocjitsu.yml
+    - name: Bring up rocjitsu compose stack
+      working-directory: qemu-minimal/qemu/compose/vfio-user-rocjitsu-vm
+      env:
+        VM_NAME: lemonade-test
+        QEMU_TOOL_SRC: /var/lib/qemu-tool/src
+        VM_VCPUS: "2"
+        VM_VMEM: "4096"
+        VM_SHM_SIZE: "5g"
+      run: |
+        docker compose up --detach
+        echo "Compose stack started"
+    - name: Join the compose network
+      run: docker network connect vfio-user-rocjitsu-vm_default "$(cat /etc/hostname)"
+    - name: Wait for rocjitsu server healthy
+      working-directory: qemu-minimal/qemu/compose/vfio-user-rocjitsu-vm
+      run: |
+        for i in $(seq 1 30); do
+          health=$(docker compose ps --format json rocjitsu \\
+            | python3 -c "import sys,json; s=json.load(sys.stdin); print(s.get('Health',''))" \\
+            2>/dev/null || true)
+          [ "$health" = "healthy" ] && break
+          sleep 2
+        done
+        [ "$health" = "healthy" ] || (docker compose logs rocjitsu && exit 1)
+        echo "rocjitsu server healthy"
+    - name: Wait for VM SSH (180s timeout)
+      run: |
+        elapsed=0
+        while [ $elapsed -lt 180 ]; do
+          if ssh -o ConnectTimeout=1 \\
+                 -o NoHostAuthenticationForLocalhost=yes \\
+                 -o StrictHostKeyChecking=no \\
+                 -p 2222 ubuntu@qemu true 2>/dev/null; then
+            echo "VM ready after ${elapsed}s"
+            exit 0
+          fi
+          sleep 2; elapsed=$((elapsed + 2))
+        done
+        echo "VM failed to boot in time"
+        exit 1
+    - name: Load amdgpu via amdgpu-probe
+      timeout-minutes: 5
+      run: |
+        ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \\
+            -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \\
+            -p 2222 ubuntu@qemu "sudo timeout 120 /usr/local/bin/amdgpu-probe"
+        echo "amdgpu-probe completed"
+    - name: Verify GPU KFD node present
+      run: |
+        gpus=$(ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \\
+            -p 2222 ubuntu@qemu \\
+            "cat /sys/class/kfd/kfd/topology/nodes/*/name 2>/dev/null | grep -c .")
+        [ "$gpus" -ge 1 ] || { echo "no GPU KFD node"; exit 1; }
+        echo "GPU KFD node present ($gpus)"
+    - name: Write Ansible inventory for lemonade_setup
+      run: |
+        cat > /tmp/hosts-lemonade-rocjitsu.yml <<'EOF'
+        all:
+          hosts:
+            lemonade-vm:
+              ansible_host: qemu
+              ansible_port: 2222
+              ansible_user: ubuntu
+              ansible_ssh_extra_args: >-
+                -o NoHostAuthenticationForLocalhost=yes
+                -o StrictHostKeyChecking=no
+              lemonade_setup_install_method: deb
+              lemonade_setup_llamacpp_backend: rocm
+              lemonade_setup_run_rocm_setup: false
+              lemonade_setup_tailscale_serve: false
+              lemonade_setup_start_service: true
+              lemonade_setup_no_broadcast: true
+              lemonade_setup_backends:
+                - llamacpp:rocm
+              vault_lemonade_setup_api_key: ci_lemonade_api_key_rocjitsu
+              vault_lemonade_setup_admin_api_key: ci_lemonade_admin_api_key_rocjitsu
+        EOF
+    - name: Deploy lemonade_setup role to VM
+      working-directory: batesste-ansible
+      env:
+        ANSIBLE_ROLES_PATH: ${{ github.workspace }}/batesste-ansible/roles
+        ANSIBLE_COLLECTIONS_PATH: >-
+          ${{ github.workspace }}/batesste-ansible/collections:~/.ansible/collections
+      run: |
+        ansible-playbook -v \\
+          -i /tmp/hosts-lemonade-rocjitsu.yml \\
+          playbooks/lemonade/deploy.yml
+    - name: Wait for lemond healthy (60s timeout)
+      run: |
+        elapsed=0
+        while [ $elapsed -lt 60 ]; do
+          status=$(ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \\
+              -p 2222 ubuntu@qemu \\
+              "LEMONADE_API_KEY=ci_lemonade_api_key_rocjitsu lemonade status 2>/dev/null | grep -c 'running'" \\
+              2>/dev/null || echo 0)
+          [ "$status" -ge 1 ] && break
+          sleep 3; elapsed=$((elapsed + 3))
+        done
+        [ "$status" -ge 1 ] || { echo "lemond not healthy after ${elapsed}s"; exit 1; }
+        echo "lemond healthy after ${elapsed}s"
+    - name: Run minimal LLM inference test
+      timeout-minutes: 10
+      run: |
+        ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \\
+            -p 2222 ubuntu@qemu bash <<'EOSSH'
+        set -e
+        API_KEY=ci_lemonade_api_key_rocjitsu
+        MODEL=Qwen3-0.6B-GGUF:Q4_0
+        # Load model
+        curl -sf -X POST \\
+          -H "Authorization: Bearer $API_KEY" \\
+          -H "Content-Type: application/json" \\
+          -d "{\"model\":\"$MODEL\"}" \\
+          http://127.0.0.1:13305/api/v0/models/load
+        # Wait for model ready (up to 120s)
+        for i in $(seq 1 40); do
+          loaded=$(curl -sf -H "Authorization: Bearer $API_KEY" \\
+            http://127.0.0.1:13305/api/v0/health \\
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('model_loaded',''))")
+          [ -n "$loaded" ] && [ "$loaded" != "None" ] && [ "$loaded" != "null" ] && break
+          sleep 3
+        done
+        echo "Model loaded: $loaded"
+        [ -n "$loaded" ] && [ "$loaded" != "None" ] && [ "$loaded" != "null" ] || {
+          echo "Model failed to load"; exit 1
+        }
+        # Run inference
+        out=$(curl -sf \\
+          -H "Authorization: Bearer $API_KEY" \\
+          -H "Content-Type: application/json" \\
+          -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"say hi\"}],\"max_tokens\":5,\"stream\":false}" \\
+          http://127.0.0.1:13305/v1/chat/completions)
+        echo "$out" | python3 -c "
+        import sys, json
+        d = json.load(sys.stdin)
+        content = d['choices'][0]['message']['content']
+        print('Inference response:', content)
+        assert content, 'empty response'
+        "
+        echo "LLM inference test passed"
+        EOSSH
+    - name: Dump guest dmesg on failure
+      if: failure()
+      timeout-minutes: 2
+      run: |
+        ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \\
+            -o ConnectTimeout=10 -p 2222 ubuntu@qemu "sudo dmesg | tail -200" || true
+    - name: Show lemond journal on failure
+      if: failure()
+      run: |
+        ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \\
+            -o ConnectTimeout=10 -p 2222 ubuntu@qemu \\
+            "sudo journalctl -u lemond --no-pager -n 100" || true
+    - name: Show compose logs on failure
+      if: failure()
+      working-directory: qemu-minimal/qemu/compose/vfio-user-rocjitsu-vm
+      run: docker compose logs""",
+        },
     },
     "grafana_setup": {
         "free_disk_space": False,
