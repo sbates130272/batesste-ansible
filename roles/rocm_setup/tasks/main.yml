@@ -203,6 +203,14 @@
   become: true
   when: rocm_setup_packages | length > 0
 
+- name: Install extra ROCm packages
+  ansible.builtin.package:
+    update_cache: true
+    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
+    name: "{{ rocm_setup_extra_packages }}"
+  become: true
+  when: rocm_setup_extra_packages | default([]) | length > 0
+
 - name: Discover therock versioned install prefix
   ansible.builtin.shell:
     cmd: |
@@ -366,7 +374,9 @@
 - name: Run the rocm checks to ensure install worked
   ansible.builtin.import_tasks:
     file: rocm_check.yml
-  when: rocm_setup_run_gpu_checks | bool
+  when:
+    - rocm_setup_run_gpu_checks | bool
+    - not (rocm_setup_amdgpu_dkms_defer_build | bool)
 
 - name: Install and configure AMD Device Metrics Exporter
   ansible.builtin.import_tasks:

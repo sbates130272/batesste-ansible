@@ -13,6 +13,10 @@
 # for the amdrocm meta-package version. Use REPO_STREAM=legacy for the
 # original repo.radeon.com flow.
 #
+# THEROCK_ROCM_VERSION returns the major.minor version suffix used in therock
+# versioned package names (e.g. amdrocm-llvm10.0). Derived from the amdrocm
+# package version by stripping the patch and build components.
+#
 # DISTRO=[noble|resolute] sets the target Ubuntu release (default: noble).
 # This derives THEROCK_DISTRO_PATH (ubuntu2404/ubuntu2604) for the therock APT
 # index URL, and AMDGPU_SUITE for the amdgpu-dkms package version lookup.
@@ -123,6 +127,19 @@ if [ "${ONLY_ONE}" == "ROCM" ] || [ "${ONLY_ONE}" == "false" ]; then
         else
             echo "ROCm latest: ${ROCM_VERSION}."
         fi
+    fi
+fi
+
+# Therock versioned package name suffix (e.g. "10.0" for amdrocm-llvm10.0).
+# Derived from the amdrocm package version by keeping only major.minor.
+if [ "${ONLY_ONE}" == "THEROCK_ROCM_VERSION" ]; then
+    THEROCK_PACKAGES_URL="${THEROCK_REPO_BASE}/rocm/core/packages/${THEROCK_DISTRO_PATH}/dists/${THEROCK_SUITE}/main/binary-amd64/Packages"
+    FULL_VERSION=$(parse_apt_packages "${THEROCK_PACKAGES_URL}" "${THEROCK_ROCM_PACKAGE}")
+    VERSION_SUFFIX=$(echo "${FULL_VERSION}" | grep -oE '^[0-9]+\.[0-9]+')
+    if [ "${QUIET}" == "true" ]; then
+        echo "${VERSION_SUFFIX}"
+    else
+        echo "ROCm therock version suffix (${THEROCK_CHANNEL}/${DISTRO}): ${VERSION_SUFFIX}."
     fi
 fi
 

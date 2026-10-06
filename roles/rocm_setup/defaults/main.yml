@@ -18,6 +18,11 @@ rocm_setup_repo_pin_origin: "{{ rocm_setup_repo_base_url }}"
 # Repo layout: https://{channel}.repo.amd.com/rocm/core/packages/{distro}/
 # GPG key:     https://{channel}.repo.amd.com/rocm/gpg/packages.gpg
 rocm_setup_therock_channel: stable
+# Package-name version suffix for the therock stream (e.g. "10.0" gives
+# amdrocm-llvm10.0). Set to 'latest' to auto-discover from the APT index
+# via rocm-latest THEROCK_ROCM_VERSION; set to an explicit string to pin.
+# Only used when rocm_setup_minimal is true.
+rocm_setup_therock_rocm_version: latest
 
 # AMDGPU kernel driver repo version for the therock stream.  The kernel driver
 # packages (amdgpu-dkms) live on repo.radeon.com under a separate versioned
@@ -207,16 +212,21 @@ rocm_setup_hipfile_fio_install_dir: /opt/fio-hipfile
 # the therock stream (non-WSL).  Use rocm_setup_extra_packages to layer on
 # additional packages afterwards.
 rocm_setup_minimal: false
-# Minimal therock package set for compiling and running basic HIP programs:
-#   ~107 packages / ~3.9 GB vs ~264 packages for the full amdrocm meta.
-# amdrocm-runtime-dev pulls in libamdhip64-5 + libamdhip64-dev (therock 10.x).
-# hipcc is the Ubuntu-universe wrapper (5.7.x / clang-17) which works for simple
-# programs; for the newer therock compiler use amdrocm-llvm instead.
+# Minimal therock package set (tracks rocm_setup_therock_rocm_version).
+# amdrocm-llvm<ver> provides the ROCm compiler toolchain (hipcc, clang).
+# amdrocm-llvm-dev<ver> provides HIP headers and ROCm compiler dev tools.
+# amdrocm-runtime<ver> provides the HSA runtime and HIP runtime libraries.
+# These three transitively pull in amdrocm-sysdeps (all-target bitcode + comgr)
+# and amdrocm-base (HSA loader, amd-smi) — no per-gfx-target package required.
 rocm_setup_minimal_packages:
-  - libstdc++-14-dev
-  - amdrocm-runtime-dev
-  - hipcc
+  - "amdrocm-llvm{{ rocm_setup_therock_rocm_version }}"
+  - "amdrocm-llvm-dev{{ rocm_setup_therock_rocm_version }}"
+  - "amdrocm-runtime{{ rocm_setup_therock_rocm_version }}"
   - rocminfo
+
+# Extra packages installed after the main package set. Use to layer on
+# additional ROCm components without overriding rocm_setup_minimal_packages.
+rocm_setup_extra_packages: []
 
 # rocm-xio: source-built GPU IO library (RDMA/NVMe direct GPU IO).
 # Set rocm_setup_install_xio: true to clone, build, and optionally run
