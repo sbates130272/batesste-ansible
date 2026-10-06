@@ -449,6 +449,11 @@ jobs:
               vault_lemonade_setup_api_key: ci_lemonade_api_key_rocjitsu
               vault_lemonade_setup_admin_api_key: ci_lemonade_admin_api_key_rocjitsu
         EOF
+    - name: Update apt cache on VM
+      run: |
+        ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \\
+            -p 2222 ubuntu@qemu \\
+            "sudo apt-get update -qq"
     - name: Deploy lemonade_setup role to VM
       working-directory: batesste-ansible
       env:
