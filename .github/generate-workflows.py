@@ -444,7 +444,8 @@ jobs:
               lemonade_setup_tailscale_serve: false
               lemonade_setup_start_service: true
               lemonade_setup_no_broadcast: true
-              lemonade_setup_backends: []
+              lemonade_setup_backends:
+                - llamacpp:vulkan
               vault_lemonade_setup_api_key: ci_lemonade_api_key_rocjitsu
               vault_lemonade_setup_admin_api_key: ci_lemonade_admin_api_key_rocjitsu
         EOF
