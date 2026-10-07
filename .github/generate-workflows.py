@@ -496,39 +496,32 @@ jobs:
             -p 2222 ubuntu@qemu bash <<'EOSSH'
         set -e
         API_KEY=ci_lemonade_api_key_rocjitsu
-        MODEL=Qwen3-0.6B-GGUF:Q4_0
-        # Load model
-        curl -sf -X POST \\
-          -H "Authorization: Bearer $API_KEY" \\
-          -H "Content-Type: application/json" \\
-          -d "{\"model\":\"$MODEL\"}" \\
-          http://127.0.0.1:13305/api/v0/models/load
-        # Wait for model ready (up to 120s)
-        for i in $(seq 1 40); do
-          loaded=$(curl -sf -H "Authorization: Bearer $API_KEY" \\
-            http://127.0.0.1:13305/api/v0/health \\
-            | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('model_loaded',''))")
-          [ -n "$loaded" ] && [ "$loaded" != "None" ] && [ "$loaded" != "null" ] && break
-          sleep 3
-        done
-        echo "Model loaded: $loaded"
-        [ -n "$loaded" ] && [ "$loaded" != "None" ] && [ "$loaded" != "null" ] || {
-          echo "Model failed to load"; exit 1
-        }
-        # Run inference
-        out=$(curl -sf \\
-          -H "Authorization: Bearer $API_KEY" \\
-          -H "Content-Type: application/json" \\
-          -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"say hi\"}],\"max_tokens\":5,\"stream\":false}" \\
-          http://127.0.0.1:13305/v1/chat/completions)
-        echo "$out" | python3 -c "
+        MODEL=Tiny-Test-Model-GGUF
+        # /v1/chat/completions auto-loads the model; poll until response is non-error
+        elapsed=0
+        while [ $elapsed -lt 300 ]; do
+          out=$(curl -sf \\
+            -H "Authorization: Bearer $API_KEY" \\
+            -H "Content-Type: application/json" \\
+            -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"say hi\"}],\"max_tokens\":5,\"stream\":false}" \\
+            http://127.0.0.1:13305/v1/chat/completions 2>/dev/null || true)
+          if echo "$out" | python3 -c "
         import sys, json
         d = json.load(sys.stdin)
+        if 'error' in d:
+            raise SystemExit(1)
         content = d['choices'][0]['message']['content']
         print('Inference response:', content)
         assert content, 'empty response'
-        "
-        echo "LLM inference test passed"
+        " 2>/dev/null; then
+            echo "LLM inference test passed"
+            exit 0
+          fi
+          sleep 5; elapsed=$((elapsed + 5))
+        done
+        echo "Inference test timed out after ${elapsed}s"
+        echo "Last response: $out"
+        exit 1
         EOSSH
     - name: Dump guest dmesg on failure
       if: failure()
