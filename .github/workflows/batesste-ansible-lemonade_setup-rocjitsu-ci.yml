@@ -151,7 +151,7 @@ jobs:
                 -o NoHostAuthenticationForLocalhost=yes
                 -o StrictHostKeyChecking=no
               lemonade_setup_install_method: deb
-              lemonade_setup_llamacpp_backend: rocm
+              lemonade_setup_llamacpp_backend: vulkan
               lemonade_setup_run_rocm_setup: false
               lemonade_setup_tailscale_serve: false
               lemonade_setup_start_service: true
