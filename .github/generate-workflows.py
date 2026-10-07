@@ -490,21 +490,23 @@ jobs:
         [ $healthy -eq 1 ] || { echo "lemond not healthy after ${elapsed}s"; exit 1; }
         echo "lemond healthy after ${elapsed}s"
     - name: Run minimal LLM inference test
-      timeout-minutes: 10
+      timeout-minutes: 20
       run: |
         ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \\
             -p 2222 ubuntu@qemu bash <<'EOSSH'
         set -e
         API_KEY=ci_lemonade_api_key_rocjitsu
         MODEL=Tiny-Test-Model-GGUF
-        # /v1/chat/completions auto-loads the model; poll until response is non-error
+        # Use /api/v1/chat/completions (correct path in lemonade v2026.40+).
+        # thinking:false prevents Qwen3-style models returning empty content
+        # with the answer buried in reasoning_content.
         elapsed=0
         while [ $elapsed -lt 600 ]; do
           out=$(curl -sf \\
             -H "Authorization: Bearer $API_KEY" \\
             -H "Content-Type: application/json" \\
-            -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"say hi\"}],\"max_tokens\":5,\"stream\":false}" \\
-            http://127.0.0.1:13305/v1/chat/completions 2>/dev/null || true)
+            -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"What is 2+2? Reply with just the number.\"}],\"max_tokens\":20,\"stream\":false,\"thinking\":false}" \\
+            http://127.0.0.1:13305/api/v1/chat/completions 2>/dev/null || true)
           if echo "$out" | python3 -c "
         import sys, json
         d = json.load(sys.stdin)
@@ -512,7 +514,7 @@ jobs:
             raise SystemExit(1)
         content = d['choices'][0]['message']['content']
         print('Inference response:', content)
-        assert content, 'empty response'
+        assert content.strip(), 'empty response'
         " 2>/dev/null; then
             echo "LLM inference test passed"
             exit 0
