@@ -22,7 +22,7 @@ env:
 
 jobs:
   lemonade_setup-rocjitsu-test:
-    name: lemonade_setup - rocjitsu vfio-pci LLM inference CI
+    name: lemonade_setup - rocjitsu vfio-user LLM inference CI
     runs-on: ubuntu-latest
     timeout-minutes: 120
     container:
@@ -211,7 +211,7 @@ jobs:
         MODEL=Tiny-Test-Model-GGUF
         # /v1/chat/completions auto-loads the model; poll until response is non-error
         elapsed=0
-        while [ $elapsed -lt 300 ]; do
+        while [ $elapsed -lt 600 ]; do
           out=$(curl -sf \
             -H "Authorization: Bearer $API_KEY" \
             -H "Content-Type: application/json" \
