@@ -465,6 +465,7 @@ jobs:
           -o NoHostAuthenticationForLocalhost=yes
           -o ControlMaster=auto
           -o ControlPersist=60s
+        ANSIBLE_PIPELINING: "true"
       run: |
         echo "placeholder" > playbooks/sudo-password
         echo "placeholder" > playbooks/vault-password
