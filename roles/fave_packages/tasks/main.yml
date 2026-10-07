@@ -175,9 +175,10 @@
 
 - name: Download and install ptop binary
   when: >-
-    not fave_packages_ptop_binary_stat.stat.exists or
+    (fave_packages_ptop_enable | default(true)) and
+    (not fave_packages_ptop_binary_stat.stat.exists or
     not fave_packages_ptop_version_file_stat.stat.exists or
-    (fave_packages_ptop_current_version | default('')) != fave_packages_ptop_resolved_version
+    (fave_packages_ptop_current_version | default('')) != fave_packages_ptop_resolved_version)
   block:
     - name: Create temporary directory for ptop download
       ansible.builtin.tempfile:
