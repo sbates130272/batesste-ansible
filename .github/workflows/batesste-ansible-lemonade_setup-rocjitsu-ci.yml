@@ -184,16 +184,11 @@ jobs:
           -i /tmp/hosts-lemonade-rocjitsu.yml \
           -e targets=all \
           playbooks/lemonade/deploy.yml
-    - name: Ensure lemond is started on VM
-      run: |
-        ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \
-            -p 2222 ubuntu@qemu \
-            "sudo systemctl daemon-reload && sudo systemctl restart lemond || true"
-    - name: Wait for lemond healthy (120s timeout)
+    - name: Wait for lemond healthy (180s timeout)
       run: |
         elapsed=0
         healthy=0
-        while [ $elapsed -lt 120 ]; do
+        while [ $elapsed -lt 180 ]; do
           if ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \
               -p 2222 ubuntu@qemu \
               "curl -sf -H 'Authorization: Bearer ci_lemonade_api_key_rocjitsu' http://127.0.0.1:13305/api/v0/health | grep -q '"status":"ok"'" \
