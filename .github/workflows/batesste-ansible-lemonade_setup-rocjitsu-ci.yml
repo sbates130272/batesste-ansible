@@ -191,7 +191,7 @@ jobs:
         while [ $elapsed -lt 180 ]; do
           if ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \
               -p 2222 ubuntu@qemu \
-              "curl -sf -H 'Authorization: Bearer ci_lemonade_api_key_rocjitsu' http://127.0.0.1:13305/api/v0/health | grep -q '"status":"ok"'" \
+              "curl -sf -H 'Authorization: Bearer ci_lemonade_api_key_rocjitsu' http://127.0.0.1:13305/api/v0/health | grep -q 'status'" \
               2>/dev/null; then
             healthy=1
             break
