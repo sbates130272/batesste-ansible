@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ansible_host: 10.0.0.107
+ansible_connection: local
 ansible_user: stebates
 username: stebates
 rocm_setup_repo_stream: therock

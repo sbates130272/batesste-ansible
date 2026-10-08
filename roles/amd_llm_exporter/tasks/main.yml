@@ -40,6 +40,17 @@
   become: true
   become_user: "{{ amd_llm_exporter_user }}"
 
+- name: Bootstrap pip in venv
+  ansible.builtin.command:
+    cmd: python3 -m ensurepip --upgrade
+    chdir: "{{ amd_llm_exporter_install_dir }}"
+  become: true
+  become_user: "{{ amd_llm_exporter_user }}"
+  environment:
+    VIRTUAL_ENV: "{{ amd_llm_exporter_install_dir }}/venv"
+    PATH: "{{ amd_llm_exporter_install_dir }}/venv/bin:{{ ansible_env.PATH }}"
+  changed_when: false
+
 - name: Install Python dependencies in venv
   ansible.builtin.pip:
     name:

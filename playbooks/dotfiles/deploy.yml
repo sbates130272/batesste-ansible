@@ -27,6 +27,82 @@
         - ansible_connection != 'local'
         - dotfiles_install_prereqs | default(false)
 
+    - name: Check if git-crypt is in PATH
+      ansible.builtin.command:
+        cmd: which git-crypt
+      register: _dotfiles_git_crypt_which
+      changed_when: false
+      failed_when: false
+      when: ansible_connection != 'local'
+
+    - name: Ensure ~/.local/bin exists for git-crypt install
+      ansible.builtin.file:
+        path: "{{ ansible_facts['env']['HOME'] }}/.local/bin"
+        state: directory
+        mode: "0755"
+      when:
+        - ansible_connection != 'local'
+        - _dotfiles_git_crypt_which.rc != 0
+
+    - name: Try loading git-crypt via environment module
+      ansible.builtin.shell:
+        cmd: |
+          . /etc/profile.d/modules.sh 2>/dev/null || true
+          module load git-crypt 2>/dev/null && which git-crypt
+        executable: /bin/bash
+      register: _dotfiles_git_crypt_module
+      changed_when: false
+      failed_when: false
+      when:
+        - ansible_connection != 'local'
+        - _dotfiles_git_crypt_which.rc != 0
+
+    - name: Build and install git-crypt from source to ~/.local/bin
+      ansible.builtin.shell:
+        cmd: |
+          set -eo pipefail
+          tmpdir=$(mktemp -d)
+          trap 'rm -rf "$tmpdir"' EXIT
+          git clone --depth=1 \
+            https://github.com/AGWA/git-crypt.git "$tmpdir"
+          make -C "$tmpdir" PREFIX="{{ ansible_facts['env']['HOME'] }}/.local" install
+        executable: /bin/bash
+      environment:
+        PATH: "{{ ansible_facts['env']['HOME'] }}/.local/bin:{{ ansible_facts['env']['PATH'] }}"
+      changed_when: true
+      when:
+        - ansible_connection != 'local'
+        - _dotfiles_git_crypt_which.rc != 0
+        - _dotfiles_git_crypt_module.rc != 0
+
+    - name: Check if stow is in PATH
+      ansible.builtin.command:
+        cmd: which stow
+      register: _dotfiles_stow_which
+      changed_when: false
+      failed_when: false
+      when: ansible_connection != 'local'
+
+    - name: Build and install stow from source to ~/.local/bin
+      ansible.builtin.shell:
+        cmd: |
+          set -eo pipefail
+          tmpdir=$(mktemp -d)
+          trap 'rm -rf "$tmpdir"' EXIT
+          curl -fsSL https://ftp.gnu.org/gnu/stow/stow-2.4.0.tar.gz \
+            | tar xz -C "$tmpdir" --strip-components=1
+          cd "$tmpdir"
+          ./configure --prefix="{{ ansible_facts['env']['HOME'] }}/.local" \
+            --with-pmdir="{{ ansible_facts['env']['HOME'] }}/.local/lib/perl5"
+          make install
+        executable: /bin/bash
+      environment:
+        PATH: "{{ ansible_facts['env']['HOME'] }}/.local/bin:{{ ansible_facts['env']['PATH'] }}"
+      changed_when: true
+      when:
+        - ansible_connection != 'local'
+        - _dotfiles_stow_which.rc != 0
+
     - name: Resolve latest dotfiles release tag from GitHub API
       ansible.builtin.uri:
         url: "https://api.github.com/repos/sbates130272/batesste-dotfiles/releases/latest"
@@ -51,7 +127,12 @@
         force: "{{ dotfiles_force | default(false) }}"
       environment:
         GIT_SSL_CAINFO: "{{ dotfiles_git_ssl_cainfo }}"
-        PATH: "{{ ansible_facts['env']['HOME'] }}/.local/bin:{{ ansible_facts['env']['PATH'] }}"
+        PATH: >-
+          {{ ansible_facts['env']['HOME'] }}/.local/bin:{{
+            ((_dotfiles_git_crypt_module.stdout | trim | dirname) + ':')
+            if (_dotfiles_git_crypt_module is defined and _dotfiles_git_crypt_module.rc == 0)
+            else ''
+          }}{{ ansible_facts['env']['PATH'] }}
       when: ansible_connection != 'local'
 
     - name: Unlock git-crypt
