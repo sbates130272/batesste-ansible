@@ -495,7 +495,7 @@ jobs:
       run: |
         ssh -o NoHostAuthenticationForLocalhost=yes -o StrictHostKeyChecking=no \\
             -p 2222 ubuntu@qemu \\
-            "lemonade model pull Tiny-Test-Model-GGUF"
+            "LEMONADE_API_KEY=ci_lemonade_api_key_rocjitsu lemonade pull Tiny-Test-Model-GGUF"
     - name: Run minimal LLM inference test
       timeout-minutes: 15
       run: |
