@@ -96,12 +96,14 @@ parse_apt_packages () {
     local result
     result=$(curl -sf "${url}" 2>/dev/null | awk -v p="${pkg}" '
         /^Package: / { in_pkg = ($2 == p) }
-        in_pkg && /^Version: / { print $2; exit }
+        in_pkg && /^Version: / { versions[++n] = $2; in_pkg = 0 }
+        END { if (n > 0) { cmd = "printf \"%s\\n\""; for (i=1;i<=n;i++) cmd = cmd " \"" versions[i] "\""; cmd = cmd " | sort -rV"; cmd | getline v; print v } }
     ')
     if [ -z "${result}" ]; then
         result=$(curl -sf "${url}.gz" 2>/dev/null | gunzip -c | awk -v p="${pkg}" '
             /^Package: / { in_pkg = ($2 == p) }
-            in_pkg && /^Version: / { print $2; exit }
+            in_pkg && /^Version: / { versions[++n] = $2; in_pkg = 0 }
+            END { if (n > 0) { cmd = "printf \"%s\\n\""; for (i=1;i<=n;i++) cmd = cmd " \"" versions[i] "\""; cmd = cmd " | sort -rV"; cmd | getline v; print v } }
         ')
     fi
     echo "${result}"
