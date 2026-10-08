@@ -60,7 +60,7 @@
     - name: Build and install git-crypt from source to ~/.local/bin
       ansible.builtin.shell:
         cmd: |
-          set -e
+          set -eo pipefail
           tmpdir=$(mktemp -d)
           trap 'rm -rf "$tmpdir"' EXIT
           git clone --depth=1 \
@@ -69,6 +69,7 @@
         executable: /bin/bash
       environment:
         PATH: "{{ ansible_facts['env']['HOME'] }}/.local/bin:{{ ansible_facts['env']['PATH'] }}"
+      changed_when: true
       when:
         - ansible_connection != 'local'
         - _dotfiles_git_crypt_which.rc != 0
@@ -85,7 +86,7 @@
     - name: Build and install stow from source to ~/.local/bin
       ansible.builtin.shell:
         cmd: |
-          set -e
+          set -eo pipefail
           tmpdir=$(mktemp -d)
           trap 'rm -rf "$tmpdir"' EXIT
           curl -fsSL https://ftp.gnu.org/gnu/stow/stow-2.4.0.tar.gz \
@@ -97,6 +98,7 @@
         executable: /bin/bash
       environment:
         PATH: "{{ ansible_facts['env']['HOME'] }}/.local/bin:{{ ansible_facts['env']['PATH'] }}"
+      changed_when: true
       when:
         - ansible_connection != 'local'
         - _dotfiles_stow_which.rc != 0
