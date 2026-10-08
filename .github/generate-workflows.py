@@ -489,6 +489,7 @@ jobs:
         done
         [ $healthy -eq 1 ] || { echo "lemond not healthy after ${elapsed}s"; exit 1; }
         echo "lemond healthy after ${elapsed}s"
+        sleep 10
     - name: Run minimal LLM inference test
       timeout-minutes: 20
       run: |
@@ -502,11 +503,12 @@ jobs:
         # with the answer buried in reasoning_content.
         elapsed=0
         while [ $elapsed -lt 600 ]; do
-          out=$(curl -sf \\
+          out=$(curl -s --max-time 30 \\
             -H "Authorization: Bearer $API_KEY" \\
             -H "Content-Type: application/json" \\
             -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"What is 2+2? Reply with just the number.\"}],\"max_tokens\":20,\"stream\":false,\"thinking\":false}" \\
             http://127.0.0.1:13305/api/v1/chat/completions 2>/dev/null || true)
+          [ -z "$out" ] && echo "No response (lemond may be restarting)" && sleep 5 && elapsed=$((elapsed + 5)) && continue
           if echo "$out" | python3 -c "
         import sys, json
         d = json.load(sys.stdin)
