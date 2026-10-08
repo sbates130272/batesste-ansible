@@ -766,6 +766,7 @@ jobs:
             "pipx --version",
         ],
         "needs_vault": False,
+        "needs_github_token": True,
     },
     "tmux_scripts": {
         "free_disk_space": False,
