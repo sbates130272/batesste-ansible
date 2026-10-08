@@ -55,6 +55,7 @@ jobs:
                   ansible_connection: local
                   ansible_user: runner
                   fave_packages_uv_enable: false
+                  fave_packages_ptop_enable: false
 
       - name: Run the test playbook against the local runner
         run: ansible-playbook -v -i hosts-ci ./tests/test.yml
@@ -62,6 +63,7 @@ jobs:
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
           ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify fave_packages installation
         run: |

@@ -32,7 +32,7 @@
   when: >-
     (lemonade_setup_backends_status.stdout_lines
     | select('search', item.split(':')[1])
-    | select('search', 'installed')
+    | select('search', '\\s+installed\\s+')
     | list | length) == 0
   changed_when: true
   become: true
