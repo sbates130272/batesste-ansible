@@ -304,6 +304,7 @@
     dest: /tmp/wsl_amdsmi_shim.cc
     mode: '0644'
   become: true
+  register: rocm_setup_wsl_shim_src_copy
   when:
     - rocm_setup_wsl_gpuagent_shim_build | bool
     - rocm_setup_install_metrics_exporter | bool
@@ -332,6 +333,7 @@
     - rocm_setup_wsl_gpuagent_shim_build | bool
     - rocm_setup_install_metrics_exporter | bool
     - not rocm_setup_wsl_shim_stat.stat.exists | default(true)
+      or rocm_setup_wsl_shim_src_copy is changed
   changed_when: true
 
 - name: Install gpuagent WSL amdsmi shim
@@ -341,10 +343,18 @@
     mode: '0755'
     remote_src: true
   become: true
+  notify: Restart gpuagent
   when:
     - rocm_setup_wsl_gpuagent_shim_build | bool
     - rocm_setup_install_metrics_exporter | bool
     - not rocm_setup_wsl_shim_stat.stat.exists | default(true)
+      or rocm_setup_wsl_shim_src_copy is changed
+
+- name: Flush handlers to restart gpuagent if shim was updated
+  ansible.builtin.meta: flush_handlers
+  when:
+    - rocm_setup_wsl_gpuagent_shim_build | bool
+    - rocm_setup_install_metrics_exporter | bool
 
 - name: Inject LD_PRELOAD into gpuagent.conf for WSL amdsmi shim
   ansible.builtin.lineinfile:

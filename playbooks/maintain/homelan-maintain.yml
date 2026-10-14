@@ -20,7 +20,7 @@
     targets: homelan
 
 - name: Update lemonade servers
-  hosts: lemonade_servers
+  hosts: lemonade_servers:!amd-laptop
   gather_facts: true
   roles:
     - role: lemonade_setup

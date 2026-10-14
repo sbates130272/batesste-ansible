@@ -8,7 +8,7 @@
  *
  * Build:
  *   g++ -std=c++17 -shared -fPIC -ldl \
- *       -I../sw/nic/third-party/rocm/amd_smi_lib/include \
+ *       -I../sw/nic/third-party/rocm/wsl_amd_smi_lib/include \
  *       -o libamd_smi_wsl_shim.so wsl_amdsmi_shim.cc
  *
  * Deploy:
@@ -69,7 +69,9 @@ static void *resolve(const char *name) {
     if (g_wsl2 && g_wsl_lib) {
         void *sym = dlsym(g_wsl_lib, name);
         if (sym) return sym;
-        /* Symbol absent in WSL library — fall through to system lib. */
+        /* Symbol absent in WSL library — return nullptr so SHIM_FN returns
+         * NOT_SUPPORTED rather than calling into a mismatched system lib. */
+        return nullptr;
     }
     return dlsym(RTLD_NEXT, name);
 }
@@ -403,10 +405,12 @@ SHIM_FN(amdsmi_set_gpu_fan_speed,
          uint64_t speed),
         (processor_handle, sensor_ind, speed))
 
-SHIM_FN(amdsmi_set_gpu_clk_range,
-        (amdsmi_processor_handle processor_handle, uint64_t minclkvalue,
-         uint64_t maxclkvalue, amdsmi_clk_type_t clkType),
-        (processor_handle, minclkvalue, maxclkvalue, clkType))
+SHIM_FN(amdsmi_set_gpu_clk_limit,
+        (amdsmi_processor_handle processor_handle,
+         amdsmi_clk_type_t clk_type,
+         amdsmi_clk_limit_type_t limit_type,
+         uint64_t clk_value),
+        (processor_handle, clk_type, limit_type, clk_value))
 
 SHIM_FN(amdsmi_set_gpu_power_profile,
         (amdsmi_processor_handle processor_handle, uint32_t reserved,

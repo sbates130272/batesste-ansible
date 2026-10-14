@@ -1,2 +1,2 @@
 ---
-dotfiles_proxy: true
+dotfiles_proxy_url: "http://10.0.0.107:8888"

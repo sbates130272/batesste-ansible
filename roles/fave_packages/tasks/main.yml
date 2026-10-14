@@ -81,11 +81,11 @@
   become: true
   when: fave_packages_node_exporter_enable | default(true)
 
-- name: Set noble extra package list (skip git-email if git >= 2.43)
+- name: Set ubuntu extra package list (skip git-email if git >= 2.43)
   ansible.builtin.set_fact:
-    noble_extra_packages: "{{ _base_noble + (_git_email_if_ok | default([])) }}"
+    fave_packages_ubuntu_extra: "{{ _base_ubuntu + (_git_email_if_ok | default([])) }}"
   vars:
-    _base_noble:
+    _base_ubuntu:
       - elpa-cmake-mode
       - elpa-rust-mode
       - virtiofsd
@@ -97,10 +97,10 @@
     - ansible_facts['distribution'] == "Ubuntu"
     - ansible_facts['distribution_release'] in ['noble', 'resolute']
 
-- name: Install my favourite packages on noble
+- name: Install my favourite packages on Ubuntu
   ansible.builtin.package:
     update_cache: true
-    name: "{{ noble_extra_packages }}"
+    name: "{{ fave_packages_ubuntu_extra }}"
   become: true
   when:
     - ansible_facts['distribution'] == "Ubuntu"

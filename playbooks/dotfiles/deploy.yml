@@ -130,7 +130,7 @@
         PATH: >-
           {{ ansible_facts['env']['HOME'] }}/.local/bin:{{
             ((_dotfiles_git_crypt_module.stdout | trim | dirname) + ':')
-            if (_dotfiles_git_crypt_module is defined and _dotfiles_git_crypt_module.rc == 0)
+            if (_dotfiles_git_crypt_module is defined and _dotfiles_git_crypt_module is not skipped and _dotfiles_git_crypt_module.rc == 0)
             else ''
           }}{{ ansible_facts['env']['PATH'] }}
       when: ansible_connection != 'local'
@@ -194,14 +194,14 @@
       ansible.builtin.debug:
         msg: >-
           install.sh flags:
-          {{ '--proxy' if dotfiles_proxy | default(false) | bool else '(no proxy)' }}
+          {{ '--proxy ' ~ dotfiles_proxy_url if dotfiles_proxy_url | default('') else '(no proxy)' }}
           {{ '--force' if dotfiles_force | default(false) | bool else '(no force)' }}
 
     - name: Run install.sh
       ansible.builtin.command:
         cmd: >-
           ./install.sh
-          {{ '--proxy' if dotfiles_proxy | default(false) | bool else '' }}
+          {{ '--proxy ' ~ dotfiles_proxy_url if dotfiles_proxy_url | default('') else '' }}
           {{ '--force' if dotfiles_force | default(false) | bool else '' }}
         chdir: "{{ dotfiles_dir }}"
       environment:
