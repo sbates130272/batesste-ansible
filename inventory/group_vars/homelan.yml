@@ -1,0 +1,2 @@
+---
+user_setup_gpg_private_key: "{{ vault_gpg_private_key | default('') }}"
