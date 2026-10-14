@@ -107,7 +107,7 @@ jobs:
       with:
         path: batesste-ansible
     - name: Check out qemu-minimal
-      uses: actions/checkout@v4.3.1
+      uses: actions/checkout@v7.0.1
       with:
         repository: sbates130272/qemu-minimal
         path: qemu-minimal
@@ -325,7 +325,7 @@ jobs:
       with:
         path: batesste-ansible
     - name: Check out qemu-minimal
-      uses: actions/checkout@v4.3.1
+      uses: actions/checkout@v7.0.1
       with:
         repository: sbates130272/qemu-minimal
         path: qemu-minimal
