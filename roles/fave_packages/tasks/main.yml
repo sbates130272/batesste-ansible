@@ -46,15 +46,6 @@
     state: present
   become: true
 
-- name: Install ansible tools
-  ansible.builtin.package:
-    name:
-      - ansible
-      - ansible-lint
-    state: present
-  become: true
-  when: fave_packages_ansible_enable | default(true)
-
 - name: Install desktop/editor packages
   ansible.builtin.package:
     name:
@@ -106,123 +97,229 @@
     - ansible_facts['distribution'] == "Ubuntu"
     - ansible_facts['distribution_release'] in ['noble', 'resolute']
 
-- name: Install uv via pip
-  ansible.builtin.pip:
-    name: uv
-    state: present
-    extra_args: --break-system-packages
-  become: true
+- name: Install and manage uv
   when: fave_packages_uv_enable | default(true)
-
-- name: Set ptop architecture for GitHub asset
-  ansible.builtin.set_fact:
-    fave_packages_ptop_arch: >-
-      {{ 'amd64' if ansible_facts['architecture'] == 'x86_64'
-         else 'arm64' if ansible_facts['architecture'] == 'aarch64'
-         else '' }}
-
-- name: Fail on unsupported architecture for ptop
-  ansible.builtin.fail:
-    msg: "ptop not available for arch {{ ansible_facts['architecture'] }}"
-  when: fave_packages_ptop_arch == ''
-
-- name: Get latest ptop version from GitHub API
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/trentas/ptop/releases/latest
-    return_content: true
-    headers:
-      Authorization: "{{ 'Bearer ' + fave_packages_github_api_token if fave_packages_github_api_token | length > 0 else omit }}"
-  register: fave_packages_ptop_latest_release
-  changed_when: false
-
-- name: Set ptop resolved version
-  ansible.builtin.set_fact:
-    fave_packages_ptop_resolved_version: >-
-      {{ fave_packages_ptop_latest_release.json.tag_name | regex_replace('^v', '') }}
-
-- name: Check if ptop binary is present
-  ansible.builtin.stat:
-    path: /usr/local/bin/ptop
-  register: fave_packages_ptop_binary_stat
-
-- name: Check if ptop version file is present
-  ansible.builtin.stat:
-    path: /usr/local/bin/.ptop_version
-  register: fave_packages_ptop_version_file_stat
-
-- name: Read installed ptop version
-  ansible.builtin.slurp:
-    src: /usr/local/bin/.ptop_version
-  register: fave_packages_ptop_version_content
-  when: fave_packages_ptop_version_file_stat.stat.exists
-  become: true
-
-- name: Set current ptop version fact
-  ansible.builtin.set_fact:
-    fave_packages_ptop_current_version: >-
-      {{ fave_packages_ptop_version_content.content | b64decode | trim }}
-  when: >-
-    fave_packages_ptop_version_file_stat.stat.exists and
-    not (fave_packages_ptop_version_content.failed | default(false))
-
-- name: Set ptop download URL
-  ansible.builtin.set_fact:
-    fave_packages_ptop_download_url: >-
-      {{ 'https://github.com/trentas/ptop/releases/download/v'
-         ~ fave_packages_ptop_resolved_version
-         ~ '/ptop-' ~ fave_packages_ptop_resolved_version
-         ~ '-linux-' ~ fave_packages_ptop_arch ~ '.tar.gz' }}
-
-- name: Download and install ptop binary
-  when: >-
-    (fave_packages_ptop_enable | default(true)) and
-    (not fave_packages_ptop_binary_stat.stat.exists or
-    not fave_packages_ptop_version_file_stat.stat.exists or
-    (fave_packages_ptop_current_version | default('')) != fave_packages_ptop_resolved_version)
   block:
-    - name: Create temporary directory for ptop download
-      ansible.builtin.tempfile:
-        state: directory
-        suffix: ptop
-      register: fave_packages_ptop_temp_dir
+    - name: Set uv architecture for GitHub asset
+      ansible.builtin.set_fact:
+        fave_packages_uv_arch: >-
+          {{ 'x86_64-unknown-linux-gnu' if ansible_facts['architecture'] == 'x86_64'
+             else 'aarch64-unknown-linux-gnu' if ansible_facts['architecture'] == 'aarch64'
+             else '' }}
 
-    - name: Download ptop release tarball
-      ansible.builtin.get_url:
-        url: "{{ fave_packages_ptop_download_url }}"
-        dest: "{{ fave_packages_ptop_temp_dir.path }}/ptop.tar.gz"
-        mode: '0644'
+    - name: Fail on unsupported architecture for uv
+      ansible.builtin.fail:
+        msg: "uv not available for arch {{ ansible_facts['architecture'] }}"
+      when: fave_packages_uv_arch == ''
 
-    - name: Unarchive ptop tarball
-      ansible.builtin.unarchive:
-        src: "{{ fave_packages_ptop_temp_dir.path }}/ptop.tar.gz"
-        dest: "{{ fave_packages_ptop_temp_dir.path }}"
-        remote_src: true
+    - name: Get latest uv version from GitHub API
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/astral-sh/uv/releases/latest
+        return_content: true
+        headers:
+          Authorization: "{{ 'Bearer ' + fave_packages_github_api_token if fave_packages_github_api_token | length > 0 else omit }}"
+      register: fave_packages_uv_latest_release
+      changed_when: false
+
+    - name: Set uv resolved version
+      ansible.builtin.set_fact:
+        fave_packages_uv_resolved_version: >-
+          {{ fave_packages_uv_latest_release.json.tag_name | regex_replace('^v', '') }}
+
+    - name: Check if uv binary is present
+      ansible.builtin.stat:
+        path: /usr/local/bin/uv
+      register: fave_packages_uv_binary_stat
+
+    - name: Check if uv version file is present
+      ansible.builtin.stat:
+        path: /usr/local/bin/.uv_version
+      register: fave_packages_uv_version_file_stat
+
+    - name: Read installed uv version
+      ansible.builtin.slurp:
+        src: /usr/local/bin/.uv_version
+      register: fave_packages_uv_version_content
+      when: fave_packages_uv_version_file_stat.stat.exists
       become: true
 
-    - name: Copy ptop binary to install directory
-      ansible.builtin.copy:
-        src: "{{ fave_packages_ptop_temp_dir.path }}/ptop"
-        dest: /usr/local/bin/ptop
-        mode: '0755'
-        owner: root
-        group: root
-        remote_src: true
+    - name: Set current uv version fact
+      ansible.builtin.set_fact:
+        fave_packages_uv_current_version: >-
+          {{ fave_packages_uv_version_content.content | b64decode | trim }}
+      when: >-
+        fave_packages_uv_version_file_stat.stat.exists and
+        not (fave_packages_uv_version_content.failed | default(false))
+
+    - name: Download and install uv binaries
+      when: >-
+        not fave_packages_uv_binary_stat.stat.exists or
+        not fave_packages_uv_version_file_stat.stat.exists or
+        (fave_packages_uv_current_version | default('')) != fave_packages_uv_resolved_version
+      block:
+        - name: Create temporary directory for uv download
+          ansible.builtin.tempfile:
+            state: directory
+            suffix: uv
+          register: fave_packages_uv_temp_dir
+
+        - name: Download uv release tarball
+          ansible.builtin.get_url:
+            url: >-
+              https://github.com/astral-sh/uv/releases/download/v{{ fave_packages_uv_resolved_version
+              }}/uv-{{ fave_packages_uv_arch }}.tar.gz
+            dest: "{{ fave_packages_uv_temp_dir.path }}/uv.tar.gz"
+            mode: '0644'
+
+        - name: Unarchive uv tarball
+          ansible.builtin.unarchive:
+            src: "{{ fave_packages_uv_temp_dir.path }}/uv.tar.gz"
+            dest: "{{ fave_packages_uv_temp_dir.path }}"
+            remote_src: true
+          become: true
+
+        - name: Copy uv binaries to install directory
+          ansible.builtin.copy:
+            src: "{{ fave_packages_uv_temp_dir.path }}/uv-{{ fave_packages_uv_arch }}/{{ item }}"
+            dest: "/usr/local/bin/{{ item }}"
+            mode: '0755'
+            owner: root
+            group: root
+            remote_src: true
+          become: true
+          loop:
+            - uv
+            - uvx
+
+        - name: Write uv version file
+          ansible.builtin.copy:
+            content: "{{ fave_packages_uv_resolved_version }}\n"
+            dest: /usr/local/bin/.uv_version
+            mode: '0644'
+            owner: root
+            group: root
+          become: true
+
+        - name: Remove temporary uv directory
+          ansible.builtin.file:
+            path: "{{ fave_packages_uv_temp_dir.path }}"
+            state: absent
+          become: true
+
+- name: Install ansible tools via uv
+  ansible.builtin.command:
+    cmd: "uv tool install {{ item }}"
+    creates: "{{ ansible_env.HOME }}/.local/bin/{{ item }}"
+  loop:
+    - ansible
+    - ansible-lint
+  when: fave_packages_ansible_enable | default(true)
+
+- name: Install and manage ptop
+  when: fave_packages_ptop_enable | default(true)
+  block:
+    - name: Set ptop architecture for GitHub asset
+      ansible.builtin.set_fact:
+        fave_packages_ptop_arch: >-
+          {{ 'amd64' if ansible_facts['architecture'] == 'x86_64'
+             else 'arm64' if ansible_facts['architecture'] == 'aarch64'
+             else '' }}
+
+    - name: Fail on unsupported architecture for ptop
+      ansible.builtin.fail:
+        msg: "ptop not available for arch {{ ansible_facts['architecture'] }}"
+      when: fave_packages_ptop_arch == ''
+
+    - name: Get latest ptop version from GitHub API
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/trentas/ptop/releases/latest
+        return_content: true
+        headers:
+          Authorization: "{{ 'Bearer ' + fave_packages_github_api_token if fave_packages_github_api_token | length > 0 else omit }}"
+      register: fave_packages_ptop_latest_release
+      changed_when: false
+
+    - name: Set ptop resolved version
+      ansible.builtin.set_fact:
+        fave_packages_ptop_resolved_version: >-
+          {{ fave_packages_ptop_latest_release.json.tag_name | regex_replace('^v', '') }}
+
+    - name: Check if ptop binary is present
+      ansible.builtin.stat:
+        path: /usr/local/bin/ptop
+      register: fave_packages_ptop_binary_stat
+
+    - name: Check if ptop version file is present
+      ansible.builtin.stat:
+        path: /usr/local/bin/.ptop_version
+      register: fave_packages_ptop_version_file_stat
+
+    - name: Read installed ptop version
+      ansible.builtin.slurp:
+        src: /usr/local/bin/.ptop_version
+      register: fave_packages_ptop_version_content
+      when: fave_packages_ptop_version_file_stat.stat.exists
       become: true
 
-    - name: Write ptop version file
-      ansible.builtin.copy:
-        content: "{{ fave_packages_ptop_resolved_version }}\n"
-        dest: /usr/local/bin/.ptop_version
-        mode: '0644'
-        owner: root
-        group: root
-      become: true
+    - name: Set current ptop version fact
+      ansible.builtin.set_fact:
+        fave_packages_ptop_current_version: >-
+          {{ fave_packages_ptop_version_content.content | b64decode | trim }}
+      when: >-
+        fave_packages_ptop_version_file_stat.stat.exists and
+        not (fave_packages_ptop_version_content.failed | default(false))
 
-    - name: Remove temporary ptop directory
-      ansible.builtin.file:
-        path: "{{ fave_packages_ptop_temp_dir.path }}"
-        state: absent
-      become: true
+    - name: Download and install ptop binary
+      when: >-
+        not fave_packages_ptop_binary_stat.stat.exists or
+        not fave_packages_ptop_version_file_stat.stat.exists or
+        (fave_packages_ptop_current_version | default('')) != fave_packages_ptop_resolved_version
+      block:
+        - name: Create temporary directory for ptop download
+          ansible.builtin.tempfile:
+            state: directory
+            suffix: ptop
+          register: fave_packages_ptop_temp_dir
+
+        - name: Download ptop release tarball
+          ansible.builtin.get_url:
+            url: >-
+              https://github.com/trentas/ptop/releases/download/v{{ fave_packages_ptop_resolved_version
+              }}/ptop-{{ fave_packages_ptop_resolved_version }}-linux-{{ fave_packages_ptop_arch }}.tar.gz
+            dest: "{{ fave_packages_ptop_temp_dir.path }}/ptop.tar.gz"
+            mode: '0644'
+
+        - name: Unarchive ptop tarball
+          ansible.builtin.unarchive:
+            src: "{{ fave_packages_ptop_temp_dir.path }}/ptop.tar.gz"
+            dest: "{{ fave_packages_ptop_temp_dir.path }}"
+            remote_src: true
+          become: true
+
+        - name: Copy ptop binary to install directory
+          ansible.builtin.copy:
+            src: "{{ fave_packages_ptop_temp_dir.path }}/ptop"
+            dest: /usr/local/bin/ptop
+            mode: '0755'
+            owner: root
+            group: root
+            remote_src: true
+          become: true
+
+        - name: Write ptop version file
+          ansible.builtin.copy:
+            content: "{{ fave_packages_ptop_resolved_version }}\n"
+            dest: /usr/local/bin/.ptop_version
+            mode: '0644'
+            owner: root
+            group: root
+          become: true
+
+        - name: Remove temporary ptop directory
+          ansible.builtin.file:
+            path: "{{ fave_packages_ptop_temp_dir.path }}"
+            state: absent
+          become: true
 
 - name: Configure node exporter extra collectors
   ansible.builtin.template:

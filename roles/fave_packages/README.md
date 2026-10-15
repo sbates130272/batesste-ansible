@@ -9,22 +9,30 @@ The role installs the following packages on all supported
 platforms:
 
 aspell, bmon, build-essential, cmake, driverctl,
-emacs-nox, expect, fio, git, gnuplot, gpg-agent,
-libaio-dev, liburing-dev, linux-generic, npm,
+expect, fio, git, gettext-base, git-crypt,
+git-extras, gpg-agent, libaio-dev, liburing-dev,
 pipx, prometheus-node-exporter,
 prometheus-node-exporter-collectors, python-is-python3,
-python3, python3-pip, python3-venv, mutt, sysstat, tmux,
-tree, xfsprogs.
+python3, python3-pip, python3-venv, ripgrep, stow,
+sysstat, tmux, tree, xfsprogs.
 
-The role also installs `uv` via pip so that `uv` and `uvx`
-are available, and installs `ptop` from the latest GitHub
-release for supported `amd64` and `arm64` Ubuntu systems.
+The role installs `uv` and `uvx` from the latest
+[astral-sh/uv](https://github.com/astral-sh/uv) GitHub
+release into `/usr/local/bin/`. The installed version is
+tracked in `/usr/local/bin/.uv_version` and updated
+automatically when a newer release is available.
 
-`pipx` is included so that tools like `ansible-core` and
-`ansible-lint` can be installed into isolated environments
-without conflicting with system Python packages. On Ubuntu
-24.04 this is the recommended way to get a recent
-`ansible-core` (the apt package is outdated).
+When `fave_packages_ansible_enable` is true (the default),
+`ansible` and `ansible-lint` are installed per-user via
+`uv tool install`, giving a current version isolated from
+system Python. This requires the uv block to have run first.
+
+When `fave_packages_ptop_enable` is true (the default),
+`ptop` is installed from the latest
+[trentas/ptop](https://github.com/trentas/ptop) GitHub
+release into `/usr/local/bin/`. The installed version is
+tracked in `/usr/local/bin/.ptop_version` and updated
+automatically when a newer release is available.
 
 On Ubuntu noble and resolute the role also installs:
 elpa-cmake-mode, elpa-rust-mode, virtiofsd, and
@@ -39,12 +47,6 @@ extra flags controlled by
 this enables the WiFi collector (`--collector.wifi`)
 which is disabled upstream.
 
-### Role Variables
-
-| Variable | Default | Description |
-|---|---|---|
-| `fave_packages_node_exporter_extra_args` | `--collector.wifi` | Extra CLI flags for `prometheus-node-exporter` |
-
 Override the variable to add more collectors or disable
 the WiFi collector:
 
@@ -56,6 +58,19 @@ fave_packages_node_exporter_extra_args: >-
 # Disable all extra collectors (use upstream defaults)
 fave_packages_node_exporter_extra_args: ""
 ```
+
+## Role Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `fave_packages_ansible_enable` | `true` | Install `ansible` and `ansible-lint` via `uv tool install` |
+| `fave_packages_desktop_enable` | `true` | Install `emacs-nox`, `gnuplot`, `mutt` |
+| `fave_packages_linux_generic_enable` | `false` | Install `linux-generic` meta-package |
+| `fave_packages_node_exporter_enable` | `true` | Install and configure `prometheus-node-exporter` |
+| `fave_packages_node_exporter_extra_args` | `--collector.wifi` | Extra CLI flags for `prometheus-node-exporter` |
+| `fave_packages_ptop_enable` | `true` | Install `ptop` from GitHub releases |
+| `fave_packages_uv_enable` | `true` | Install `uv` and `uvx` from GitHub releases |
+| `fave_packages_github_api_token` | `$GITHUB_TOKEN` env | Bearer token for GitHub API release lookups (uv, ptop) |
 
 ## Example Playbook
 

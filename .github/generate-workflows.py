@@ -756,6 +756,7 @@ jobs:
         "extra_vars": {
             "fave_packages_uv_enable": False,
             "fave_packages_ptop_enable": False,
+            "fave_packages_ansible_enable": False,
         },
         "verification_commands": [
             "git --version",
