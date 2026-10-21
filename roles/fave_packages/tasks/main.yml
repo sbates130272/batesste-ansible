@@ -166,7 +166,7 @@
         - name: Download uv release tarball
           ansible.builtin.get_url:
             url: >-
-              https://github.com/astral-sh/uv/releases/download/v{{ fave_packages_uv_resolved_version
+              https://github.com/astral-sh/uv/releases/download/{{ fave_packages_uv_resolved_version
               }}/uv-{{ fave_packages_uv_arch }}.tar.gz
             dest: "{{ fave_packages_uv_temp_dir.path }}/uv.tar.gz"
             mode: '0644'
