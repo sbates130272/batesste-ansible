@@ -159,6 +159,7 @@
     state: present
     update_cache: true
   become: true
+  failed_when: false
   when:
     - rdma_setup_install_rdmatop | default(true) | bool
     - ansible_facts['distribution_release'] == 'noble'
