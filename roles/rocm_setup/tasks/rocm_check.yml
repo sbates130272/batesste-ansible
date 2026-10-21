@@ -3,9 +3,9 @@
     cmd: |
       set -o pipefail
       {% if rocm_setup_wsl_mode == 'rocdxg' %}
-      if [ -f "$HOME/.config/rocm/wsl-env.sh" ]; then
+      if [ -f /etc/profile.d/rocm-wsl-env.sh ]; then
         set -a
-        . "$HOME/.config/rocm/wsl-env.sh"
+        . /etc/profile.d/rocm-wsl-env.sh
         set +a
       fi
       {% endif %}
@@ -33,9 +33,9 @@
     cmd: |
       set -o pipefail
       {% if rocm_setup_wsl_mode == 'rocdxg' %}
-      if [ -f "$HOME/.config/rocm/wsl-env.sh" ]; then
+      if [ -f /etc/profile.d/rocm-wsl-env.sh ]; then
         set -a
-        . "$HOME/.config/rocm/wsl-env.sh"
+        . /etc/profile.d/rocm-wsl-env.sh
         set +a
       fi
       {% endif %}

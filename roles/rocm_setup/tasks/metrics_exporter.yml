@@ -3,31 +3,10 @@
 # https://instinct.docs.amd.com/projects/device-metrics-exporter/
 # en/latest/installation/deb-package.html
 
-# The device-metrics-exporter repo is written into rocm.sources (and the
-# cache refreshed) by main.yml before this file is ever imported, so both apt
-# tasks below can rely on that refresh instead of repeating it.
-- name: Ensure metrics exporter prerequisites are installed
-  ansible.builtin.package:
-    name:
-      - wget
-      - gpg
-    state: present
-    update_cache: true
-    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
-  become: true
-
-- name: Install ROCm GPG key for metrics exporter
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      wget -qO- https://{{ rocm_setup_repo_base_url }}/rocm/rocm.gpg.key \
-        | gpg --dearmor \
-        | tee /etc/apt/keyrings/rocm.gpg > /dev/null
-  args:
-    executable: /bin/bash
-    creates: /etc/apt/keyrings/rocm.gpg
-  become: true
-
+# The metrics-exporter apt repo is written into rocm.sources (and the
+# cache refreshed) by main.yml before this file is imported, so both apt
+# tasks below can rely on that refresh.  The GPG key (/etc/apt/keyrings/rocm.gpg)
+# is also dearmored by main.yml for the therock stream.
 - name: Install AMD Device Metrics Exporter package
   ansible.builtin.package:
     name: amdgpu-exporter
@@ -135,7 +114,7 @@
       - "Note: The exporter handles missing GPUs gracefully:"
       - "  - Version 1.3.1+: Omits unsupported/unavailable metrics"
       - "  - Older versions: Reports unavailable metrics as 0"
-      - "  - Check logs for details: journalctl -u device-metrics-exporter"
+      - "  - Check logs for details: journalctl -u amd-metrics-exporter"
   when:
     - rocm_setup_run_gpu_checks | default(rocm_setup_run_checks)
     - metrics_exporter_health is defined
