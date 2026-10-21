@@ -121,6 +121,9 @@ rocm_setup_wsl: false
 rocm_setup_wsl_install: false
 
 # ROCDXG (rocm_setup_wsl: rocdxg) settings.
+# librocdxg provides /opt/rocm-wsl/lib/libamd_smi.so (the DXG-aware WSL2 library).
+# The sbates130272/gpu-agent fork (feat/dxg-enablement) is used; it ships
+# the vendor headers needed to compile wsl_amdsmi_shim.cc.
 rocm_setup_wsl_librocdxg_repo: https://github.com/ROCm/librocdxg.git
 rocm_setup_wsl_librocdxg_version: develop
 rocm_setup_wsl_librocdxg_src_dir: /usr/local/src/librocdxg
@@ -146,6 +149,12 @@ rocm_setup_wsl_amdsmi_force: false
 rocm_setup_wsl_gpuagent_shim_build: true
 # Install directory — must match LD_LIBRARY_PATH in gpuagent.conf.
 rocm_setup_wsl_gpuagent_shim_dir: /usr/local/metrics/lib
+# Directory containing amd_smi/amdsmi.h used when compiling wsl_amdsmi_shim.cc.
+# Defaults to the amdsmi/ subtree inside the librocdxg clone.  When using the
+# sbates130272/gpu-agent fork (feat/dxg-enablement) as the source instead,
+# set this to:
+#   <gpu-agent-src-dir>/sw/nic/third-party/rocm/wsl_amd_smi_lib/include
+rocm_setup_wsl_amdsmi_headers_dir: "{{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi/include"
 
 # Run rocminfo when rocm_setup_run_checks is true (skipped for legacy WSL).
 # For rocdxg, optionally compile and run the HIP hello-world test too.
@@ -199,9 +208,11 @@ rocm_setup_install_rocm_cli: false
 rocm_setup_rocm_cli_channel: nightly
 
 # Install hipFile packages via apt (ROCm 7.14+).
+# TheRock stream (repo.amd.com): amdrocm-hipfile, amdrocm-hipfile-dev (unversioned meta-packages)
 # Legacy stream (repo.radeon.com): hipfile
-# TheRock stream (repo.amd.com): amdrocm-hipfile, amdrocm-hipfile-dev
-# Override this list when the stream's package names differ from the default.
+# Override this list when package names differ.  hipfile.yml auto-swaps to
+# [amdrocm-hipfile, amdrocm-hipfile-dev] on the therock stream when the
+# default sentinel ['hipfile'] is detected.
 rocm_setup_install_hipfile: false
 rocm_setup_hipfile_packages:
   - hipfile

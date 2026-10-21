@@ -323,7 +323,7 @@
       set -o pipefail
       set -e
       g++ -std=c++17 -shared -fPIC -O2 \
-        -I{{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi/include \
+        -I{{ rocm_setup_wsl_amdsmi_headers_dir }} \
         -o /tmp/libamd_smi_wsl_shim.so \
         /tmp/wsl_amdsmi_shim.cc \
         -ldl

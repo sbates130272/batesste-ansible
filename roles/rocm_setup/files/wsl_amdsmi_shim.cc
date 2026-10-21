@@ -6,9 +6,10 @@
  * On bare-metal the shim is a no-op: every intercepted symbol falls through
  * to RTLD_NEXT (the real libamd_smi.so.26).
  *
- * Build:
+ * Build (Ansible-managed via rocm_setup_wsl_amdsmi_headers_dir):
  *   g++ -std=c++17 -shared -fPIC -ldl \
- *       -I../sw/nic/third-party/rocm/wsl_amd_smi_lib/include \
+ *       -I<librocdxg>/amdsmi/include           (default)
+ *    or -I<gpu-agent>/sw/nic/third-party/rocm/wsl_amd_smi_lib/include
  *       -o libamd_smi_wsl_shim.so wsl_amdsmi_shim.cc
  *
  * Deploy:
