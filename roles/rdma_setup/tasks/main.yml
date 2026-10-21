@@ -106,6 +106,7 @@
   register: rdma_setup_detect_output
   become: true
   changed_when: false
+  failed_when: false
 
 - name: Display RDMA detection results
   ansible.builtin.debug:
