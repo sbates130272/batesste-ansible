@@ -106,6 +106,7 @@
   register: rdma_setup_detect_output
   become: true
   changed_when: false
+  failed_when: false
 
 - name: Display RDMA detection results
   ansible.builtin.debug:
@@ -158,6 +159,7 @@
     state: present
     update_cache: true
   become: true
+  failed_when: false
   when:
     - rdma_setup_install_rdmatop | default(true) | bool
     - ansible_facts['distribution_release'] == 'noble'
