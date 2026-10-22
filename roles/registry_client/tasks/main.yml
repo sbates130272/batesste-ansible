@@ -49,7 +49,7 @@
           {{ (_registry_client_daemon_raw.content | default('') | b64decode | from_json)
              if _registry_client_daemon_raw.content is defined else {} }}
         _current_list: "{{ _existing.get('insecure-registries', []) }}"
-        _merged: >-
+        _merged: >-  # noqa: jinja[invalid]
           {{ _existing | combine({'insecure-registries':
              (_current_list + [registry_client_endpoint]) | unique}) }}
       ansible.builtin.copy:
