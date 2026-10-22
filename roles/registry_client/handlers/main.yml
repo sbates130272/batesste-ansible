@@ -11,3 +11,4 @@
     name: docker
     state: reloaded
   become: true
+  when: registry_client_reload_docker | bool

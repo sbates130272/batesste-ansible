@@ -58,7 +58,30 @@
         mode: "0644"
       become: true
       when: registry_client_endpoint not in _current_list
-      notify: "{{ 'Reload docker' if registry_client_reload_docker else omit }}"
+      notify: Reload docker
+
+# Write a buildkitd config for docker-container builders. There is no
+# automatic pickup — pass --config /etc/buildkit/buildkitd.toml to
+# `docker buildx create` to use it.
+- name: Configure BuildKit for insecure registry
+  when: registry_client_configure_docker | bool
+  block:
+    - name: Ensure /etc/buildkit directory exists
+      ansible.builtin.file:
+        path: /etc/buildkit
+        state: directory
+        mode: "0755"
+      become: true
+
+    - name: Write buildkitd.toml
+      ansible.builtin.copy:
+        dest: /etc/buildkit/buildkitd.toml
+        mode: "0644"
+        content: |
+          [registry."{{ registry_client_endpoint }}"]
+            http = true
+            insecure = true
+      become: true
 
 # --- Podman ---
 
@@ -111,7 +134,7 @@
     # config_path must be set; the deprecated registry.mirrors/registry.configs
     # tables are ignored once this is present.
     - name: Ensure config_path is set in containerd config.toml
-      ansible.builtin.ini_file:
+      community.general.ini_file:
         path: /etc/containerd/config.toml
         section: 'plugins."io.containerd.grpc.v1.cri".registry'
         option: config_path
