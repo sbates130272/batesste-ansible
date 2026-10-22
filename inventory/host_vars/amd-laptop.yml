@@ -18,6 +18,11 @@ rocm_setup_install_metrics_exporter: true
 # Override with -e dotfiles_deploy=true to force a deploy.
 dotfiles_deploy: false
 
+# ZScaler breaks Tailscale here; reach the registry by LAN IP + /etc/hosts.
+# Wired address of snoc-strix; do not use the WiFi address (10.0.0.70).
+registry_client_enabled: true
+registry_client_hosts_entry_ip: "10.0.0.242"
+
 lemonade_setup_port: 13306
 lemonade_setup_llamacpp_backend: rocm
 lemonade_setup_llamacpp_rocm_args: "-fa on -ctk q8_0 -ctv q8_0"

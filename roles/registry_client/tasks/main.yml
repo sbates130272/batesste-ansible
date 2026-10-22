@@ -1,0 +1,120 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    registry_client_calling_role_path_fact: "{{ role_path | default('') }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.check_platform
+  vars:
+    calling_role_path: "{{ registry_client_calling_role_path_fact }}"  # noqa var-naming
+  when: registry_client_calling_role_path_fact | length > 0
+
+# Resolve the endpoint name on hosts without MagicDNS (e.g. amd-laptop/ZScaler).
+- name: Ensure /etc/hosts entry for registry endpoint
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: "{{ registry_client_endpoint | split(':') | first | regex_escape }}"
+    line: "{{ registry_client_hosts_entry_ip }}  {{ registry_client_endpoint | split(':') | first }}"
+    state: present
+  become: true
+  when: registry_client_hosts_entry_ip | length > 0
+
+# --- Docker ---
+
+- name: Configure insecure registry in daemon.json
+  when: registry_client_configure_docker | bool
+  block:
+    - name: Ensure /etc/docker directory exists
+      ansible.builtin.file:
+        path: /etc/docker
+        state: directory
+        mode: "0755"
+      become: true
+
+    - name: Read current daemon.json
+      ansible.builtin.slurp:
+        src: /etc/docker/daemon.json
+      register: _registry_client_daemon_raw
+      become: true
+      failed_when: false
+
+    - name: Merge insecure-registries into daemon.json
+      vars:
+        _existing: >-
+          {{ (_registry_client_daemon_raw.content | default('') | b64decode | from_json)
+             if _registry_client_daemon_raw.content is defined else {} }}
+        _current_list: "{{ _existing.get('insecure-registries', []) }}"
+        _merged: >-
+          {{ _existing | combine({'insecure-registries':
+             (_current_list + [registry_client_endpoint]) | unique}) }}
+      ansible.builtin.copy:
+        content: "{{ _merged | to_nice_json }}\n"
+        dest: /etc/docker/daemon.json
+        mode: "0644"
+      become: true
+      when: registry_client_endpoint not in _current_list
+      notify: "{{ 'Reload docker' if registry_client_reload_docker else omit }}"
+
+# --- Podman ---
+
+- name: Configure insecure registry for Podman
+  when: registry_client_configure_podman | bool
+  block:
+    - name: Ensure /etc/containers directory exists
+      ansible.builtin.file:
+        path: /etc/containers
+        state: directory
+        mode: "0755"
+      become: true
+
+    - name: Add insecure registry stanza to registries.conf
+      ansible.builtin.blockinfile:
+        path: /etc/containers/registries.conf
+        create: true
+        mode: "0644"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK registry_client {{ registry_client_endpoint }}"
+        block: |
+          [[registry]]
+          location = "{{ registry_client_endpoint }}"
+          insecure = true
+      become: true
+
+# --- containerd ---
+
+- name: Configure insecure registry for containerd
+  when: registry_client_configure_containerd | bool
+  block:
+    - name: Ensure containerd certs.d directory for endpoint
+      ansible.builtin.file:
+        path: "/etc/containerd/certs.d/{{ registry_client_endpoint }}"
+        state: directory
+        mode: "0755"
+      become: true
+
+    - name: Write hosts.toml for containerd
+      ansible.builtin.copy:
+        dest: "/etc/containerd/certs.d/{{ registry_client_endpoint }}/hosts.toml"
+        mode: "0644"
+        content: |
+          server = "http://{{ registry_client_endpoint }}"
+
+          [host."http://{{ registry_client_endpoint }}"]
+            capabilities = ["pull", "resolve", "push"]
+            skip_verify = true
+      become: true
+
+    # config_path must be set; the deprecated registry.mirrors/registry.configs
+    # tables are ignored once this is present.
+    - name: Ensure config_path is set in containerd config.toml
+      ansible.builtin.ini_file:
+        path: /etc/containerd/config.toml
+        section: 'plugins."io.containerd.grpc.v1.cri".registry'
+        option: config_path
+        value: '"/etc/containerd/certs.d"'
+        mode: "0644"
+      become: true

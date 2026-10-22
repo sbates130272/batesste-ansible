@@ -22,6 +22,7 @@
         - kernel_setup
         - fio_devel
         - docker_setup
+        - registry_client
         - qemu_setup
       setup-amd:
         - user_setup
@@ -237,6 +238,19 @@
       when: "'docker_setup' in setup_selected_roles"
       tags:
         - docker_setup
+
+    - name: Run registry_client
+      ansible.builtin.include_role:
+        name: registry_client
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - registry_client
+      when:
+        - "'registry_client' in setup_selected_roles"
+        - registry_client_enabled | default(false) | bool
+      tags:
+        - registry_client
 
     - name: Run qemu_setup
       ansible.builtin.include_role:

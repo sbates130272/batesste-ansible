@@ -1,0 +1,13 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# insecure-registries is re-read on SIGHUP; a full restart is unnecessary
+# and on snoc-strix/snoc-beelink would kill running containers.
+# Exception: *removing* a registry requires a restart — handle that manually.
+- name: Reload docker
+  ansible.builtin.service:
+    name: docker
+    state: reloaded
+  become: true

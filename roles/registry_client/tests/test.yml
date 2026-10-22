@@ -1,0 +1,7 @@
+---
+- name: Test registry_client role
+  hosts: all
+  tasks:
+    - name: Include registry_client role
+      ansible.builtin.include_role:
+        name: registry_client

@@ -1,0 +1,13 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+registry_client_endpoint: snoc-strix.fold-leaffish.ts.net:8080
+registry_client_insecure: true
+# Non-empty: add this IP to /etc/hosts for the endpoint name.
+# Use on hosts without MagicDNS (e.g. amd-laptop with ZScaler).
+registry_client_hosts_entry_ip: ""
+registry_client_configure_docker: true
+registry_client_configure_podman: false
+registry_client_configure_containerd: false
+registry_client_reload_docker: true
