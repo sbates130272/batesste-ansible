@@ -43,21 +43,22 @@
       become: true
       failed_when: false
 
-    - name: Merge insecure-registries into daemon.json
-      vars:
-        _existing: >-
-          {{ (_registry_client_daemon_raw.content | default('') | b64decode | from_json)
+    - name: Parse existing daemon.json
+      ansible.builtin.set_fact:
+        _registry_client_existing: >-
+          {{ (_registry_client_daemon_raw.content | b64decode | from_json)
              if _registry_client_daemon_raw.content is defined else {} }}
-        _current_list: "{{ _existing.get('insecure-registries', []) }}"
-        _merged: >-  # noqa: jinja[invalid]
-          {{ _existing | combine({'insecure-registries':
-             (_current_list + [registry_client_endpoint]) | unique}) }}
+
+    - name: Merge insecure-registries into daemon.json
       ansible.builtin.copy:
-        content: "{{ _merged | to_nice_json }}\n"
+        content: >-
+          {{ _registry_client_existing | combine({'insecure-registries':
+             (_registry_client_existing.get('insecure-registries', [])
+              | union([registry_client_endpoint]))}) | to_nice_json }}
         dest: /etc/docker/daemon.json
         mode: "0644"
       become: true
-      when: registry_client_endpoint not in _current_list
+      when: registry_client_endpoint not in _registry_client_existing.get('insecure-registries', [])
       notify: Reload docker
 
 # Write a buildkitd config for docker-container builders. There is no
