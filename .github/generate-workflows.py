@@ -817,6 +817,21 @@ jobs:
         ],
         "needs_vault": False,
     },
+    "registry_client": {
+        "free_disk_space": False,
+        "extra_vars": {
+            "registry_client_enabled": True,
+            "registry_client_configure_docker": True,
+            "registry_client_configure_podman": False,
+            "registry_client_configure_containerd": False,
+            "registry_client_reload_docker": False,
+        },
+        "verification_commands": [
+            "cat /etc/docker/daemon.json || true",
+            "grep -q 'snoc-strix.fold-leaffish.ts.net' /etc/docker/daemon.json",
+        ],
+        "needs_vault": False,
+    },
     "fio_devel": {
         "free_disk_space": False,
         "extra_vars": {

@@ -25,6 +25,13 @@
   roles:
     - role: lemonade_setup
 
+- name: Configure container registry client (homelan)
+  hosts: homelan:&registry_clients
+  gather_facts: true
+  roles:
+    - role: registry_client
+      become: true
+
 - name: Update ROCm (homelan GPU machines)
   hosts: homelan:&rocm_hosts
   gather_facts: true

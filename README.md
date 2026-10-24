@@ -267,6 +267,7 @@ Each role ships a `README.md` with variables, requirements, and usage notes.
 | [nvme_exporter_setup](roles/nvme_exporter_setup/README.md) | NVMe Prometheus exporter |
 | [nvmeof_setup](roles/nvmeof_setup/README.md) | NVMe-oF target and initiator setup |
 | [qemu_setup](roles/qemu_setup/README.md) | QEMU/KVM hypervisor install and configuration |
+| [registry_client](roles/registry_client/README.md) | Register a private container registry on Docker/Podman/containerd |
 | [rdma_interfaces](roles/rdma_interfaces/README.md) | Discover RDMA-capable interfaces and IPv4 addresses (shared utility role) |
 | [rdma_setup](roles/rdma_setup/README.md) | RDMA/InfiniBand drivers and tools |
 | [rocm_hipfile_setup](roles/rocm_hipfile_setup/README.md) | ROCm hipFile package install |

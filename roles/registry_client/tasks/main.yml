@@ -1,0 +1,183 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    registry_client_calling_role_path_fact: "{{ role_path | default('') }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.check_platform
+  vars:
+    calling_role_path: "{{ registry_client_calling_role_path_fact }}"  # noqa var-naming
+  when: registry_client_calling_role_path_fact | length > 0
+
+# Resolve the endpoint name on hosts without MagicDNS (e.g. amd-laptop/ZScaler).
+- name: Configure /etc/hosts pin for registry endpoint
+  when: registry_client_hosts_entry_ip | length > 0
+  block:
+    # WSL2 regenerates /etc/hosts on every start unless this is set.
+    # IMPORTANT: this setting only takes effect after `wsl --shutdown`
+    # from Windows — it cannot be applied from inside the distro.
+    - name: Disable WSL /etc/hosts regeneration
+      community.general.ini_file:
+        path: /etc/wsl.conf
+        section: network
+        option: generateHosts
+        value: "false"
+        mode: "0644"
+      become: true
+      when: ansible_facts['virtualization_type'] | default('') == 'wsl'
+
+    - name: Ensure /etc/hosts entry for registry endpoint
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: "{{ registry_client_endpoint | split(':') | first | regex_escape }}"
+        line: "{{ registry_client_hosts_entry_ip }}  {{ registry_client_endpoint | split(':') | first }}"
+        state: present
+      become: true
+
+# --- Docker ---
+
+- name: Configure insecure registry in daemon.json
+  when: registry_client_configure_docker | bool
+  block:
+    - name: Ensure /etc/docker directory exists
+      ansible.builtin.file:
+        path: /etc/docker
+        state: directory
+        mode: "0755"
+      become: true
+
+    - name: Read current daemon.json
+      ansible.builtin.slurp:
+        src: /etc/docker/daemon.json
+      register: _registry_client_daemon_raw
+      become: true
+      failed_when: false
+
+    - name: Parse existing daemon.json
+      ansible.builtin.set_fact:
+        _registry_client_existing: >-
+          {{ (_registry_client_daemon_raw.content | b64decode | from_json)
+             if _registry_client_daemon_raw.content is defined else {} }}
+
+    - name: Merge insecure-registries and registry-mirrors into daemon.json
+      vars:
+        # insecure-registries: bare host:port, no scheme
+        _rc_insecure: >-
+          {{ _registry_client_existing.get('insecure-registries', [])
+             | union([registry_client_endpoint]) }}
+        # registry-mirrors: explicit http:// scheme required by Docker
+        _rc_mirrors: >-
+          {{ _registry_client_existing.get('registry-mirrors', [])
+             | union(['http://' + registry_client_endpoint]) }}
+        _rc_merged: >-
+          {{ _registry_client_existing
+             | combine({'insecure-registries': _rc_insecure,
+                        'registry-mirrors': _rc_mirrors}) }}
+      ansible.builtin.copy:
+        content: "{{ _rc_merged | to_nice_json }}\n"
+        dest: /etc/docker/daemon.json
+        mode: "0644"
+      become: true
+      when: >-
+        registry_client_endpoint not in _registry_client_existing.get('insecure-registries', [])
+        or ('http://' + registry_client_endpoint) not in _registry_client_existing.get('registry-mirrors', [])
+      notify: Reload docker
+
+# Write a buildkitd config for docker-container builders. There is no
+# automatic pickup — pass --config /etc/buildkit/buildkitd.toml to
+# `docker buildx create` to use it.
+- name: Configure BuildKit for insecure registry
+  when: registry_client_configure_docker | bool
+  block:
+    - name: Ensure /etc/buildkit directory exists
+      ansible.builtin.file:
+        path: /etc/buildkit
+        state: directory
+        mode: "0755"
+      become: true
+
+    - name: Write buildkitd.toml
+      ansible.builtin.copy:
+        dest: /etc/buildkit/buildkitd.toml
+        mode: "0644"
+        # http=true means plain HTTP — correct for this registry.
+        # insecure=true means "HTTPS with verification skipped" and is wrong here.
+        content: |
+          [registry."{{ registry_client_endpoint }}"]
+            http = true
+      become: true
+
+# --- Podman ---
+
+- name: Configure insecure registry for Podman
+  when: registry_client_configure_podman | bool
+  block:
+    - name: Ensure /etc/containers directory exists
+      ansible.builtin.file:
+        path: /etc/containers
+        state: directory
+        mode: "0755"
+      become: true
+
+    - name: Add insecure registry stanza to registries.conf
+      ansible.builtin.blockinfile:
+        path: /etc/containers/registries.conf
+        create: true
+        mode: "0644"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK registry_client {{ registry_client_endpoint }}"
+        block: |
+          [[registry]]
+          location = "{{ registry_client_endpoint }}"
+          insecure = true
+      become: true
+
+# --- containerd ---
+
+- name: Configure insecure registry for containerd
+  when: registry_client_configure_containerd | bool
+  block:
+    - name: Ensure containerd certs.d directory for endpoint
+      ansible.builtin.file:
+        path: "/etc/containerd/certs.d/{{ registry_client_endpoint }}"
+        state: directory
+        mode: "0755"
+      become: true
+
+    - name: Write hosts.toml for containerd
+      ansible.builtin.copy:
+        dest: "/etc/containerd/certs.d/{{ registry_client_endpoint }}/hosts.toml"
+        mode: "0644"
+        content: |
+          server = "http://{{ registry_client_endpoint }}"
+
+          [host."http://{{ registry_client_endpoint }}"]
+            capabilities = ["pull", "resolve", "push"]
+            skip_verify = true
+      become: true
+
+    # config_path must be set; the deprecated registry.mirrors/registry.configs
+    # tables are ignored once this is present.
+    # Use the containerd 2.x plugin name — io.containerd.grpc.v1.cri was
+    # renamed at 2.0 and is silently ignored on this fleet (all 2.x nodes).
+    - name: Set containerd config version = 3
+      community.general.ini_file:
+        path: /etc/containerd/config.toml
+        section: null
+        option: version
+        value: "3"
+        mode: "0644"
+      become: true
+
+    - name: Ensure config_path is set in containerd config.toml
+      community.general.ini_file:
+        path: /etc/containerd/config.toml
+        section: 'plugins."io.containerd.cri.v1.images".registry'
+        option: config_path
+        value: '"/etc/containerd/certs.d"'
+        mode: "0644"
+      become: true

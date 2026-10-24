@@ -1,0 +1,23 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+galaxy_info:
+  author: Stephen Bates
+  company: Raithlin Semiconductors
+  role_name: registry_client
+  description: >-
+    Register a private container registry on Ubuntu (Docker / Podman / containerd)
+  license: Apache-2.0
+  min_ansible_version: "2.15.0"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+        - resolute
+  galaxy_tags:
+    - docker
+    - containers
+    - registry
+
+dependencies: []
