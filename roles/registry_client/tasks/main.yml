@@ -15,14 +15,29 @@
   when: registry_client_calling_role_path_fact | length > 0
 
 # Resolve the endpoint name on hosts without MagicDNS (e.g. amd-laptop/ZScaler).
-- name: Ensure /etc/hosts entry for registry endpoint
-  ansible.builtin.lineinfile:
-    path: /etc/hosts
-    regexp: "{{ registry_client_endpoint | split(':') | first | regex_escape }}"
-    line: "{{ registry_client_hosts_entry_ip }}  {{ registry_client_endpoint | split(':') | first }}"
-    state: present
-  become: true
+- name: Configure /etc/hosts pin for registry endpoint
   when: registry_client_hosts_entry_ip | length > 0
+  block:
+    # WSL2 regenerates /etc/hosts on every start unless this is set.
+    # IMPORTANT: this setting only takes effect after `wsl --shutdown`
+    # from Windows — it cannot be applied from inside the distro.
+    - name: Disable WSL /etc/hosts regeneration
+      community.general.ini_file:
+        path: /etc/wsl.conf
+        section: network
+        option: generateHosts
+        value: "false"
+        mode: "0644"
+      become: true
+      when: ansible_facts['virtualization_type'] | default('') == 'wsl'
+
+    - name: Ensure /etc/hosts entry for registry endpoint
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: "{{ registry_client_endpoint | split(':') | first | regex_escape }}"
+        line: "{{ registry_client_hosts_entry_ip }}  {{ registry_client_endpoint | split(':') | first }}"
+        state: present
+      become: true
 
 # --- Docker ---
 
@@ -49,16 +64,28 @@
           {{ (_registry_client_daemon_raw.content | b64decode | from_json)
              if _registry_client_daemon_raw.content is defined else {} }}
 
-    - name: Merge insecure-registries into daemon.json
+    - name: Merge insecure-registries and registry-mirrors into daemon.json
+      vars:
+        # insecure-registries: bare host:port, no scheme
+        _rc_insecure: >-
+          {{ _registry_client_existing.get('insecure-registries', [])
+             | union([registry_client_endpoint]) }}
+        # registry-mirrors: explicit http:// scheme required by Docker
+        _rc_mirrors: >-
+          {{ _registry_client_existing.get('registry-mirrors', [])
+             | union(['http://' + registry_client_endpoint]) }}
+        _rc_merged: >-
+          {{ _registry_client_existing
+             | combine({'insecure-registries': _rc_insecure,
+                        'registry-mirrors': _rc_mirrors}) }}
       ansible.builtin.copy:
-        content: >-
-          {{ _registry_client_existing | combine({'insecure-registries':
-             (_registry_client_existing.get('insecure-registries', [])
-              | union([registry_client_endpoint]))}) | to_nice_json }}
+        content: "{{ _rc_merged | to_nice_json }}\n"
         dest: /etc/docker/daemon.json
         mode: "0644"
       become: true
-      when: registry_client_endpoint not in _registry_client_existing.get('insecure-registries', [])
+      when: >-
+        registry_client_endpoint not in _registry_client_existing.get('insecure-registries', [])
+        or ('http://' + registry_client_endpoint) not in _registry_client_existing.get('registry-mirrors', [])
       notify: Reload docker
 
 # Write a buildkitd config for docker-container builders. There is no
@@ -78,10 +105,11 @@
       ansible.builtin.copy:
         dest: /etc/buildkit/buildkitd.toml
         mode: "0644"
+        # http=true means plain HTTP — correct for this registry.
+        # insecure=true means "HTTPS with verification skipped" and is wrong here.
         content: |
           [registry."{{ registry_client_endpoint }}"]
             http = true
-            insecure = true
       become: true
 
 # --- Podman ---
@@ -134,10 +162,21 @@
 
     # config_path must be set; the deprecated registry.mirrors/registry.configs
     # tables are ignored once this is present.
+    # Use the containerd 2.x plugin name — io.containerd.grpc.v1.cri was
+    # renamed at 2.0 and is silently ignored on this fleet (all 2.x nodes).
+    - name: Set containerd config version = 3
+      community.general.ini_file:
+        path: /etc/containerd/config.toml
+        section: null
+        option: version
+        value: "3"
+        mode: "0644"
+      become: true
+
     - name: Ensure config_path is set in containerd config.toml
       community.general.ini_file:
         path: /etc/containerd/config.toml
-        section: 'plugins."io.containerd.grpc.v1.cri".registry'
+        section: 'plugins."io.containerd.cri.v1.images".registry'
         option: config_path
         value: '"/etc/containerd/certs.d"'
         mode: "0644"
