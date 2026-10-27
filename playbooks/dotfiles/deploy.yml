@@ -203,12 +203,18 @@
         cmd: >-
           ./install.sh
           {{ '--claude-proxy ' ~ dotfiles_proxy_url if dotfiles_proxy_url | default('') else '' }}
-          {{ '--zscaler' if dotfiles_zscaler | default(false) | bool else '' }}
+          {{ '--zscaler' if (dotfiles_zscaler | default(false) | bool) and not (dotfiles_proxy_url | default('')) else '' }}
           {{ '--force' if dotfiles_force | default(false) | bool else '' }}
         chdir: "{{ dotfiles_dir }}"
       environment:
         PATH: "{{ ansible_facts['env']['HOME'] }}/.local/bin:{{ ansible_facts['env']['PATH'] }}"
         PERL5LIB: "{{ ansible_facts['env']['HOME'] }}/.local/lib/perl5"
+        http_proxy: "{{ '' if dotfiles_proxy_url | default('') else omit }}"
+        https_proxy: "{{ '' if dotfiles_proxy_url | default('') else omit }}"
+        HTTP_PROXY: "{{ '' if dotfiles_proxy_url | default('') else omit }}"
+        HTTPS_PROXY: "{{ '' if dotfiles_proxy_url | default('') else omit }}"
+        no_proxy: "{{ '' if dotfiles_proxy_url | default('') else omit }}"
+        NO_PROXY: "{{ '' if dotfiles_proxy_url | default('') else omit }}"
       register: install_result
       changed_when: true
 

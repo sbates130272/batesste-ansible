@@ -17,6 +17,8 @@ rocm_setup_install_metrics_exporter: true
 # Skip dotfiles during maintenance — amd-laptop is the dotfiles dev machine.
 # Override with -e dotfiles_deploy=true to force a deploy.
 dotfiles_deploy: false
+dotfiles_zscaler: true
+user_setup_dotfiles_zscaler: true
 
 # ZScaler breaks Tailscale here; reach the registry by LAN IP + /etc/hosts.
 # Wired address of snoc-strix; do not use the WiFi address (10.0.0.70).
