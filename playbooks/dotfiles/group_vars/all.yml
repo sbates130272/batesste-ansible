@@ -5,5 +5,6 @@ dotfiles_repo: "https://github.com/sbates130272/batesste-dotfiles.git"
 dotfiles_dir: "{{ ansible_facts['env']['HOME'] }}/.batesste-dotfiles"
 dotfiles_version: latest
 dotfiles_force: false
+dotfiles_zscaler: false
 dotfiles_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt
 dotfiles_install_prereqs: false

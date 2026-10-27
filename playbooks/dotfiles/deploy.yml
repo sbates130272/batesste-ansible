@@ -194,14 +194,16 @@
       ansible.builtin.debug:
         msg: >-
           install.sh flags:
-          {{ '--proxy ' ~ dotfiles_proxy_url if dotfiles_proxy_url | default('') else '(no proxy)' }}
+          {{ '--claude-proxy ' ~ dotfiles_proxy_url if dotfiles_proxy_url | default('') else '(no claude-proxy)' }}
+          {{ '--zscaler' if dotfiles_zscaler | default(false) | bool else '(no zscaler)' }}
           {{ '--force' if dotfiles_force | default(false) | bool else '(no force)' }}
 
     - name: Run install.sh
       ansible.builtin.command:
         cmd: >-
           ./install.sh
-          {{ '--proxy ' ~ dotfiles_proxy_url if dotfiles_proxy_url | default('') else '' }}
+          {{ '--claude-proxy ' ~ dotfiles_proxy_url if dotfiles_proxy_url | default('') else '' }}
+          {{ '--zscaler' if dotfiles_zscaler | default(false) | bool else '' }}
           {{ '--force' if dotfiles_force | default(false) | bool else '' }}
         chdir: "{{ dotfiles_dir }}"
       environment:
