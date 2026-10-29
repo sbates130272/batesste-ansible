@@ -135,20 +135,22 @@ rocm_setup_wsl_librocdxg_force: false
 
 # gpuagent-wsl: WSL2-native gpuagent binary linking directly against
 # /opt/rocm-wsl/lib/libamd_smi.so (from librocdxg). Replaces the LD_PRELOAD
-# shim approach. Two deployment paths are tried in order:
+# shim approach. Deployment paths tried in order:
 #
-#   a) apt package (preferred, not yet available): rocm_setup_wsl_gpuagent_wsl_pkg
-#   b) build from source: clone ROCm/gpu-agent, make gpuagent_wsl
+#   a) upstream apt package (preferred, not yet published by AMD):
+#      rocm_setup_wsl_gpuagent_wsl_pkg — when available, prints a warning
+#      that paths (b) and (c) can be removed.
+#   b) hosted .deb from sbates130272/batesste-ansible release (current path):
+#      downloaded via GitHub API and installed with dpkg.  When (a) appears,
+#      a warning is printed that this .deb and its role code can be removed.
 #
-# When (a) succeeds a warning is printed that the build-from-source code can
-# be removed from this role once (a) is confirmed stable.
+# Upstream apt package name (not yet in any AMD repo):
 rocm_setup_wsl_gpuagent_wsl_pkg: gpuagent-wsl
-rocm_setup_wsl_gpuagent_repo: https://github.com/ROCm/gpu-agent.git
-rocm_setup_wsl_gpuagent_version: main
-rocm_setup_wsl_gpuagent_src_dir: /usr/local/src/gpu-agent
+# Hosted .deb asset on sbates130272/batesste-ansible releases:
+rocm_setup_wsl_gpuagent_deb_repo: sbates130272/batesste-ansible
+rocm_setup_wsl_gpuagent_deb_tag: v3.1.0
+rocm_setup_wsl_gpuagent_deb_asset: gpuagent-wsl_1.5.3+wsl1_amd64.deb
 rocm_setup_wsl_gpuagent_wsl_bin_dir: /usr/local/bin
-# Force a clean rebuild of gpuagent-wsl even if the binary already exists.
-rocm_setup_wsl_gpuagent_force: false
 
 # Run rocminfo when rocm_setup_run_checks is true (skipped for legacy WSL).
 # For rocdxg, optionally compile and run the HIP hello-world test too.

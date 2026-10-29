@@ -218,14 +218,13 @@
 # links directly against /opt/rocm-wsl/lib/libamd_smi.so at build time and
 # has a built-in /dev/dxg guard, removing the need for an LD_PRELOAD shim.
 #
-# Deployment preference (tried in order):
-#   a) apt package rocm_setup_wsl_gpuagent_wsl_pkg — preferred once available
-#   b) build from source: clone ROCm/gpu-agent, make gpuagent_wsl
-#
-# When only (b) is needed, a warning is printed so that the build-from-source
-# block can be removed once AMD ships a package.
+# Deployment paths tried in order:
+#   a) upstream apt package (rocm_setup_wsl_gpuagent_wsl_pkg) — preferred;
+#      when found, warns that path (b) and its role code can be removed.
+#   b) hosted .deb from sbates130272/batesste-ansible GitHub release —
+#      current path until AMD publishes a package.
 
-- name: Check whether gpuagent-wsl apt package is available
+- name: Check whether upstream gpuagent-wsl apt package is available
   ansible.builtin.shell:
     cmd: apt-cache show {{ rocm_setup_wsl_gpuagent_wsl_pkg }} 2>/dev/null | grep -q '^Package:'
     executable: /bin/bash
@@ -234,94 +233,63 @@
   failed_when: false
   when: rocm_setup_install_metrics_exporter | bool
 
-- name: Install gpuagent-wsl from apt package
+- name: Install gpuagent-wsl from upstream apt package
   ansible.builtin.package:
     name: "{{ rocm_setup_wsl_gpuagent_wsl_pkg }}"
     state: present
   become: true
-  register: rocm_setup_wsl_gpuagent_pkg_install
   when:
     - rocm_setup_install_metrics_exporter | bool
     - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) == 0
 
-- name: Warn that build-from-source path can be removed
+- name: Warn that hosted .deb path can be removed
   ansible.builtin.debug:
     msg: >-
-      {{ rocm_setup_wsl_gpuagent_wsl_pkg }} is now available as an apt package.
-      The build-from-source block in rocm_setup/tasks/rocm_rocdxg.yml (tasks
-      "Clone/build/install gpuagent-wsl from source") can be removed once
-      this package is confirmed stable across all target hosts.
+      {{ rocm_setup_wsl_gpuagent_wsl_pkg }} is now available as an upstream
+      apt package. The hosted .deb path in rocm_setup/tasks/rocm_rocdxg.yml
+      (tasks "Fetch/install gpuagent-wsl hosted .deb") and the asset at
+      {{ rocm_setup_wsl_gpuagent_deb_repo }} releases/{{ rocm_setup_wsl_gpuagent_deb_tag }}
+      can be removed once the upstream package is confirmed stable.
   when:
     - rocm_setup_install_metrics_exporter | bool
     - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) == 0
 
-# --- build-from-source fallback (path b) ---
+# --- hosted .deb fallback (path b) ---
 
-- name: Check whether gpuagent-wsl binary is already installed
-  ansible.builtin.stat:
-    path: "{{ rocm_setup_wsl_gpuagent_wsl_bin_dir }}/gpuagent-wsl"
-  register: rocm_setup_wsl_gpuagent_bin_stat
-  when:
-    - rocm_setup_install_metrics_exporter | bool
-    - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) != 0
-
-- name: Install gpu-agent build dependencies
-  ansible.builtin.package:
-    name:
-      - build-essential
-      - git
-      - make
-    state: present
-    update_cache: true
-    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
-  become: true
-  when:
-    - rocm_setup_install_metrics_exporter | bool
-    - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) != 0
-    - rocm_setup_wsl_gpuagent_force | bool
-      or not rocm_setup_wsl_gpuagent_bin_stat.stat.exists | default(true)
-
-- name: Clone gpu-agent repository
-  ansible.builtin.git:
-    repo: "{{ rocm_setup_wsl_gpuagent_repo }}"
-    dest: "{{ rocm_setup_wsl_gpuagent_src_dir }}"
-    version: "{{ rocm_setup_wsl_gpuagent_version }}"
-    force: "{{ rocm_setup_wsl_gpuagent_force }}"
-  become: true
-  when:
-    - rocm_setup_install_metrics_exporter | bool
-    - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) != 0
-    - rocm_setup_wsl_gpuagent_force | bool
-      or not rocm_setup_wsl_gpuagent_bin_stat.stat.exists | default(true)
-
-- name: Build gpuagent-wsl from source
+- name: Check whether gpuagent-wsl is already installed
   ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      set -e
-      make gpuagent_wsl WSL_AMD_SMI_LIB_DIR=/opt/rocm-wsl/lib
-    chdir: "{{ rocm_setup_wsl_gpuagent_src_dir }}"
+    cmd: dpkg-query -W -f='${Status}' {{ rocm_setup_wsl_gpuagent_wsl_pkg }} 2>/dev/null | grep -q 'install ok installed'
     executable: /bin/bash
-  become: true
-  register: rocm_setup_wsl_gpuagent_build
-  changed_when: true
+  register: rocm_setup_wsl_gpuagent_deb_installed
+  changed_when: false
+  failed_when: false
   when:
     - rocm_setup_install_metrics_exporter | bool
     - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) != 0
-    - rocm_setup_wsl_gpuagent_force | bool
-      or not rocm_setup_wsl_gpuagent_bin_stat.stat.exists | default(true)
 
-- name: Install gpuagent-wsl binary
-  ansible.builtin.copy:
-    src: "{{ rocm_setup_wsl_gpuagent_src_dir }}/sw/nic/build/x86_64/sim/bin/gpuagent-wsl"
-    dest: "{{ rocm_setup_wsl_gpuagent_wsl_bin_dir }}/gpuagent-wsl"
-    mode: '0755'
-    remote_src: true
+- name: Fetch gpuagent-wsl hosted .deb from GitHub release
+  ansible.builtin.get_url:
+    url: >-
+      https://github.com/{{ rocm_setup_wsl_gpuagent_deb_repo }}/releases/download/{{ rocm_setup_wsl_gpuagent_deb_tag }}/{{ rocm_setup_wsl_gpuagent_deb_asset }}
+    dest: "/tmp/{{ rocm_setup_wsl_gpuagent_deb_asset }}"
+    headers:
+      Authorization: >-
+        {{ 'Bearer ' + rocm_setup_github_api_token if rocm_setup_github_api_token | length > 0 else omit }}
+    mode: '0644'
   become: true
   when:
     - rocm_setup_install_metrics_exporter | bool
     - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) != 0
-    - rocm_setup_wsl_gpuagent_build is changed
+    - rocm_setup_wsl_gpuagent_deb_installed.rc | default(1) != 0
+
+- name: Install gpuagent-wsl hosted .deb
+  ansible.builtin.apt:
+    deb: "/tmp/{{ rocm_setup_wsl_gpuagent_deb_asset }}"
+  become: true
+  when:
+    - rocm_setup_install_metrics_exporter | bool
+    - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) != 0
+    - rocm_setup_wsl_gpuagent_deb_installed.rc | default(1) != 0
 
 - name: Verify gpuagent-wsl binary is present
   ansible.builtin.stat:
@@ -334,8 +302,8 @@
     msg: >-
       gpuagent-wsl was not found at
       {{ rocm_setup_wsl_gpuagent_wsl_bin_dir }}/gpuagent-wsl after install.
-      Check build output in {{ rocm_setup_wsl_gpuagent_src_dir }} and re-run
-      with rocm_setup_wsl_gpuagent_force: true.
+      Check /tmp/{{ rocm_setup_wsl_gpuagent_deb_asset }} was downloaded and
+      dpkg install succeeded. Re-run the playbook to retry.
   when:
     - rocm_setup_install_metrics_exporter | bool
     - not rocm_setup_wsl_gpuagent_verify.stat.exists
