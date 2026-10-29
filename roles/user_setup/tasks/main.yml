@@ -288,8 +288,17 @@
   ansible.builtin.command:
     cmd: >-
       ./install.sh
+      {{ '--claude-proxy ' ~ user_setup_dotfiles_proxy_url if user_setup_dotfiles_proxy_url | default('') else '' }}
+      {{ '--zscaler' if (user_setup_dotfiles_zscaler | default(false) | bool) and not (user_setup_dotfiles_proxy_url | default('')) else '' }}
       {{ '--force' if user_setup_dotfiles_force | default(false) else '' }}
     chdir: "{{ user_setup_dotfiles_dest }}"
+  environment:
+    http_proxy: "{{ '' if user_setup_dotfiles_proxy_url | default('') else omit }}"
+    https_proxy: "{{ '' if user_setup_dotfiles_proxy_url | default('') else omit }}"
+    HTTP_PROXY: "{{ '' if user_setup_dotfiles_proxy_url | default('') else omit }}"
+    HTTPS_PROXY: "{{ '' if user_setup_dotfiles_proxy_url | default('') else omit }}"
+    no_proxy: "{{ '' if user_setup_dotfiles_proxy_url | default('') else omit }}"
+    NO_PROXY: "{{ '' if user_setup_dotfiles_proxy_url | default('') else omit }}"
   changed_when: true
   when:
     - user_setup_dotfiles_enable | default(false)
