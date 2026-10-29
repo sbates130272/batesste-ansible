@@ -14,7 +14,7 @@ from typing import Dict, List
 # Pinned commit SHA for sbates130272/qemu-minimal. Update deliberately when
 # picking up qemu-minimal changes; never leave unpinned (HEAD breakage bleeds
 # into every rocjitsu CI lane immediately).
-QEMU_MINIMAL_REF = "9ec66ea4c905b57d4d6a0cc5fb9b4ddb5ca9e5d0"
+QEMU_MINIMAL_REF = "9ec66ea4c905190e91687a344d59a18443b0585a"
 
 # Configuration for role-specific settings
 ROLE_CONFIGS = {
