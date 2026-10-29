@@ -213,157 +213,170 @@
     mode: '0644'
   become: true
 
-# --- WSL-aware amd-smi build (amdsmi/ subdir of librocdxg) ---
-# The ROCm-packaged amd-smi requires kernel modules that are absent under WSL.
-# The librocdxg repo ships its own amdsmi/ that speaks to /dev/dxg and installs
-# under /opt/rocm-wsl to avoid conflicting with the packaged binary.
+# --- gpuagent-wsl native binary ---
+# ROCm/gpu-agent (merged PR #103) ships gpuagent-wsl: a dedicated binary that
+# links directly against /opt/rocm-wsl/lib/libamd_smi.so at build time and
+# has a built-in /dev/dxg guard, removing the need for an LD_PRELOAD shim.
+#
+# Deployment preference (tried in order):
+#   a) apt package rocm_setup_wsl_gpuagent_wsl_pkg — preferred once available
+#   b) build from source: clone ROCm/gpu-agent, make gpuagent_wsl
+#
+# When only (b) is needed, a warning is printed so that the build-from-source
+# block can be removed once AMD ships a package.
 
-- name: Check whether WSL amd-smi is already installed
-  ansible.builtin.stat:
-    path: /opt/rocm-wsl/bin/amd-smi
-  register: rocm_setup_wsl_amdsmi_stat
-  when: rocm_setup_wsl_amdsmi_build | bool
-
-- name: Remove stale WSL amd-smi build directory
-  ansible.builtin.file:
-    path: "{{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi/build"
-    state: absent
-  become: true
-  when:
-    - rocm_setup_wsl_amdsmi_build | bool
-    - rocm_setup_wsl_amdsmi_force | bool or not rocm_setup_wsl_amdsmi_stat.stat.exists
-
-- name: Configure WSL amd-smi with cmake
+- name: Check whether gpuagent-wsl apt package is available
   ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      set -e
-      cmake -B build -DWIN_SDK="{{ rocm_setup_wsl_win_sdk_include }}/shared" .
-    chdir: "{{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi"
+    cmd: apt-cache show {{ rocm_setup_wsl_gpuagent_wsl_pkg }} 2>/dev/null | grep -q '^Package:'
     executable: /bin/bash
+  register: rocm_setup_wsl_gpuagent_pkg_check
+  changed_when: false
+  failed_when: false
+  when: rocm_setup_install_metrics_exporter | bool
+
+- name: Install gpuagent-wsl from apt package
+  ansible.builtin.package:
+    name: "{{ rocm_setup_wsl_gpuagent_wsl_pkg }}"
+    state: present
   become: true
+  register: rocm_setup_wsl_gpuagent_pkg_install
   when:
-    - rocm_setup_wsl_amdsmi_build | bool
-    - rocm_setup_wsl_amdsmi_force | bool or not rocm_setup_wsl_amdsmi_stat.stat.exists
-  changed_when: true
+    - rocm_setup_install_metrics_exporter | bool
+    - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) == 0
 
-- name: Build WSL amd-smi
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      set -e
-      cmake --build build --parallel "{{ ansible_processor_vcpus | default(1) }}"
-    chdir: "{{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi"
-    executable: /bin/bash
-  become: true
-  when:
-    - rocm_setup_wsl_amdsmi_build | bool
-    - rocm_setup_wsl_amdsmi_force | bool or not rocm_setup_wsl_amdsmi_stat.stat.exists
-  changed_when: true
-
-- name: Install WSL amd-smi
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      set -e
-      cmake --install build
-    chdir: "{{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi"
-    executable: /bin/bash
-  become: true
-  register: rocm_setup_wsl_amdsmi_install
-  when:
-    - rocm_setup_wsl_amdsmi_build | bool
-    - rocm_setup_wsl_amdsmi_force | bool or not rocm_setup_wsl_amdsmi_stat.stat.exists
-  changed_when: true
-
-- name: Verify WSL amd-smi binary is present
-  ansible.builtin.stat:
-    path: /opt/rocm-wsl/bin/amd-smi
-  register: rocm_setup_wsl_amdsmi_verify
-  when: rocm_setup_wsl_amdsmi_build | bool
-
-- name: Fail when WSL amd-smi binary is missing after install
-  ansible.builtin.fail:
+- name: Warn that build-from-source path can be removed
+  ansible.builtin.debug:
     msg: >-
-      WSL amd-smi build completed but /opt/rocm-wsl/bin/amd-smi was not found.
-      Check build output in {{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi/build
-      and re-run with rocm_setup_wsl_amdsmi_force: true.
+      {{ rocm_setup_wsl_gpuagent_wsl_pkg }} is now available as an apt package.
+      The build-from-source block in rocm_setup/tasks/rocm_rocdxg.yml (tasks
+      "Clone/build/install gpuagent-wsl from source") can be removed once
+      this package is confirmed stable across all target hosts.
   when:
-    - rocm_setup_wsl_amdsmi_build | bool
-    - not rocm_setup_wsl_amdsmi_verify.stat.exists
-
-# --- gpuagent LD_PRELOAD shim ---
-# Builds wsl_amdsmi_shim.so and installs it into the amdgpu-exporter's
-# library directory. The shim intercepts amdsmi_* calls in gpuagent and
-# routes them through /opt/rocm-wsl/lib/libamd_smi.so (DXG-aware) when
-# /dev/dxg is present and /dev/kfd is absent.
-
-- name: Copy gpuagent WSL amdsmi shim source
-  ansible.builtin.copy:
-    src: wsl_amdsmi_shim.cc
-    dest: /tmp/wsl_amdsmi_shim.cc
-    mode: '0644'
-  become: true
-  register: rocm_setup_wsl_shim_src_copy
-  when:
-    - rocm_setup_wsl_gpuagent_shim_build | bool
     - rocm_setup_install_metrics_exporter | bool
+    - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) == 0
 
-- name: Check whether gpuagent shim is already built
+# --- build-from-source fallback (path b) ---
+
+- name: Check whether gpuagent-wsl binary is already installed
   ansible.builtin.stat:
-    path: "{{ rocm_setup_wsl_gpuagent_shim_dir }}/libamd_smi_wsl_shim.so"
-  register: rocm_setup_wsl_shim_stat
+    path: "{{ rocm_setup_wsl_gpuagent_wsl_bin_dir }}/gpuagent-wsl"
+  register: rocm_setup_wsl_gpuagent_bin_stat
   when:
-    - rocm_setup_wsl_gpuagent_shim_build | bool
     - rocm_setup_install_metrics_exporter | bool
+    - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) != 0
 
-- name: Build gpuagent WSL amdsmi shim
+- name: Install gpu-agent build dependencies
+  ansible.builtin.package:
+    name:
+      - build-essential
+      - git
+      - make
+    state: present
+    update_cache: true
+    cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
+  become: true
+  when:
+    - rocm_setup_install_metrics_exporter | bool
+    - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) != 0
+    - rocm_setup_wsl_gpuagent_force | bool
+      or not rocm_setup_wsl_gpuagent_bin_stat.stat.exists | default(true)
+
+- name: Clone gpu-agent repository
+  ansible.builtin.git:
+    repo: "{{ rocm_setup_wsl_gpuagent_repo }}"
+    dest: "{{ rocm_setup_wsl_gpuagent_src_dir }}"
+    version: "{{ rocm_setup_wsl_gpuagent_version }}"
+    force: "{{ rocm_setup_wsl_gpuagent_force }}"
+  become: true
+  when:
+    - rocm_setup_install_metrics_exporter | bool
+    - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) != 0
+    - rocm_setup_wsl_gpuagent_force | bool
+      or not rocm_setup_wsl_gpuagent_bin_stat.stat.exists | default(true)
+
+- name: Build gpuagent-wsl from source
   ansible.builtin.shell:
     cmd: |
       set -o pipefail
       set -e
-      g++ -std=c++17 -shared -fPIC -O2 \
-        -I{{ rocm_setup_wsl_amdsmi_headers_dir }} \
-        -o /tmp/libamd_smi_wsl_shim.so \
-        /tmp/wsl_amdsmi_shim.cc \
-        -ldl
+      make gpuagent_wsl WSL_AMD_SMI_LIB_DIR=/opt/rocm-wsl/lib
+    chdir: "{{ rocm_setup_wsl_gpuagent_src_dir }}"
     executable: /bin/bash
   become: true
-  when:
-    - rocm_setup_wsl_gpuagent_shim_build | bool
-    - rocm_setup_install_metrics_exporter | bool
-    - not rocm_setup_wsl_shim_stat.stat.exists | default(true)
-      or rocm_setup_wsl_shim_src_copy is changed
+  register: rocm_setup_wsl_gpuagent_build
   changed_when: true
+  when:
+    - rocm_setup_install_metrics_exporter | bool
+    - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) != 0
+    - rocm_setup_wsl_gpuagent_force | bool
+      or not rocm_setup_wsl_gpuagent_bin_stat.stat.exists | default(true)
 
-- name: Install gpuagent WSL amdsmi shim
+- name: Install gpuagent-wsl binary
   ansible.builtin.copy:
-    src: /tmp/libamd_smi_wsl_shim.so
-    dest: "{{ rocm_setup_wsl_gpuagent_shim_dir }}/libamd_smi_wsl_shim.so"
+    src: "{{ rocm_setup_wsl_gpuagent_src_dir }}/sw/nic/build/x86_64/sim/bin/gpuagent-wsl"
+    dest: "{{ rocm_setup_wsl_gpuagent_wsl_bin_dir }}/gpuagent-wsl"
     mode: '0755'
     remote_src: true
   become: true
+  when:
+    - rocm_setup_install_metrics_exporter | bool
+    - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) != 0
+    - rocm_setup_wsl_gpuagent_build is changed
+
+- name: Verify gpuagent-wsl binary is present
+  ansible.builtin.stat:
+    path: "{{ rocm_setup_wsl_gpuagent_wsl_bin_dir }}/gpuagent-wsl"
+  register: rocm_setup_wsl_gpuagent_verify
+  when: rocm_setup_install_metrics_exporter | bool
+
+- name: Fail when gpuagent-wsl binary is missing after install
+  ansible.builtin.fail:
+    msg: >-
+      gpuagent-wsl was not found at
+      {{ rocm_setup_wsl_gpuagent_wsl_bin_dir }}/gpuagent-wsl after install.
+      Check build output in {{ rocm_setup_wsl_gpuagent_src_dir }} and re-run
+      with rocm_setup_wsl_gpuagent_force: true.
+  when:
+    - rocm_setup_install_metrics_exporter | bool
+    - not rocm_setup_wsl_gpuagent_verify.stat.exists
+
+# --- point gpuagent.service at gpuagent-wsl via systemd drop-in ---
+# The amdgpu-exporter debpkg ships gpuagent (bare-metal). Override ExecStart
+# so the service runs gpuagent-wsl on WSL2 without patching LD_PRELOAD.
+
+- name: Ensure gpuagent.service drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/gpuagent.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+  when: rocm_setup_install_metrics_exporter | bool
+
+- name: Install gpuagent.service WSL2 drop-in
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/gpuagent.service.d/wsl.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart={{ rocm_setup_wsl_gpuagent_wsl_bin_dir }}/gpuagent-wsl
+  become: true
   notify: Restart gpuagent
-  when:
-    - rocm_setup_wsl_gpuagent_shim_build | bool
-    - rocm_setup_install_metrics_exporter | bool
-    - not rocm_setup_wsl_shim_stat.stat.exists | default(true)
-      or rocm_setup_wsl_shim_src_copy is changed
+  when: rocm_setup_install_metrics_exporter | bool
 
-- name: Flush handlers to restart gpuagent if shim was updated
-  ansible.builtin.meta: flush_handlers
-  when:
-    - rocm_setup_wsl_gpuagent_shim_build | bool
-    - rocm_setup_install_metrics_exporter | bool
-
-- name: Inject LD_PRELOAD into gpuagent.conf for WSL amdsmi shim
+- name: Remove LD_PRELOAD from gpuagent.conf if present
   ansible.builtin.lineinfile:
     path: /usr/local/etc/metrics/gpuagent.conf
     regexp: '^LD_PRELOAD='
-    line: "LD_PRELOAD={{ rocm_setup_wsl_gpuagent_shim_dir }}/libamd_smi_wsl_shim.so"
-    create: false
+    state: absent
   become: true
   notify: Restart gpuagent
-  when:
-    - rocm_setup_wsl_gpuagent_shim_build | bool
-    - rocm_setup_install_metrics_exporter | bool
+  when: rocm_setup_install_metrics_exporter | bool
+
+- name: Flush handlers after gpuagent-wsl changes
+  ansible.builtin.meta: flush_handlers
+  when: rocm_setup_install_metrics_exporter | bool
