@@ -226,7 +226,9 @@
 
 - name: Check whether upstream gpuagent-wsl apt package is available
   ansible.builtin.shell:
-    cmd: apt-cache show {{ rocm_setup_wsl_gpuagent_wsl_pkg }} 2>/dev/null | grep -q '^Package:'
+    cmd: |
+      set -o pipefail
+      apt-cache show {{ rocm_setup_wsl_gpuagent_wsl_pkg }} 2>/dev/null | grep -q '^Package:'
     executable: /bin/bash
   register: rocm_setup_wsl_gpuagent_pkg_check
   changed_when: false
@@ -258,7 +260,9 @@
 
 - name: Check whether gpuagent-wsl is already installed
   ansible.builtin.shell:
-    cmd: dpkg-query -W -f='${Status}' {{ rocm_setup_wsl_gpuagent_wsl_pkg }} 2>/dev/null | grep -q 'install ok installed'
+    cmd: |
+      set -o pipefail
+      dpkg-query -W -f='${Status}' {{ rocm_setup_wsl_gpuagent_wsl_pkg }} 2>/dev/null | grep -q 'install ok installed'
     executable: /bin/bash
   register: rocm_setup_wsl_gpuagent_deb_installed
   changed_when: false
