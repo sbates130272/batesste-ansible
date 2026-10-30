@@ -17,6 +17,7 @@
         - user_setup
         - fave_packages
         - git_setup
+        - tmux_scripts
         - cloud_setup
         - consul_setup
         - kernel_setup
@@ -28,6 +29,7 @@
         - user_setup
         - fave_packages
         - git_setup
+        - tmux_scripts
         - rdma_setup
         - rocm_setup
         - rocm_xio_setup
@@ -112,6 +114,17 @@
       when: "'git_setup' in setup_selected_roles"
       tags:
         - git_setup
+
+    - name: Run tmux_scripts
+      ansible.builtin.include_role:
+        name: tmux_scripts
+        apply:
+          remote_user: "{{ username }}"
+          tags:
+            - tmux_scripts
+      when: "'tmux_scripts' in setup_selected_roles"
+      tags:
+        - tmux_scripts
 
     - name: Run rdma_setup
       ansible.builtin.include_role:
