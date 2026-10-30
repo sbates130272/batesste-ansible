@@ -22,6 +22,14 @@
     - role: amd_llm_exporter
       tags: amd_llm_exporter
 
+- name: Update tmux scripts (amd-laptop)
+  hosts: amd-laptop
+  gather_facts: true
+  vars:
+    ansible_connection: local
+  roles:
+    - role: tmux_scripts
+
 - name: Deploy dotfiles to amd-laptop (local)
   import_playbook: ../dotfiles/deploy.yml
   vars:
@@ -38,6 +46,12 @@
         apply:
           become: true
       when: host_sudo | default('password') != 'none'
+
+- name: Update tmux scripts (amd_hosts)
+  hosts: amd_hosts:!amd-laptop
+  gather_facts: true
+  roles:
+    - role: tmux_scripts
 
 - name: Deploy dotfiles to amd_hosts
   import_playbook: ../dotfiles/deploy.yml

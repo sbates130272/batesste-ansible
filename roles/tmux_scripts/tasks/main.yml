@@ -1,0 +1,48 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Clone sbates130272/tmux-scripts and optionally install TPM.
+
+- name: Set a fact containing the current roles' path
+  ansible.builtin.set_fact:
+    tmux_scripts_calling_role_path_fact: "{{ role_path }}"
+
+- name: Test the host platform to see if it can support this role
+  ansible.builtin.include_role:
+    name: sbates130272.batesste.check_platform
+  vars:
+    calling_role_path: "{{ tmux_scripts_calling_role_path_fact }}"  # noqa var-naming
+
+- name: Fix existing tmux-scripts remote URL to HTTPS if SSH is not wanted
+  ansible.builtin.command:
+    cmd: git remote set-url origin https://github.com/sbates130272/tmux-scripts.git
+    chdir: ~/.tmux
+  changed_when: false
+  when: not tmux_scripts_use_ssh | bool
+  failed_when: false
+
+- name: Checkout tmux-scripts
+  ansible.builtin.git:
+    repo: >-
+      {{ (username == 'batesste') | ternary('git@github.com:sbates130272/tmux-scripts.git',
+         'https://github.com/sbates130272/tmux-scripts.git') }}
+    dest: ~/.tmux
+    accept_newhostkey: true
+    force: "{{ tmux_scripts_force }}"
+    version: "{{ tmux_scripts_sha }}"
+  environment:
+    GIT_SSL_CAINFO: "{{ tmux_scripts_git_ssl_cainfo }}"
+  register: tmux_scripts_clone
+  failed_when:
+    - tmux_scripts_clone.failed
+    - not 'Local modifications exist in the destination' in tmux_scripts_clone.msg
+
+- name: Clone TPM (Tmux Plugin Manager)
+  ansible.builtin.git:
+    repo: https://github.com/tmux-plugins/tpm
+    dest: ~/.tmux/plugins/tpm
+    version: master
+    update: true
+  when: tmux_scripts_tpm_enable | default(true)
