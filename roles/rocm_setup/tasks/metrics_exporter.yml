@@ -72,7 +72,7 @@
       - "Possible reasons:"
       - "  - AMD kernel modules not loaded (try: modprobe amdgpu)"
       - "  - Insufficient permissions to access /dev/kfd or /dev/dri"
-      - "  - On WSL: check gpuagent shim at {{ rocm_setup_wsl_gpuagent_shim_dir }}/libamd_smi_wsl_shim.so"
+      - "  - On WSL: ensure gpuagent-wsl is installed and gpuagent.service drop-in is in place"
       - "  - ROCm libraries not properly installed"
       - "Check logs with: journalctl -u amd-metrics-exporter -n 50"
   when:

@@ -121,9 +121,8 @@ rocm_setup_wsl: false
 rocm_setup_wsl_install: false
 
 # ROCDXG (rocm_setup_wsl: rocdxg) settings.
-# librocdxg provides /opt/rocm-wsl/lib/libamd_smi.so (the DXG-aware WSL2 library).
-# The sbates130272/gpu-agent fork (feat/dxg-enablement) is used; it ships
-# the vendor headers needed to compile wsl_amdsmi_shim.cc.
+# librocdxg provides /opt/rocm-wsl/lib/libamd_smi.so (the DXG-aware WSL2 library)
+# that gpuagent-wsl links against at runtime.
 rocm_setup_wsl_librocdxg_repo: https://github.com/ROCm/librocdxg.git
 rocm_setup_wsl_librocdxg_version: develop
 rocm_setup_wsl_librocdxg_src_dir: /usr/local/src/librocdxg
@@ -134,27 +133,24 @@ rocm_setup_wsl_hsa_enable_dxg_detection: true
 rocm_setup_wsl_hsa_override_gfx_version: ""
 rocm_setup_wsl_librocdxg_force: false
 
-# Build and install the WSL-aware amd-smi from the amdsmi/ subdirectory of
-# the librocdxg repository. Installs under /opt/rocm-wsl so it does not
-# conflict with the ROCm-packaged amd-smi-lib. Requires the same Windows SDK
-# that librocdxg itself uses. Set to false to skip this step.
-rocm_setup_wsl_amdsmi_build: true
-# Set to true to force a clean rebuild even if /opt/rocm-wsl already exists.
-rocm_setup_wsl_amdsmi_force: false
-
-# Build and install the LD_PRELOAD shim that routes gpuagent's amdsmi calls
-# through the WSL-aware libamd_smi (/opt/rocm-wsl/lib/libamd_smi.so) so that
-# the amdgpu-exporter's gpuagent can enumerate GPUs via /dev/dxg instead of
-# /dev/kfd. Requires rocm_setup_install_metrics_exporter: true.
-rocm_setup_wsl_gpuagent_shim_build: true
-# Install directory — must match LD_LIBRARY_PATH in gpuagent.conf.
-rocm_setup_wsl_gpuagent_shim_dir: /usr/local/metrics/lib
-# Directory containing amd_smi/amdsmi.h used when compiling wsl_amdsmi_shim.cc.
-# Defaults to the amdsmi/ subtree inside the librocdxg clone.  When using the
-# sbates130272/gpu-agent fork (feat/dxg-enablement) as the source instead,
-# set this to:
-#   <gpu-agent-src-dir>/sw/nic/third-party/rocm/wsl_amd_smi_lib/include
-rocm_setup_wsl_amdsmi_headers_dir: "{{ rocm_setup_wsl_librocdxg_src_dir }}/amdsmi/include"
+# gpuagent-wsl: WSL2-native gpuagent binary linking directly against
+# /opt/rocm-wsl/lib/libamd_smi.so (from librocdxg). Replaces the LD_PRELOAD
+# shim approach. Deployment paths tried in order:
+#
+#   a) upstream apt package (preferred, not yet published by AMD):
+#      rocm_setup_wsl_gpuagent_wsl_pkg — when available, prints a warning
+#      that paths (b) and (c) can be removed.
+#   b) hosted .deb from sbates130272/batesste-ansible release (current path):
+#      downloaded via GitHub API and installed with dpkg.  When (a) appears,
+#      a warning is printed that this .deb and its role code can be removed.
+#
+# Upstream apt package name (not yet in any AMD repo):
+rocm_setup_wsl_gpuagent_wsl_pkg: gpuagent-wsl
+# Hosted .deb asset on sbates130272/batesste-ansible releases:
+rocm_setup_wsl_gpuagent_deb_repo: sbates130272/batesste-ansible
+rocm_setup_wsl_gpuagent_deb_tag: v3.1.0
+rocm_setup_wsl_gpuagent_deb_asset: gpuagent-wsl_1.5.3+wsl1_amd64.deb
+rocm_setup_wsl_gpuagent_wsl_bin_dir: /usr/local/bin
 
 # Run rocminfo when rocm_setup_run_checks is true (skipped for legacy WSL).
 # For rocdxg, optionally compile and run the HIP hello-world test too.

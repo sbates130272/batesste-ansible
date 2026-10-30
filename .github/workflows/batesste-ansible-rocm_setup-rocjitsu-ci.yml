@@ -37,6 +37,7 @@ jobs:
       uses: actions/checkout@v7.0.1
       with:
         repository: sbates130272/qemu-minimal
+        ref: 9ec66ea4c905190e91687a344d59a18443b0585a
         path: qemu-minimal
     - name: Verify KVM is available
       run: |
