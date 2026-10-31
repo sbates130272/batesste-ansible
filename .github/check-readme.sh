@@ -8,7 +8,7 @@ rc=0
 
 while IFS= read -r -d '' role_dir; do
   role=$(basename "$role_dir")
-  if ! grep -qF "roles/${role}/" "$README"; then
+  if ! grep -qF "roles/${role}/" "$README" && ! grep -qF "/content/role/${role}/" "$README"; then
     echo "MISSING: '$role' is not linked in $README"
     rc=1
   fi
