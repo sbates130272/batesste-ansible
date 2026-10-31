@@ -158,7 +158,7 @@ ansible-playbook -i hosts playbooks/setup/setup.yml \
 Dotfiles are deployed by default. To skip them, pass
 `-e user_setup_dotfiles_enable=false`.
 
-See [roles/user_setup/README.md](roles/user_setup/README.md) for the full
+See [roles/user_setup/README.md](/content/role/user_setup/) for the full
 variable reference.
 
 ### AMD ROCm Example
@@ -246,37 +246,37 @@ Each role ships a `README.md` with variables, requirements, and usage notes.
 | Role | Description |
 | ---- | ----------- |
 | [aws_ec2_setup](/content/role/aws_ec2_setup/) | AWS EC2 instance configuration helpers |
-| [amd_llm_exporter](roles/amd_llm_exporter/README.md) | Prometheus exporter for AMD LLM API (Anthropic) token usage |
-| [aws_grub](roles/aws_grub/README.md) | GRUB configuration for AWS instances |
-| [check_platform](roles/check_platform/README.md) | Assert supported Ubuntu release |
-| [claude_setup](roles/claude_setup/README.md) | Install and configure Claude Code via a local proxy |
-| [cloud_setup](roles/cloud_setup/README.md) | Cloud provider tools and configuration |
-| [consul_setup](roles/consul_setup/README.md) | HashiCorp Consul agent install and configuration |
-| [docker_setup](roles/docker_setup/README.md) | Docker engine install and user configuration |
-| [eideticom_scripts](roles/eideticom_scripts/README.md) | Eideticom-specific utility scripts |
-| [fave_packages](roles/fave_packages/README.md) | Install preferred apt/pip packages |
-| [fio_devel](roles/fio_devel/README.md) | Build fio from source for storage benchmarking |
-| [git_setup](roles/git_setup/README.md) | Git global config, signing, and dotfiles |
-| [github_runner](roles/github_runner/README.md) | GitHub Actions self-hosted runner setup |
-| [grafana_setup](roles/grafana_setup/README.md) | Grafana, Prometheus, and Node Exporter stack |
-| [hashicorp_repo](roles/hashicorp_repo/README.md) | Add HashiCorp APT repository and GPG key (shared utility role) |
-| [kernel_setup](roles/kernel_setup/README.md) | Custom kernel build and install |
+| [amd_llm_exporter](/content/role/amd_llm_exporter/) | Prometheus exporter for AMD LLM API (Anthropic) token usage |
+| [aws_grub](/content/role/aws_grub/) | GRUB configuration for AWS instances |
+| [check_platform](/content/role/check_platform/) | Assert supported Ubuntu release |
+| [claude_setup](/content/role/claude_setup/) | Install and configure Claude Code via a local proxy |
+| [cloud_setup](/content/role/cloud_setup/) | Cloud provider tools and configuration |
+| [consul_setup](/content/role/consul_setup/) | HashiCorp Consul agent install and configuration |
+| [docker_setup](/content/role/docker_setup/) | Docker engine install and user configuration |
+| [eideticom_scripts](/content/role/eideticom_scripts/) | Eideticom-specific utility scripts |
+| [fave_packages](/content/role/fave_packages/) | Install preferred apt/pip packages |
+| [fio_devel](/content/role/fio_devel/) | Build fio from source for storage benchmarking |
+| [git_setup](/content/role/git_setup/) | Git global config, signing, and dotfiles |
+| [github_runner](/content/role/github_runner/) | GitHub Actions self-hosted runner setup |
+| [grafana_setup](/content/role/grafana_setup/) | Grafana, Prometheus, and Node Exporter stack |
+| [hashicorp_repo](/content/role/hashicorp_repo/) | Add HashiCorp APT repository and GPG key (shared utility role) |
+| [kernel_setup](/content/role/kernel_setup/) | Custom kernel build and install |
 | [lemonade_setup](/content/role/lemonade_setup/) | Lemonade clipboard tool setup |
-| [mutt_setup](roles/mutt_setup/README.md) | Mutt email client configuration |
-| [nfs_rdma_setup](roles/nfs_rdma_setup/README.md) | NFS over RDMA configuration |
-| [nvme_exporter_setup](roles/nvme_exporter_setup/README.md) | NVMe Prometheus exporter |
-| [nvmeof_setup](roles/nvmeof_setup/README.md) | NVMe-oF target and initiator setup |
-| [qemu_setup](roles/qemu_setup/README.md) | QEMU/KVM hypervisor install and configuration |
-| [registry_client](roles/registry_client/README.md) | Register a private container registry on Docker/Podman/containerd |
-| [rdma_interfaces](roles/rdma_interfaces/README.md) | Discover RDMA-capable interfaces and IPv4 addresses (shared utility role) |
-| [rdma_setup](roles/rdma_setup/README.md) | RDMA/InfiniBand drivers and tools |
-| [rocm_hipfile_setup](roles/rocm_hipfile_setup/README.md) | ROCm hipFile package install |
-| [rocm_setup](roles/rocm_setup/README.md) | AMD ROCm stack install and DKMS configuration |
-| [rocm_xio_setup](roles/rocm_xio_setup/README.md) | ROCm XIO storage backend setup |
-| [tmux_scripts](roles/tmux_scripts/README.md) | tmux configuration and helper scripts |
-| [uprof_setup](roles/uprof_setup/README.md) | AMD uProf profiler install |
-| [user_setup](roles/user_setup/README.md) | User account, SSH keys, and dotfiles bootstrap |
-| [vm_create](roles/vm_create/README.md) | Create and configure local VMs via libvirt |
+| [mutt_setup](/content/role/mutt_setup/) | Mutt email client configuration |
+| [nfs_rdma_setup](/content/role/nfs_rdma_setup/) | NFS over RDMA configuration |
+| [nvme_exporter_setup](/content/role/nvme_exporter_setup/) | NVMe Prometheus exporter |
+| [nvmeof_setup](/content/role/nvmeof_setup/) | NVMe-oF target and initiator setup |
+| [qemu_setup](/content/role/qemu_setup/) | QEMU/KVM hypervisor install and configuration |
+| [registry_client](/content/role/registry_client/) | Register a private container registry on Docker/Podman/containerd |
+| [rdma_interfaces](/content/role/rdma_interfaces/) | Discover RDMA-capable interfaces and IPv4 addresses (shared utility role) |
+| [rdma_setup](/content/role/rdma_setup/) | RDMA/InfiniBand drivers and tools |
+| [rocm_hipfile_setup](/content/role/rocm_hipfile_setup/) | ROCm hipFile package install |
+| [rocm_setup](/content/role/rocm_setup/) | AMD ROCm stack install and DKMS configuration |
+| [rocm_xio_setup](/content/role/rocm_xio_setup/) | ROCm XIO storage backend setup |
+| [tmux_scripts](/content/role/tmux_scripts/) | tmux configuration and helper scripts |
+| [uprof_setup](/content/role/uprof_setup/) | AMD uProf profiler install |
+| [user_setup](/content/role/user_setup/) | User account, SSH keys, and dotfiles bootstrap |
+| [vm_create](/content/role/vm_create/) | Create and configure local VMs via libvirt |
 
 ## Playbook and Role Testing
 
