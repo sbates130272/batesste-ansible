@@ -100,7 +100,7 @@ jobs:
         # without access to that secret from blocking on it, while it still
         # runs (and decrypts) for real on push/workflow_dispatch/same-repo
         # PR runs.
-        continue-on-error: true
+        continue-on-error: false
         run: |
           ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} \
             --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD") \
@@ -118,7 +118,7 @@ jobs:
         # Exercises the setup-amd recipe dispatcher with roles that run safely
         # on a CI runner. Hardware-gated roles (rdma_setup, rocm_setup,
         # uprof_setup) are excluded via setup_roles override.
-        continue-on-error: true
+        continue-on-error: false
         run: |
           ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} \
             --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD") \

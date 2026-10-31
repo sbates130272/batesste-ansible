@@ -51,7 +51,7 @@ jobs:
       - name: Run the test playbook against the local runner
         run: ansible-playbook -v -i hosts-ci ./tests/test.yml
         working-directory: ./roles/nfs_rdma_setup
-        continue-on-error: true
+        continue-on-error: false
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
           ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
