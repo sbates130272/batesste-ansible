@@ -245,7 +245,7 @@ Each role ships a `README.md` with variables, requirements, and usage notes.
 
 | Role | Description |
 | ---- | ----------- |
-| [aws_ec2_setup](roles/aws_ec2_setup/README.md) | AWS EC2 instance configuration helpers |
+| [aws_ec2_setup](/content/role/aws_ec2_setup/) | AWS EC2 instance configuration helpers |
 | [amd_llm_exporter](roles/amd_llm_exporter/README.md) | Prometheus exporter for AMD LLM API (Anthropic) token usage |
 | [aws_grub](roles/aws_grub/README.md) | GRUB configuration for AWS instances |
 | [check_platform](roles/check_platform/README.md) | Assert supported Ubuntu release |
@@ -261,7 +261,7 @@ Each role ships a `README.md` with variables, requirements, and usage notes.
 | [grafana_setup](roles/grafana_setup/README.md) | Grafana, Prometheus, and Node Exporter stack |
 | [hashicorp_repo](roles/hashicorp_repo/README.md) | Add HashiCorp APT repository and GPG key (shared utility role) |
 | [kernel_setup](roles/kernel_setup/README.md) | Custom kernel build and install |
-| [lemonade_setup](roles/lemonade_setup/README.md) | Lemonade clipboard tool setup |
+| [lemonade_setup](/content/role/lemonade_setup/) | Lemonade clipboard tool setup |
 | [mutt_setup](roles/mutt_setup/README.md) | Mutt email client configuration |
 | [nfs_rdma_setup](roles/nfs_rdma_setup/README.md) | NFS over RDMA configuration |
 | [nvme_exporter_setup](roles/nvme_exporter_setup/README.md) | NVMe Prometheus exporter |
