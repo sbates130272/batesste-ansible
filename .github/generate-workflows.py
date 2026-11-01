@@ -16,6 +16,12 @@ from typing import Dict, List
 # into every rocjitsu CI lane immediately).
 QEMU_MINIMAL_REF = "9ec66ea4c905190e91687a344d59a18443b0585a"
 
+# Repository whose CI is authoritative. Jobs that need the vault password are
+# guarded with this so they do not run (and fail for lack of the secret) in
+# forks' own Actions runs.
+SOURCE_REPO = "sbates130272/batesste-ansible"
+SOURCE_REPO_GUARD = f"github.repository == '{SOURCE_REPO}'"
+
 # Configuration for role-specific settings
 ROLE_CONFIGS = {
     "aws_ec2_setup": {
@@ -52,7 +58,6 @@ ROLE_CONFIGS = {
             "/home/rocm_user/.local/bin/rocm --version",
         ],
         "needs_vault": False,
-        "ubuntu_26_04_experimental": True,
         "extra_jobs": [
             {
                 "name_suffix": "therock",
@@ -291,9 +296,6 @@ jobs:
             "systemctl status lemonade-server || true",
         ],
         "needs_vault": False,
-        # lemonade-server package not yet available in the PPA on ubuntu-24.04;
-        # ignore until the role is updated for the current lemonade release.
-        "ignore_failure": True,
         "raw_workflow_files": {
             "rocjitsu": """\
 name: batesste-ansible - lemonade_setup rocjitsu CI
@@ -593,7 +595,6 @@ jobs:
         ],
         "needs_vault": False,
         "hold_snap_packages": True,
-        "ubuntu_26_04_experimental": True,
     },
     "git_setup": {
         "free_disk_space": False,
@@ -635,13 +636,6 @@ jobs:
         ],
         "needs_vault": True,
         "needs_github_token": False,
-        # mutt_setup_google_oauth2_client_secret is a real ansible-vault
-        # secret. GitHub withholds repo secrets from pull_request runs
-        # triggered by forked repos, so ANSIBLE_VAULT_PASSWORD is empty
-        # there and this job can never decrypt it. Don't let that block
-        # fork PRs; it still runs (and decrypts) for real on push/
-        # workflow_dispatch runs and PRs from branches in this repo.
-        "ignore_failure": True,
     },
     "nvme_exporter_setup": {
         "free_disk_space": False,
@@ -667,7 +661,6 @@ jobs:
         ],
         "needs_vault": False,
         "needs_github_token": False,
-        "ignore_failure": True,
         "workflow_dispatch_only": True,
     },
     "nfs_rdma_setup": {
@@ -683,7 +676,6 @@ jobs:
         ],
         "needs_vault": False,
         "needs_github_token": False,
-        "ignore_failure": True,
         "workflow_dispatch_only": True,
     },
     "uprof_setup": {
@@ -799,7 +791,6 @@ jobs:
             "gh --version || true",
         ],
         "needs_vault": True,
-        "ignore_failure": True,
     },
     "consul_setup": {
         "free_disk_space": False,
@@ -811,7 +802,6 @@ jobs:
             "dpkg -l | grep consul || true",
         ],
         "needs_vault": True,
-        "ignore_failure": True,
     },
     "docker_setup": {
         "free_disk_space": False,
@@ -898,12 +888,36 @@ DEFAULT_CONFIG = {
     "extra_vars": {},
     "verification_commands": [],
     "needs_vault": False,
-    "ignore_failure": False,
     "workflow_dispatch_only": False,
-    # Set to True for roles whose 26.04 job is allowed to fail (hardware-gated).
-    # All other roles are held strict on 26.04.
-    "ubuntu_26_04_experimental": False,
 }
+
+
+def vault_check_job_lines() -> List[str]:
+    """Return the lines of the job that fails when the vault secret is missing.
+
+    GitHub withholds repo secrets from pull_request runs triggered by a
+    forked repository. Without this job those runs fail deep inside ansible
+    with an opaque decryption error; with it they fail early with a clear
+    message. The secret is passed through env, never interpolated into the
+    script text.
+    """
+    return [
+        "  missing-secret-check:",
+        "    name: Verify vault password",
+        "    runs-on: ubuntu-24.04",
+        f"    if: {SOURCE_REPO_GUARD} && github.event_name == 'pull_request'",
+        "    steps:",
+        "      - name: Fail if vault password is missing",
+        "        env:",
+        "          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}",
+        "        run: |",
+        '          if [[ -z "$ANSIBLE_VAULT_PASSWORD" ]]; then',
+        '            echo "::error::ANSIBLE_VAULT_PASSWORD is missing; tests that use the vault cannot run."',
+        "            exit 1",
+        "          fi",
+        '          echo "Vault password is available."',
+        "",
+    ]
 
 
 def find_roles_with_tests(roles_dir: Path) -> List[str]:
@@ -942,11 +956,13 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
             "      - requirements.txt",
             "      - requirements.yml",
         ])
-    lines.extend([
-        "",
-        "jobs:",
-        f"  {role_name}-test:",
-    ])
+    needs_vault = config.get("needs_vault", False)
+    lines.extend(["", "jobs:"])
+    if needs_vault:
+        lines.extend(vault_check_job_lines())
+    lines.append(f"  {role_name}-test:")
+    if needs_vault:
+        lines.append(f"    if: {SOURCE_REPO_GUARD}")
 
     # Add matrix or single runner
     if use_matrix:
@@ -956,10 +972,6 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         for version in ubuntu_versions:
             lines.append(f"          - ubuntu-{version}")
         lines.append("    runs-on: ${{ matrix.runs-on }}")
-        if "26.04" in ubuntu_versions and config.get("ubuntu_26_04_experimental", False):
-            lines.append(
-                "    continue-on-error: ${{ matrix.runs-on == 'ubuntu-26.04' }}"
-            )
     else:
         lines.append(f"    runs-on: ubuntu-{ubuntu_versions[0]}")
 
@@ -1047,13 +1059,6 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         f"        run: {run_cmd}",
         f"        working-directory: ./roles/{role_name}",
     ])
-    if config.get("ignore_failure", False):
-        # Step-level (not job-level): a job-level continue-on-error still
-        # reports this job's own check run as "failure" (only the overall
-        # workflow run conclusion becomes "success"), so it doesn't stop a
-        # fork PR without ANSIBLE_VAULT_PASSWORD from showing red here.
-        # continue-on-error on the step itself makes the job succeed.
-        lines.append("        continue-on-error: true")
     lines.extend([
         "        env:",
         "          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles",

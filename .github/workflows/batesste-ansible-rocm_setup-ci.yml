@@ -22,7 +22,6 @@ jobs:
           - ubuntu-24.04
           - ubuntu-26.04
     runs-on: ${{ matrix.runs-on }}
-    continue-on-error: ${{ matrix.runs-on == 'ubuntu-26.04' }}
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v2.0.0

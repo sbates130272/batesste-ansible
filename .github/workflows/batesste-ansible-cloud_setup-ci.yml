@@ -15,7 +15,23 @@ name: batesste-ansible - cloud_setup CI
       - requirements.yml
 
 jobs:
+  missing-secret-check:
+    name: Verify vault password
+    runs-on: ubuntu-24.04
+    if: github.repository == 'sbates130272/batesste-ansible' && github.event_name == 'pull_request'
+    steps:
+      - name: Fail if vault password is missing
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          if [[ -z "$ANSIBLE_VAULT_PASSWORD" ]]; then
+            echo "::error::ANSIBLE_VAULT_PASSWORD is missing; tests that use the vault cannot run."
+            exit 1
+          fi
+          echo "Vault password is available."
+
   cloud_setup-test:
+    if: github.repository == 'sbates130272/batesste-ansible'
     strategy:
       matrix:
         runs-on:
@@ -59,7 +75,6 @@ jobs:
       - name: Run the test playbook against the local runner
         run: ansible-playbook -v -i hosts-ci ./tests/test.yml --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD")
         working-directory: ./roles/cloud_setup
-        continue-on-error: false
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
           ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections

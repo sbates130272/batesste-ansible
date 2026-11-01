@@ -24,6 +24,20 @@ on:
       - '.github/generate-workflows.py'
 
 jobs:
+  missing-secret-check:
+    name: Verify vault password
+    runs-on: ubuntu-24.04
+    if: github.repository == 'sbates130272/batesste-ansible' && github.event_name == 'pull_request'
+    steps:
+      - name: Fail if vault password is missing
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          if [[ -z "$ANSIBLE_VAULT_PASSWORD" ]]; then
+            echo "::error::ANSIBLE_VAULT_PASSWORD is missing; tests that use the vault cannot run."
+            exit 1
+          fi
+          echo "Vault password is available."
 
   check-generated-workflows:
     runs-on: ubuntu-24.04
@@ -94,13 +108,9 @@ jobs:
         run: bash .github/check-readme.sh
 
       - name: Run the default playbook against the local runner
-        # GitHub withholds repo secrets from pull_request runs triggered by
-        # a forked repository, so ANSIBLE_VAULT_PASSWORD is empty there and
-        # this step can never decrypt it. continue-on-error keeps a fork PR
-        # without access to that secret from blocking on it, while it still
-        # runs (and decrypts) for real on push/workflow_dispatch/same-repo
-        # PR runs.
-        continue-on-error: false
+        # Needs ANSIBLE_VAULT_PASSWORD, which GitHub withholds from PRs from
+        # forks; missing-secret-check reports that case with a clear failure.
+        if: github.repository == 'sbates130272/batesste-ansible'
         run: |
           ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} \
             --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD") \
@@ -118,7 +128,7 @@ jobs:
         # Exercises the setup-amd recipe dispatcher with roles that run safely
         # on a CI runner. Hardware-gated roles (rdma_setup, rocm_setup,
         # uprof_setup) are excluded via setup_roles override.
-        continue-on-error: false
+        if: github.repository == 'sbates130272/batesste-ansible'
         run: |
           ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} \
             --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD") \
