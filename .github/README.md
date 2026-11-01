@@ -37,12 +37,11 @@ Role-specific configurations are defined in `generate-workflows.py` in the `ROLE
 ```python
 ROLE_CONFIGS = {
     "role_name": {
-        "ubuntu_versions": ["24.04"],  # Add "26.04" when ubuntu-26.04 runners exist
+        "ubuntu_versions": ["24.04", "26.04"],  # Runner images to test on
         "free_disk_space": False,      # Whether to free disk space first
         "extra_vars": {},              # Additional Ansible variables
         "verification_commands": [],   # Commands to verify installation
         "needs_vault": False,          # Whether role needs vault password
-        "ignore_failure": False,       # If true, workflow still passes when test fails
         "workflow_dispatch_only": False,  # If true, run only on manual trigger
     }
 }
@@ -53,6 +52,23 @@ ROLE_CONFIGS = {
 name to `WORKFLOW_DISPATCH_ONLY_ROLES` in `generate-workflows.py` (e.g.
 `["nvmeof_setup"]`) or set `workflow_dispatch_only: true` for that role
 in `ROLE_CONFIGS`. Regenerate workflows after changing.
+
+### Vault Password (`needs_vault`)
+
+Setting `needs_vault: True` makes the generated workflow pass
+`ANSIBLE_VAULT_PASSWORD` (from the repository secret) to the test playbook. It
+also emits, via `vault_check_job_lines()` in `generate-workflows.py`:
+
+- a `missing-secret-check` job that fails with a clear `::error::` message
+  when the secret is empty on `pull_request` runs. GitHub withholds repository
+  secrets from PRs opened from forks, so those runs fail early and visibly
+  instead of with an opaque ansible decryption error;
+- a `github.repository == 'sbates130272/batesste-ansible'` guard on the test
+  job, so it does not run (and fail for lack of the secret) in forks' own
+  Actions runs.
+
+The hand-written `batesste-ansible-ci.yml` carries the same job and guard on
+its vault steps. There is no `continue-on-error`: every job is strict.
 
 ### Keeping README.md in Sync
 
@@ -91,19 +107,19 @@ bash .github/check-readme.sh
 ## Role Configurations
 
 ### grafana_setup
-- Tests on: Ubuntu 24.04 (26.04 skipped until GitHub-hosted runners exist)
+- Tests on: Ubuntu 24.04 and 26.04
 - Disables network discovery for CI (no network scanning)
 - Verifies Grafana, Prometheus, and Node Exporter services
 - Checks service health endpoints
 
 ### rocm_setup
-- Tests on: Ubuntu 24.04 (26.04 skipped until GitHub-hosted runners exist)
+- Tests on: Ubuntu 24.04 and 26.04
 - Requires disk space cleanup (large packages)
 - Skips hardware checks (no AMD GPUs in CI)
 - Verifies ROCm package installation
 
 ### rdma_setup
-- Tests on: Ubuntu 24.04 (26.04 skipped until GitHub-hosted runners exist)
+- Tests on: Ubuntu 24.04 and 26.04
 - Verifies RDMA package installation
 - Checks for InfiniBand tools
 
@@ -142,28 +158,24 @@ Path filters ensure workflows only run when relevant files are modified:
 ### Adding New Ubuntu Versions
 
 Update the `ubuntu_versions` list in `DEFAULT_CONFIG` or the role's
-config in `ROLE_CONFIGS`. The default is 24.04 only until
-`ubuntu-26.04` is reliably available on GitHub-hosted runners:
+config in `ROLE_CONFIGS`. The default tests on 24.04 and 26.04 (the
+`ubuntu-26.04` runner image is generally available):
 
 ```python
 DEFAULT_CONFIG = {
-    "ubuntu_versions": ["24.04"],
+    "ubuntu_versions": ["24.04", "26.04"],
     ...
 }
 ```
 
-When `ubuntu-26.04` works in Actions, add `"26.04"` to that list (and
-regenerate). Override per role in `ROLE_CONFIGS` if needed.
-
-Then regenerate workflows.
+Override per role in `ROLE_CONFIGS` if needed, then regenerate workflows.
 
 ## Best Practices
 
 1. **Keep test playbooks simple**: Use `tests/test.yml` for straightforward role execution
 2. **Add verification commands**: Include commands to verify the role worked correctly
 3. **Skip non-CI features**: Use `extra_vars` to disable features that don't work in CI
-4. **Test on supported Ubuntu version**: CI uses Ubuntu 24.04; re-add
-   26.04 when GitHub-hosted `ubuntu-26.04` runners are available.
+4. **Test on supported Ubuntu versions**: CI covers Ubuntu 24.04 and 26.04.
 5. **Free disk space when needed**: Large packages (ROCm, etc.) may need disk cleanup
 
 ## Troubleshooting
@@ -177,9 +189,11 @@ Then regenerate workflows.
 - Review verification commands in the workflow
 - Check if hardware-specific features need to be disabled
 - Verify required secrets are configured in GitHub repository settings
-- For temporarily flaky or CI-limited tests, set `ignore_failure: true` in the
-  role's config in `ROLE_CONFIGS`. The job still runs and reports failure, but
-  the overall workflow is marked success.
+- A failing `missing-secret-check` job means `ANSIBLE_VAULT_PASSWORD` is not
+  available to the run (typically a PR from a fork); ask a maintainer to
+  re-run it from a branch in this repository.
+- There is no `ignore_failure` option: fix flaky or CI-limited tests, or gate
+  them with `extra_vars` or `workflow_dispatch_only`.
 
 ### Regenerating workflows
 If workflows become out of sync:
