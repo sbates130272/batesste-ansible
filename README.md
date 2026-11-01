@@ -158,7 +158,7 @@ ansible-playbook -i hosts playbooks/setup/setup.yml \
 Dotfiles are deployed by default. To skip them, pass
 `-e user_setup_dotfiles_enable=false`.
 
-See [roles/user_setup/README.md](/content/role/user_setup/) for the full
+See [user_setup role documentation](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/user_setup/) for the full
 variable reference.
 
 ### AMD ROCm Example
@@ -245,38 +245,38 @@ Each role ships a `README.md` with variables, requirements, and usage notes.
 
 | Role | Description |
 | ---- | ----------- |
-| [aws_ec2_setup](/content/role/aws_ec2_setup/) | AWS EC2 instance configuration helpers |
-| [amd_llm_exporter](/content/role/amd_llm_exporter/) | Prometheus exporter for AMD LLM API (Anthropic) token usage |
-| [aws_grub](/content/role/aws_grub/) | GRUB configuration for AWS instances |
-| [check_platform](/content/role/check_platform/) | Assert supported Ubuntu release |
-| [claude_setup](/content/role/claude_setup/) | Install and configure Claude Code via a local proxy |
-| [cloud_setup](/content/role/cloud_setup/) | Cloud provider tools and configuration |
-| [consul_setup](/content/role/consul_setup/) | HashiCorp Consul agent install and configuration |
-| [docker_setup](/content/role/docker_setup/) | Docker engine install and user configuration |
-| [eideticom_scripts](/content/role/eideticom_scripts/) | Eideticom-specific utility scripts |
-| [fave_packages](/content/role/fave_packages/) | Install preferred apt/pip packages |
-| [fio_devel](/content/role/fio_devel/) | Build fio from source for storage benchmarking |
-| [git_setup](/content/role/git_setup/) | Git global config, signing, and dotfiles |
-| [github_runner](/content/role/github_runner/) | GitHub Actions self-hosted runner setup |
-| [grafana_setup](/content/role/grafana_setup/) | Grafana, Prometheus, and Node Exporter stack |
-| [hashicorp_repo](/content/role/hashicorp_repo/) | Add HashiCorp APT repository and GPG key (shared utility role) |
-| [kernel_setup](/content/role/kernel_setup/) | Custom kernel build and install |
-| [lemonade_setup](/content/role/lemonade_setup/) | Lemonade clipboard tool setup |
-| [mutt_setup](/content/role/mutt_setup/) | Mutt email client configuration |
-| [nfs_rdma_setup](/content/role/nfs_rdma_setup/) | NFS over RDMA configuration |
-| [nvme_exporter_setup](/content/role/nvme_exporter_setup/) | NVMe Prometheus exporter |
-| [nvmeof_setup](/content/role/nvmeof_setup/) | NVMe-oF target and initiator setup |
-| [qemu_setup](/content/role/qemu_setup/) | QEMU/KVM hypervisor install and configuration |
-| [registry_client](/content/role/registry_client/) | Register a private container registry on Docker/Podman/containerd |
-| [rdma_interfaces](/content/role/rdma_interfaces/) | Discover RDMA-capable interfaces and IPv4 addresses (shared utility role) |
-| [rdma_setup](/content/role/rdma_setup/) | RDMA/InfiniBand drivers and tools |
-| [rocm_hipfile_setup](/content/role/rocm_hipfile_setup/) | ROCm hipFile package install |
-| [rocm_setup](/content/role/rocm_setup/) | AMD ROCm stack install and DKMS configuration |
-| [rocm_xio_setup](/content/role/rocm_xio_setup/) | ROCm XIO storage backend setup |
-| [tmux_scripts](/content/role/tmux_scripts/) | tmux configuration and helper scripts |
-| [uprof_setup](/content/role/uprof_setup/) | AMD uProf profiler install |
-| [user_setup](/content/role/user_setup/) | User account, SSH keys, and dotfiles bootstrap |
-| [vm_create](/content/role/vm_create/) | Create and configure local VMs via libvirt |
+| [aws_ec2_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/aws_ec2_setup/) | AWS EC2 instance configuration helpers |
+| [amd_llm_exporter](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/amd_llm_exporter/) | Prometheus exporter for AMD LLM API (Anthropic) token usage |
+| [aws_grub](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/aws_grub/) | GRUB configuration for AWS instances |
+| [check_platform](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/check_platform/) | Assert supported Ubuntu release |
+| [claude_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/claude_setup/) | Install and configure Claude Code via a local proxy |
+| [cloud_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/cloud_setup/) | Cloud provider tools and configuration |
+| [consul_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/consul_setup/) | HashiCorp Consul agent install and configuration |
+| [docker_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/docker_setup/) | Docker engine install and user configuration |
+| [eideticom_scripts](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/eideticom_scripts/) | Eideticom-specific utility scripts |
+| [fave_packages](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/fave_packages/) | Install preferred apt/pip packages |
+| [fio_devel](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/fio_devel/) | Build fio from source for storage benchmarking |
+| [git_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/git_setup/) | Git global config, signing, and dotfiles |
+| [github_runner](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/github_runner/) | GitHub Actions self-hosted runner setup |
+| [grafana_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/grafana_setup/) | Grafana, Prometheus, and Node Exporter stack |
+| [hashicorp_repo](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/hashicorp_repo/) | Add HashiCorp APT repository and GPG key (shared utility role) |
+| [kernel_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/kernel_setup/) | Custom kernel build and install |
+| [lemonade_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/lemonade_setup/) | Lemonade clipboard tool setup |
+| [mutt_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/mutt_setup/) | Mutt email client configuration |
+| [nfs_rdma_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/nfs_rdma_setup/) | NFS over RDMA configuration |
+| [nvme_exporter_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/nvme_exporter_setup/) | NVMe Prometheus exporter |
+| [nvmeof_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/nvmeof_setup/) | NVMe-oF target and initiator setup |
+| [qemu_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/qemu_setup/) | QEMU/KVM hypervisor install and configuration |
+| [registry_client](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/registry_client/) | Register a private container registry on Docker/Podman/containerd |
+| [rdma_interfaces](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/rdma_interfaces/) | Discover RDMA-capable interfaces and IPv4 addresses (shared utility role) |
+| [rdma_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/rdma_setup/) | RDMA/InfiniBand drivers and tools |
+| [rocm_hipfile_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/rocm_hipfile_setup/) | ROCm hipFile package install |
+| [rocm_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/rocm_setup/) | AMD ROCm stack install and DKMS configuration |
+| [rocm_xio_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/rocm_xio_setup/) | ROCm XIO storage backend setup |
+| [tmux_scripts](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/tmux_scripts/) | tmux configuration and helper scripts |
+| [uprof_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/uprof_setup/) | AMD uProf profiler install |
+| [user_setup](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/user_setup/) | User account, SSH keys, and dotfiles bootstrap |
+| [vm_create](https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role/vm_create/) | Create and configure local VMs via libvirt |
 
 ## Playbook and Role Testing
 
