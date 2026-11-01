@@ -22,17 +22,17 @@
       {{ _cp_meta.galaxy_info.platforms | map(attribute='name') | list }}
 
 - name: Test for supported distribution on this host
-  when: ansible_facts['distribution'] not in check_platform_supported_distributions
+  when: ansible_facts['distribution'] | default(ansible_distribution) not in check_platform_supported_distributions
   block:
 
     - name: Print a debug message when the distribution is not supported
       ansible.builtin.debug:
-        msg: "{{ ansible_facts['distribution'] }} not supported."
+        msg: "{{ ansible_facts['distribution'] | default(ansible_distribution) }} not supported."
 
     - name: Fail when distribution is not supported
       ansible.builtin.fail:
         msg: >-
-          {{ ansible_facts['distribution'] }} is not supported by this role.
+          {{ ansible_facts['distribution'] | default(ansible_distribution) }} is not supported by this role.
           Set check_platform_fail_on_unsupported: false to skip instead.
       when: check_platform_fail_on_unsupported | default(true)
 
@@ -44,22 +44,22 @@
   ansible.builtin.set_fact:
     check_platform_supported_releases: >-
       {{ (_cp_meta.galaxy_info.platforms
-          | selectattr('name', 'match', ansible_facts['distribution'])
+          | selectattr('name', 'match', ansible_facts['distribution'] | default(ansible_distribution))
           | list | first).versions }}
 
-- name: Test for supported {{ ansible_facts['distribution'] }} release
-  when: ansible_facts['distribution_release'] not in check_platform_supported_releases
+- name: Test for supported {{ ansible_facts['distribution'] | default(ansible_distribution) }} release
+  when: ansible_facts['distribution_release'] | default(ansible_distribution_release) not in check_platform_supported_releases
   block:
 
     - name: Print a debug message when the release is not supported
       ansible.builtin.debug:
-        msg: "{{ ansible_facts['distribution_release'] }} not supported."
+        msg: "{{ ansible_facts['distribution_release'] | default(ansible_distribution_release) }} not supported."
 
     - name: Fail when release is not supported
       ansible.builtin.fail:
         msg: >-
-          {{ ansible_facts['distribution_release'] }} is not a supported release for
-          {{ ansible_facts['distribution'] }}. Supported: {{ check_platform_supported_releases }}.
+          {{ ansible_facts['distribution_release'] | default(ansible_distribution_release) }} is not a supported release for
+          {{ ansible_facts['distribution'] | default(ansible_distribution) }}. Supported: {{ check_platform_supported_releases }}.
           Set check_platform_fail_on_unsupported: false to skip instead.
       when: check_platform_fail_on_unsupported | default(true)
 
