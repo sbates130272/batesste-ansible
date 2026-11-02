@@ -4,6 +4,41 @@ sbates130272.batesste Release Notes
 
 .. contents:: Topics
 
+v3.2.0
+======
+
+Release Summary
+----------------
+Snap removal, tmux_scripts and registry_client roles, native
+gpuagent-wsl binary for ROCm WSL2, uv-based fave_packages installs,
+dotfiles proxy rework, and CI hardening.
+
+Minor Changes
+--------------
+- ``user_setup`` — add ``user_setup_disable_snap`` (default true) to
+  remove snapd, mask its units, and purge snap data directories.
+- ``tmux_scripts`` — new role to clone and install tmux helper scripts;
+  wired into maintain and setup recipes.
+- ``registry_client`` — new role for homelan Zot registry client with
+  pull-through cache, buildkit/containerd config, and WSL2 fixes.
+- ``rocm_setup`` — replace LD_PRELOAD shim with native gpuagent-wsl
+  binary for WSL2 ROCm support.
+- ``fave_packages`` — install uv and ansible via GitHub releases and
+  uv tool instead of pip.
+- ``dotfiles`` — adopt install.sh v1.16.0 argument changes; rework
+  ``--proxy`` and ``--zscaler`` flags.
+
+Bugfixes
+---------
+- ``ci`` — fix secret handling for setup-amd recipe; pass boolean
+  extra-vars as YAML dicts; disable tailscale in lemonade CI.
+- ``rocm_setup`` — use ``--force-depends`` for gpuagent-wsl deb
+  install; add ``pipefail`` to shell pipe tasks.
+- ``fave_packages`` — remove spurious ``v`` prefix from uv download URL.
+- ``rdma_setup`` — tolerate rdmatop PPA 503 and rdma-detect non-zero
+  exit in CI.
+- ``docs`` — use absolute Galaxy URLs for all role links.
+
 v3.1.0
 ======
 
