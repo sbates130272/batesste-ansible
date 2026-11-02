@@ -155,6 +155,41 @@
   become: true
   when: not user_setup_unprivileged | default(false)
 
+- name: Remove snapd package
+  ansible.builtin.package:
+    name: snapd
+    state: absent
+  become: true
+  when:
+    - user_setup_disable_snap | default(true)
+    - not user_setup_unprivileged | default(false)
+
+- name: Mask snapd units to prevent reactivation after any future package install
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    masked: true
+  loop:
+    - snapd
+    - snapd.socket
+    - snapd.seeded
+  become: true
+  when:
+    - user_setup_disable_snap | default(true)
+    - not user_setup_unprivileged | default(false)
+
+- name: Remove snap data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /snap
+    - /var/snap
+    - /var/lib/snapd
+  become: true
+  when:
+    - user_setup_disable_snap | default(true)
+    - not user_setup_unprivileged | default(false)
+
 - name: Ensure SSH config file exists for user and create a Host * when absent
   ansible.builtin.lineinfile:
     path: "{{ user_setup_home }}/.ssh/config"
