@@ -5,7 +5,6 @@
 
 tmux_scripts_force: false
 tmux_scripts_sha: a4e649c5896fddad87d584b8e34c9b9549bcc659
-tmux_scripts_git_ssl_cainfo: /etc/ssl/certs/ca-certificates.crt
 
 # Clone TPM to ~/.tmux/plugins/tpm so plugins declared in .tmux.conf
 # (tmux-resurrect, tmux-continuum, etc.) can be installed via prefix+I.

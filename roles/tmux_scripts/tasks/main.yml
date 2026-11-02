@@ -17,12 +17,10 @@
 
 - name: Checkout tmux-scripts
   ansible.builtin.git:
-    repo: git@github.com:sbates130272/tmux-scripts.git
+    repo: https://github.com/sbates130272/tmux-scripts.git
     dest: ~/.tmux
-    accept_newhostkey: true
     force: "{{ tmux_scripts_force }}"
     version: "{{ tmux_scripts_sha }}"
-    key_file: ~/.ssh/id_rsa
   register: tmux_scripts_clone
   failed_when:
     - tmux_scripts_clone.failed
