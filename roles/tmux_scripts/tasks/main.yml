@@ -15,25 +15,14 @@
   vars:
     calling_role_path: "{{ tmux_scripts_calling_role_path_fact }}"  # noqa var-naming
 
-- name: Fix existing tmux-scripts remote URL to HTTPS if SSH is not wanted
-  ansible.builtin.command:
-    cmd: git remote set-url origin https://github.com/sbates130272/tmux-scripts.git
-    chdir: ~/.tmux
-  changed_when: false
-  when: not tmux_scripts_use_ssh | bool
-  failed_when: false
-
 - name: Checkout tmux-scripts
   ansible.builtin.git:
-    repo: >-
-      {{ (username == 'batesste') | ternary('git@github.com:sbates130272/tmux-scripts.git',
-         'https://github.com/sbates130272/tmux-scripts.git') }}
+    repo: git@github.com:sbates130272/tmux-scripts.git
     dest: ~/.tmux
     accept_newhostkey: true
     force: "{{ tmux_scripts_force }}"
     version: "{{ tmux_scripts_sha }}"
-  environment:
-    GIT_SSL_CAINFO: "{{ tmux_scripts_git_ssl_cainfo }}"
+    key_file: ~/.ssh/id_rsa
   register: tmux_scripts_clone
   failed_when:
     - tmux_scripts_clone.failed
