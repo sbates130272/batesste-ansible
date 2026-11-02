@@ -117,7 +117,12 @@ jobs:
             --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD") \
             -e "targets=${TARGETS}" \
             -e "setup_recipe=${RECIPE}" \
-            -e "{ 'consul_setup_start_service': false }"
+            -e "{ 'consul_setup_start_service': false }" \
+            -e "git_setup_user_name=CI Runner" \
+            -e "git_setup_user_email=runner@ci.local" \
+            -e "git_setup_enable_gpg_signing=false" \
+            -e "git_setup_gh_authenticate=false" \
+            -e "git_setup_dotfiles_enable=false"
         env:
           PLAYBOOK: playbooks/setup/setup.yml
           RECIPE: setup-default

@@ -293,6 +293,7 @@ jobs:
             "lemonade_setup_exporter_enabled": False,
             "vault_lemonade_setup_api_key": "test_ci_api_key_placeholder",
             "vault_lemonade_setup_admin_api_key": "test_ci_admin_api_key_placeholder",
+            "lemonade_setup_tailscale_serve": False,
         },
         "verification_commands": [
             "which lemonade-server || true",

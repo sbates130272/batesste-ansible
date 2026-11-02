@@ -62,6 +62,7 @@ jobs:
                   lemonade_setup_exporter_enabled: false
                   vault_lemonade_setup_api_key: test_ci_api_key_placeholder
                   vault_lemonade_setup_admin_api_key: test_ci_admin_api_key_placeholder
+                  lemonade_setup_tailscale_serve: false
 
       - name: Run the test playbook against the local runner
         run: ansible-playbook -v -i hosts-ci ./tests/test.yml
