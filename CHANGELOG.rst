@@ -4,6 +4,18 @@ sbates130272.batesste Release Notes
 
 .. contents:: Topics
 
+v3.2.1
+======
+
+Release Summary
+----------------
+Patch release to fix Galaxy publish failure: add missing README.md
+for the tmux_scripts role.
+
+Bugfixes
+---------
+- ``tmux_scripts`` — add missing ``README.md`` required by Ansible Galaxy.
+
 v3.2.0
 ======
 
