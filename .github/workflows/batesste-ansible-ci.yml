@@ -24,6 +24,18 @@ on:
       - '.github/generate-workflows.py'
 
 jobs:
+  vault-tests-skipped-notice:
+    name: Vault tests skipped (fork PR)
+    runs-on: ubuntu-24.04
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name != github.repository
+    steps:
+      - name: Explain why vault tests did not run
+        run: |
+          echo "::notice::Vault-dependent tests are skipped for fork PRs because"
+          echo "::notice::GitHub does not share repository secrets with forks."
+          echo "::notice::A maintainer will re-run these tests after merging."
 
   check-generated-workflows:
     runs-on: ubuntu-24.04
@@ -68,7 +80,9 @@ jobs:
           ansible-galaxy collection build --force
           ansible-galaxy collection install sbates130272-batesste-*.tar.gz --force
       - name: Create fake vault-password for CI
-        run: echo "ci-dummy" > playbooks/vault-password
+        run: |
+          echo "ci-dummy" > playbooks/vault-password
+          echo "ci-dummy" > playbooks/sudo-password
 
       - name: Run ansible-lint
         uses: ansible/ansible-lint@v26.10.1
@@ -94,19 +108,19 @@ jobs:
         run: bash .github/check-readme.sh
 
       - name: Run the default playbook against the local runner
-        # GitHub withholds repo secrets from pull_request runs triggered by
-        # a forked repository, so ANSIBLE_VAULT_PASSWORD is empty there and
-        # this step can never decrypt it. continue-on-error keeps a fork PR
-        # without access to that secret from blocking on it, while it still
-        # runs (and decrypts) for real on push/workflow_dispatch/same-repo
-        # PR runs.
-        continue-on-error: true
+        # Skipped for fork PRs: GitHub withholds repo secrets from those runs.
+        if: >-
+          github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.full_name == github.repository
         run: |
           ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} \
             --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD") \
             -e "targets=${TARGETS}" \
             -e "setup_recipe=${RECIPE}" \
-            -e "{ 'consul_setup_start_service': false }"
+            -e "{ 'consul_setup_start_service': false }" \
+            -e "git_setup_user_name=CI Runner" \
+            -e "git_setup_user_email=runner@ci.local" \
+            -e "{ 'git_setup_enable_gpg_signing': false, 'git_setup_gh_authenticate': false, 'git_setup_dotfiles_enable': false }"
         env:
           PLAYBOOK: playbooks/setup/setup.yml
           RECIPE: setup-default
@@ -118,17 +132,19 @@ jobs:
         # Exercises the setup-amd recipe dispatcher with roles that run safely
         # on a CI runner. Hardware-gated roles (rdma_setup, rocm_setup,
         # uprof_setup) are excluded via setup_roles override.
-        continue-on-error: true
+        # Skipped for fork PRs: GitHub withholds repo secrets from those runs.
+        if: >-
+          github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.full_name == github.repository
         run: |
           ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} \
             --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD") \
             -e "targets=${TARGETS}" \
             -e "setup_recipe=${RECIPE}" \
             -e "setup_roles=user_setup,fave_packages,git_setup,claude_setup" \
-            -e "user_setup_unprivileged=true" \
-            -e "user_setup_dotfiles_enable=false" \
-            -e "git_setup_enable_gpg_signing=false" \
-            -e "git_setup_gh_authenticate=false" \
+            -e "{ 'user_setup_unprivileged': true, 'user_setup_dotfiles_enable': false, 'git_setup_enable_gpg_signing': false, 'git_setup_gh_authenticate': false, 'git_setup_dotfiles_enable': false }" \
+            -e "git_setup_user_name=CI Runner" \
+            -e "git_setup_user_email=runner@ci.local" \
             -e "vault_claude_setup_api_key=test_ci_api_key_placeholder" \
             -e "claude_setup_proxy_upstream=http://localhost:8000"
         env:

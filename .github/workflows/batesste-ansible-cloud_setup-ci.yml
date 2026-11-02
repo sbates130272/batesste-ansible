@@ -15,7 +15,21 @@ name: batesste-ansible - cloud_setup CI
       - requirements.yml
 
 jobs:
+  vault-tests-skipped-notice:
+    name: Vault tests skipped (fork PR)
+    runs-on: ubuntu-24.04
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name != github.repository
+    steps:
+      - name: Explain why vault tests did not run
+        run: |
+          echo "::notice::Vault-dependent tests are skipped for fork PRs because"
+          echo "::notice::GitHub does not share repository secrets with forks."
+          echo "::notice::A maintainer will re-run these tests after merging."
+
   cloud_setup-test:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     strategy:
       matrix:
         runs-on:
@@ -59,7 +73,6 @@ jobs:
       - name: Run the test playbook against the local runner
         run: ansible-playbook -v -i hosts-ci ./tests/test.yml --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD")
         working-directory: ./roles/cloud_setup
-        continue-on-error: true
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/roles
           ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/collections:~/.ansible/collections
