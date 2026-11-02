@@ -15,23 +15,21 @@ name: batesste-ansible - cloud_setup CI
       - requirements.yml
 
 jobs:
-  missing-secret-check:
-    name: Verify vault password
+  vault-tests-skipped-notice:
+    name: Vault tests skipped (fork PR)
     runs-on: ubuntu-24.04
-    if: github.repository == 'sbates130272/batesste-ansible' && github.event_name == 'pull_request'
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name != github.repository
     steps:
-      - name: Fail if vault password is missing
-        env:
-          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+      - name: Explain why vault tests did not run
         run: |
-          if [[ -z "$ANSIBLE_VAULT_PASSWORD" ]]; then
-            echo "::error::ANSIBLE_VAULT_PASSWORD is missing; tests that use the vault cannot run."
-            exit 1
-          fi
-          echo "Vault password is available."
+          echo "::notice::Vault-dependent tests are skipped for fork PRs because"
+          echo "::notice::GitHub does not share repository secrets with forks."
+          echo "::notice::A maintainer will re-run these tests after merging."
 
   cloud_setup-test:
-    if: github.repository == 'sbates130272/batesste-ansible'
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     strategy:
       matrix:
         runs-on:

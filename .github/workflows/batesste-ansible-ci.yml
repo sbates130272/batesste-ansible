@@ -24,20 +24,18 @@ on:
       - '.github/generate-workflows.py'
 
 jobs:
-  missing-secret-check:
-    name: Verify vault password
+  vault-tests-skipped-notice:
+    name: Vault tests skipped (fork PR)
     runs-on: ubuntu-24.04
-    if: github.repository == 'sbates130272/batesste-ansible' && github.event_name == 'pull_request'
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name != github.repository
     steps:
-      - name: Fail if vault password is missing
-        env:
-          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+      - name: Explain why vault tests did not run
         run: |
-          if [[ -z "$ANSIBLE_VAULT_PASSWORD" ]]; then
-            echo "::error::ANSIBLE_VAULT_PASSWORD is missing; tests that use the vault cannot run."
-            exit 1
-          fi
-          echo "Vault password is available."
+          echo "::notice::Vault-dependent tests are skipped for fork PRs because"
+          echo "::notice::GitHub does not share repository secrets with forks."
+          echo "::notice::A maintainer will re-run these tests after merging."
 
   check-generated-workflows:
     runs-on: ubuntu-24.04
@@ -108,9 +106,10 @@ jobs:
         run: bash .github/check-readme.sh
 
       - name: Run the default playbook against the local runner
-        # Needs ANSIBLE_VAULT_PASSWORD, which GitHub withholds from PRs from
-        # forks; missing-secret-check reports that case with a clear failure.
-        if: github.repository == 'sbates130272/batesste-ansible'
+        # Skipped for fork PRs: GitHub withholds repo secrets from those runs.
+        if: >-
+          github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.full_name == github.repository
         run: |
           ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} \
             --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD") \
@@ -128,7 +127,10 @@ jobs:
         # Exercises the setup-amd recipe dispatcher with roles that run safely
         # on a CI runner. Hardware-gated roles (rdma_setup, rocm_setup,
         # uprof_setup) are excluded via setup_roles override.
-        if: github.repository == 'sbates130272/batesste-ansible'
+        # Skipped for fork PRs: GitHub withholds repo secrets from those runs.
+        if: >-
+          github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.full_name == github.repository
         run: |
           ansible-playbook ${PLAYBOOK} -v -i ${HOSTS} \
             --vault-password-file <(printf '%s\n' "$ANSIBLE_VAULT_PASSWORD") \

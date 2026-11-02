@@ -16,11 +16,15 @@ from typing import Dict, List
 # into every rocjitsu CI lane immediately).
 QEMU_MINIMAL_REF = "9ec66ea4c905190e91687a344d59a18443b0585a"
 
-# Repository whose CI is authoritative. Jobs that need the vault password are
-# guarded with this so they do not run (and fail for lack of the secret) in
-# forks' own Actions runs.
+# Guard for vault-dependent jobs: run on push/dispatch always, and on PRs only
+# when the PR comes from the same repository (not a fork). GitHub withholds repo
+# secrets from fork PRs, so this skips those runs cleanly rather than failing
+# deep inside ansible with an opaque decryption error.
 SOURCE_REPO = "sbates130272/batesste-ansible"
-SOURCE_REPO_GUARD = f"github.repository == '{SOURCE_REPO}'"
+VAULT_JOB_GUARD = (
+    "github.event_name != 'pull_request' || "
+    "github.event.pull_request.head.repo.full_name == github.repository"
+)
 
 # Configuration for role-specific settings
 ROLE_CONFIGS = {
@@ -893,29 +897,26 @@ DEFAULT_CONFIG = {
 
 
 def vault_check_job_lines() -> List[str]:
-    """Return the lines of the job that fails when the vault secret is missing.
+    """Return a notice job that informs fork-PR authors that vault tests were skipped.
 
-    GitHub withholds repo secrets from pull_request runs triggered by a
-    forked repository. Without this job those runs fail deep inside ansible
-    with an opaque decryption error; with it they fail early with a clear
-    message. The secret is passed through env, never interpolated into the
-    script text.
+    Vault test jobs are guarded with VAULT_JOB_GUARD so they skip cleanly on
+    fork PRs (GitHub withholds repo secrets from those runs). This companion
+    job runs *only* for fork PRs and emits a ::notice:: so the contributor
+    knows why the vault tests are absent, without blocking the PR.
     """
     return [
-        "  missing-secret-check:",
-        "    name: Verify vault password",
+        "  vault-tests-skipped-notice:",
+        "    name: Vault tests skipped (fork PR)",
         "    runs-on: ubuntu-24.04",
-        f"    if: {SOURCE_REPO_GUARD} && github.event_name == 'pull_request'",
+        "    if: >-",
+        "      github.event_name == 'pull_request' &&",
+        "      github.event.pull_request.head.repo.full_name != github.repository",
         "    steps:",
-        "      - name: Fail if vault password is missing",
-        "        env:",
-        "          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}",
+        "      - name: Explain why vault tests did not run",
         "        run: |",
-        '          if [[ -z "$ANSIBLE_VAULT_PASSWORD" ]]; then',
-        '            echo "::error::ANSIBLE_VAULT_PASSWORD is missing; tests that use the vault cannot run."',
-        "            exit 1",
-        "          fi",
-        '          echo "Vault password is available."',
+        '          echo "::notice::Vault-dependent tests are skipped for fork PRs because"',
+        '          echo "::notice::GitHub does not share repository secrets with forks."',
+        '          echo "::notice::A maintainer will re-run these tests after merging."',
         "",
     ]
 
@@ -962,7 +963,7 @@ def generate_workflow_yaml(role_name: str, config: Dict) -> str:
         lines.extend(vault_check_job_lines())
     lines.append(f"  {role_name}-test:")
     if needs_vault:
-        lines.append(f"    if: {SOURCE_REPO_GUARD}")
+        lines.append(f"    if: {VAULT_JOB_GUARD}")
 
     # Add matrix or single runner
     if use_matrix:
