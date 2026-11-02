@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
-# Verify that every role in roles/ is linked in the top-level README.md.
+# Verify that every role in roles/ is linked in the top-level README.md via its
+# Galaxy docs URL.
 set -euo pipefail
 
 README="README.md"
 ROLES_DIR="roles"
+GALAXY_BASE="https://galaxy.ansible.com/ui/repo/published/sbates130272/batesste/content/role"
 rc=0
 
 while IFS= read -r -d '' role_dir; do
   role=$(basename "$role_dir")
-  if ! grep -qF "roles/${role}/" "$README"; then
-    echo "MISSING: '$role' is not linked in $README"
+  # Match the full URL including the closing ")" so one role name cannot
+  # satisfy the check by being a suffix of another's.
+  if ! grep -qF "(${GALAXY_BASE}/${role}/)" "$README"; then
+    echo "MISSING: '$role' is not linked as ${GALAXY_BASE}/${role}/ in $README"
     rc=1
   fi
 done < <(find "$ROLES_DIR" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
