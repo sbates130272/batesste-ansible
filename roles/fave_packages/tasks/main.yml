@@ -321,6 +321,16 @@
             state: absent
           become: true
 
+- name: Install tmuxinator
+  ansible.builtin.package:
+    name: tmuxinator
+    state: present
+  become: true
+  when:
+    - fave_packages_tmuxinator_enable | default(true)
+    - ansible_facts['distribution'] == "Ubuntu"
+    - ansible_facts['distribution_release'] in ['noble', 'resolute']
+
 - name: Configure node exporter extra collectors
   ansible.builtin.template:
     src: prometheus-node-exporter.j2

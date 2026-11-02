@@ -287,9 +287,10 @@
     - rocm_setup_wsl_gpuagent_deb_installed.rc | default(1) != 0
 
 - name: Install gpuagent-wsl hosted .deb
-  ansible.builtin.apt:
-    deb: "/tmp/{{ rocm_setup_wsl_gpuagent_deb_asset }}"
+  ansible.builtin.command:
+    cmd: dpkg -i --force-depends /tmp/{{ rocm_setup_wsl_gpuagent_deb_asset }}
   become: true
+  changed_when: true
   when:
     - rocm_setup_install_metrics_exporter | bool
     - rocm_setup_wsl_gpuagent_pkg_check.rc | default(1) != 0

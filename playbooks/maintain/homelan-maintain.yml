@@ -19,6 +19,12 @@
   vars:
     targets: homelan
 
+- name: Update tmux scripts (homelan)
+  hosts: homelan
+  gather_facts: true
+  roles:
+    - role: tmux_scripts
+
 - name: Update lemonade servers
   hosts: lemonade_servers:!amd-laptop
   gather_facts: true
