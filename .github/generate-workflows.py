@@ -292,6 +292,7 @@ jobs:
             "lemonade_setup_preload_enabled": False,
             "lemonade_setup_exporter_enabled": False,
             "vault_lemonade_setup_api_key": "test_ci_api_key_placeholder",
+            "vault_lemonade_setup_admin_api_key": "test_ci_admin_api_key_placeholder",
         },
         "verification_commands": [
             "which lemonade-server || true",
@@ -800,6 +801,7 @@ jobs:
         "free_disk_space": False,
         "extra_vars": {
             "consul_setup_start_service": False,
+            "username": "runner",
         },
         "verification_commands": [
             "consul version || true",
