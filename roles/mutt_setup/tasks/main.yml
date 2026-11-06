@@ -112,6 +112,12 @@
     regexp: <GOOGLE_CLIENT_SECRET>
     replace: "{{ mutt_setup_google_oauth2_client_secret }}"
 
+- name: Ensure ~/.bashrc.d directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.bashrc.d"
+    state: directory
+    mode: "0755"
+
 - name: Install mutt shell environment via bashrc.d
   ansible.builtin.copy:
     dest: "{{ ansible_env.HOME }}/.bashrc.d/mutt.sh"

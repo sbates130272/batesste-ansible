@@ -134,6 +134,15 @@
     - git_setup_signingkey | default("") | length > 0
     - not git_setup_dotfiles_enable | default(false)
 
+- name: Ensure ~/.bashrc.d directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.bashrc.d"
+    state: directory
+    mode: "0755"
+  when:
+    - git_setup_enable_gpg_signing | default(true)
+    - not git_setup_dotfiles_enable | default(false)
+
 - name: Configure gpg-agent via bashrc.d
   ansible.builtin.copy:
     dest: "{{ ansible_env.HOME }}/.bashrc.d/git_setup.sh"

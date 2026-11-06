@@ -127,6 +127,13 @@
   when: not user_setup_unprivileged | default(false)
   notify: Reload systemd daemon
 
+- name: Ensure ~/.bashrc.d directory exists
+  ansible.builtin.file:
+    path: "{{ user_setup_home }}/.bashrc.d"
+    state: directory
+    mode: "0755"
+  when: not user_setup_dotfiles_enable | default(false)
+
 - name: Ensure package install is non-interactive
   ansible.builtin.copy:
     dest: "{{ user_setup_home }}/.bashrc.d/user_setup.sh"

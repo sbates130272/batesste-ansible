@@ -121,6 +121,12 @@
   no_log: true
   when: claude_setup_api_key | length > 0 or claude_setup_apim_key | length > 0
 
+- name: Ensure ~/.bashrc.d directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.bashrc.d"
+    state: directory
+    mode: "0755"
+
 - name: Configure Claude environment via bashrc.d
   ansible.builtin.copy:
     dest: "{{ ansible_env.HOME }}/.bashrc.d/claude.sh"
