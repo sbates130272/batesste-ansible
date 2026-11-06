@@ -128,13 +128,11 @@
   notify: Reload systemd daemon
 
 - name: Ensure package install is non-interactive
-  ansible.builtin.blockinfile:
-    path: "{{ user_setup_home }}/.bashrc"
-    state: present
-    marker_begin: BEGIN (user_setup)
-    marker_end: END (user_setup)
-    block: |
+  ansible.builtin.copy:
+    dest: "{{ user_setup_home }}/.bashrc.d/user_setup.sh"
+    content: |
       export DEBIAN_FRONTEND=noninteractive
+    mode: "0600"
   when: not user_setup_dotfiles_enable | default(false)
 
 - name: Exec preferred shell for interactive logins (tcsh guard)
