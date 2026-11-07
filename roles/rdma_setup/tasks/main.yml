@@ -143,6 +143,10 @@
   ansible.builtin.include_tasks: rdma_exporter.yml
   when: rdma_setup_install_rdma_exporter | default(false) | bool
 
+- name: Install nicctl (optional)
+  ansible.builtin.include_tasks: nicctl.yml
+  when: rdma_setup_install_nicctl | bool
+
 - name: Add rdmatop PPA repository
   ansible.builtin.apt_repository:
     repo: ppa:crazyguitar/rdmatop

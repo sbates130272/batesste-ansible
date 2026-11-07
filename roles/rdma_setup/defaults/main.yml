@@ -26,3 +26,21 @@ rdma_exporter_exclude_devices: ""
 
 # Optional: install rdmatop RDMA monitoring tool
 rdma_setup_install_rdmatop: true
+
+# ── nicctl ───────────────────────────────────────────────────────────────────
+# AMD Pensando NIC management tool for Pollara/Salina NICs. Installed from the
+# AMD Pensando APT repository, which is unsigned (trusted=yes).
+#
+# nicctl-common is the frontend dispatcher; nicctl-ainic-vulcano-rudra-pulsar
+# is the backend for Pollara (Salina ASIC) NICs. The hydra backend is for a
+# different platform and is not installed here.
+#
+# Version is the full directory name under repo.radeon.com/amdainic/pensando/ubuntu/;
+# bump it to match the firmware revision under test.
+rdma_setup_install_nicctl: false
+rdma_setup_nicctl_version: "1.130.9-a-3"
+rdma_setup_nicctl_repo_base: "https://repo.radeon.com/amdainic/pensando/ubuntu"
+rdma_setup_nicctl_repo_dist: "{{ ansible_facts['distribution_release'] }}"
+rdma_setup_nicctl_packages:
+  - nicctl-common
+  - nicctl-ainic-vulcano-rudra-pulsar

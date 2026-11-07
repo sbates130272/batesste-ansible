@@ -121,27 +121,26 @@
   no_log: true
   when: claude_setup_api_key | length > 0 or claude_setup_apim_key | length > 0
 
-- name: Configure Claude environment in .bashrc
-  ansible.builtin.blockinfile:
-    path: "~/.bashrc"
-    state: present
-    marker_begin: BEGIN (claude_setup)
-    marker_end: END (claude_setup)
-    block: |
-      # Source Claude CLI secrets (API key and proxy URL)
+- name: Ensure ~/.bashrc.d directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.bashrc.d"
+    state: directory
+    mode: "0755"
+
+- name: Configure Claude environment via bashrc.d
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.bashrc.d/claude.sh"
+    content: |
       [ -f ~/.claude/secrets.sh ] && source ~/.claude/secrets.sh
+    mode: "0600"
   when: not claude_setup_unprivileged | default(false)
 
-- name: Configure Claude environment in .bashrc (unprivileged)
-  ansible.builtin.blockinfile:
-    path: "~/.bashrc"
-    state: present
-    marker_begin: BEGIN (claude_setup)
-    marker_end: END (claude_setup)
-    block: |
-      # Source Claude CLI secrets (API key and proxy URL)
+- name: Configure Claude environment via bashrc.d (unprivileged)
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.bashrc.d/claude.sh"
+    content: |
       [ -f ~/.claude/secrets.sh ] && source ~/.claude/secrets.sh
-      # nvm (Node Version Manager) - installed without root for Claude CLI
       export NVM_DIR="$HOME/.nvm"
       [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    mode: "0600"
   when: claude_setup_unprivileged | default(false)

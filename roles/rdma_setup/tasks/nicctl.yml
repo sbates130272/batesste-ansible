@@ -1,0 +1,45 @@
+---
+# Install nicctl from the AMD Pensando APT repository.
+#
+# The repo is unsigned; trusted=yes is required. The source entry is added,
+# packages are installed, then the entry is removed so the host does not carry
+# a stale extra apt source that could fail or pull updates unexpectedly.
+
+- name: Add the AMD Pensando APT source
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [trusted=yes]
+      {{ rdma_setup_nicctl_repo_base }}/{{ rdma_setup_nicctl_version }}
+      {{ rdma_setup_nicctl_repo_dist }} main
+    state: present
+    update_cache: true
+  become: true
+
+- name: Install nicctl packages
+  ansible.builtin.apt:
+    name: "{{ rdma_setup_nicctl_packages }}"
+    state: present
+  become: true
+  register: rdma_setup_nicctl_apt_result
+  retries: 3
+  delay: 10
+  until: rdma_setup_nicctl_apt_result is success
+
+- name: Remove the AMD Pensando APT source
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [trusted=yes]
+      {{ rdma_setup_nicctl_repo_base }}/{{ rdma_setup_nicctl_version }}
+      {{ rdma_setup_nicctl_repo_dist }} main
+    state: absent
+    update_cache: false
+  become: true
+
+- name: Verify nicctl is executable
+  ansible.builtin.command:
+    argv:
+      - nicctl
+      - --version
+  register: rdma_setup_nicctl_ver
+  changed_when: false
+  failed_when: rdma_setup_nicctl_ver.rc != 0

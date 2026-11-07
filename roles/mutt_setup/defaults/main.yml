@@ -1,0 +1,12 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Vault-encrypted secrets (Google OAuth2 client ID/secret) live in
+# vars/main.yml and cannot be overridden by inventory. The variables
+# below document the user-facing configuration surface for this role.
+
+# Path under the home directory where mutt cache and token directories
+# are created.
+mutt_setup_cache_base: ".mutt"
