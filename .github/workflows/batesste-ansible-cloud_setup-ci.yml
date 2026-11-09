@@ -20,7 +20,8 @@ jobs:
     runs-on: ubuntu-24.04
     if: >-
       github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name != github.repository
+      (github.event.pull_request.head.repo.full_name != github.repository ||
+       github.actor == 'dependabot[bot]')
     steps:
       - name: Explain why vault tests did not run
         run: |
@@ -29,7 +30,7 @@ jobs:
           echo "::notice::A maintainer will re-run these tests after merging."
 
   cloud_setup-test:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && github.actor != 'dependabot[bot]'
     strategy:
       matrix:
         runs-on:
