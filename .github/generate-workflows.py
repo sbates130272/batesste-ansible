@@ -17,13 +17,15 @@ from typing import Dict, List
 QEMU_MINIMAL_REF = "9ec66ea4c905190e91687a344d59a18443b0585a"
 
 # Guard for vault-dependent jobs: run on push/dispatch always, and on PRs only
-# when the PR comes from the same repository (not a fork). GitHub withholds repo
-# secrets from fork PRs, so this skips those runs cleanly rather than failing
+# when the PR comes from the same repository (not a fork) and is not from
+# dependabot. GitHub withholds repo secrets from fork PRs and from dependabot
+# pull_request events, so this skips those runs cleanly rather than failing
 # deep inside ansible with an opaque decryption error.
 SOURCE_REPO = "sbates130272/batesste-ansible"
 VAULT_JOB_GUARD = (
-    "github.event_name != 'pull_request' || "
-    "github.event.pull_request.head.repo.full_name == github.repository"
+    "(github.event_name != 'pull_request' || "
+    "github.event.pull_request.head.repo.full_name == github.repository) && "
+    "github.actor != 'dependabot[bot]'"
 )
 
 # Configuration for role-specific settings
@@ -900,12 +902,12 @@ DEFAULT_CONFIG = {
 
 
 def vault_check_job_lines() -> List[str]:
-    """Return a notice job that informs fork-PR authors that vault tests were skipped.
+    """Return a notice job that informs fork-PR/dependabot authors that vault tests were skipped.
 
     Vault test jobs are guarded with VAULT_JOB_GUARD so they skip cleanly on
-    fork PRs (GitHub withholds repo secrets from those runs). This companion
-    job runs *only* for fork PRs and emits a ::notice:: so the contributor
-    knows why the vault tests are absent, without blocking the PR.
+    fork PRs and dependabot PRs (GitHub withholds repo secrets from those runs).
+    This companion job runs *only* for those PRs and emits a ::notice:: so the
+    contributor knows why the vault tests are absent, without blocking the PR.
     """
     return [
         "  vault-tests-skipped-notice:",
@@ -913,7 +915,8 @@ def vault_check_job_lines() -> List[str]:
         "    runs-on: ubuntu-24.04",
         "    if: >-",
         "      github.event_name == 'pull_request' &&",
-        "      github.event.pull_request.head.repo.full_name != github.repository",
+        "      (github.event.pull_request.head.repo.full_name != github.repository ||",
+        "       github.actor == 'dependabot[bot]')",
         "    steps:",
         "      - name: Explain why vault tests did not run",
         "        run: |",
