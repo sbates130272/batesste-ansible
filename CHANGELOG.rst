@@ -4,6 +4,33 @@ sbates130272.batesste Release Notes
 
 .. contents:: Topics
 
+v3.3.0
+======
+
+Release Summary
+----------------
+Add amd-laptop to homelan group, fix gpuagent-wsl Unix socket for WSL2
+GPU metrics, remove ptop from fave_packages, and bump dotfiles to v1.17.1.
+
+Minor Changes
+--------------
+- ``inventory`` — add ``amd-laptop`` to ``homelan`` and ``registry_clients``
+  groups so it participates in ``homelan-maintain`` runs (host already had
+  ``ansible_connection: local`` in host_vars).
+- ``rocm_setup`` — pass ``-s /var/run/gpuagent.sock`` explicitly in the
+  gpuagent-wsl systemd drop-in; without it gpuagent-wsl defaults to TCP
+  port 50061 while ``amd-metrics-exporter`` expects the Unix socket,
+  resulting in no GPU metrics being scraped on WSL2 nodes.
+- ``fave_packages`` — remove ``ptop`` install entirely (binary, version
+  tracker, defaults, tasks, and README documentation).
+- ``user_setup`` — bump ``user_setup_dotfiles_version`` to ``v1.17.1``.
+
+Bugfixes
+---------
+- ``host_vars/snoc-gaming`` — add missing
+  ``rocm_setup_install_metrics_exporter: true`` so the gpuagent-wsl package
+  and systemd drop-in are deployed on that host.
+
 v3.2.1
 ======
 
