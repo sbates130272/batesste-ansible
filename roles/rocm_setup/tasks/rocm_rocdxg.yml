@@ -336,7 +336,7 @@
     content: |
       [Service]
       ExecStart=
-      ExecStart={{ rocm_setup_wsl_gpuagent_wsl_bin_dir }}/gpuagent-wsl
+      ExecStart={{ rocm_setup_wsl_gpuagent_wsl_bin_dir }}/gpuagent-wsl -s /var/run/gpuagent.sock
   become: true
   notify: Restart gpuagent
   when: rocm_setup_install_metrics_exporter | bool

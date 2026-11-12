@@ -13,6 +13,7 @@ username: batesste
 user_setup_motd: true
 rocm_setup_repo_stream: therock
 rocm_setup_wsl: rocdxg
+rocm_setup_install_metrics_exporter: true
 rocm_setup_run_checks: true
 rocm_setup_run_gpu_checks: true
 
