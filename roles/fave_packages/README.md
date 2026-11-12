@@ -27,13 +27,6 @@ When `fave_packages_ansible_enable` is true (the default),
 `uv tool install`, giving a current version isolated from
 system Python. This requires the uv block to have run first.
 
-When `fave_packages_ptop_enable` is true (the default),
-`ptop` is installed from the latest
-[trentas/ptop](https://github.com/trentas/ptop) GitHub
-release into `/usr/local/bin/`. The installed version is
-tracked in `/usr/local/bin/.ptop_version` and updated
-automatically when a newer release is available.
-
 On Ubuntu noble and resolute the role also installs:
 elpa-cmake-mode, elpa-rust-mode, virtiofsd, and
 conditionally git-email (when git < 2.43).
@@ -68,9 +61,8 @@ fave_packages_node_exporter_extra_args: ""
 | `fave_packages_linux_generic_enable` | `false` | Install `linux-generic` meta-package |
 | `fave_packages_node_exporter_enable` | `true` | Install and configure `prometheus-node-exporter` |
 | `fave_packages_node_exporter_extra_args` | `--collector.wifi` | Extra CLI flags for `prometheus-node-exporter` |
-| `fave_packages_ptop_enable` | `true` | Install `ptop` from GitHub releases |
 | `fave_packages_uv_enable` | `true` | Install `uv` and `uvx` from GitHub releases |
-| `fave_packages_github_api_token` | `$GITHUB_TOKEN` env | Bearer token for GitHub API release lookups (uv, ptop) |
+| `fave_packages_github_api_token` | `$GITHUB_TOKEN` env | Bearer token for GitHub API release lookups (uv) |
 
 ## Example Playbook
 
