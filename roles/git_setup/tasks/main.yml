@@ -136,7 +136,7 @@
 
 - name: Ensure ~/.bashrc.d directory exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.bashrc.d"
+    path: "{{ ansible_facts['env']['HOME'] }}/.bashrc.d"
     state: directory
     mode: "0755"
   when:
@@ -145,10 +145,37 @@
 
 - name: Configure gpg-agent via bashrc.d
   ansible.builtin.copy:
-    dest: "{{ ansible_env.HOME }}/.bashrc.d/git_setup.sh"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.bashrc.d/git_setup.sh"
     content: |
       [ -t 1 ] && GPG_TTY=$(tty) && export GPG_TTY
     mode: "0600"
+  when:
+    - git_setup_enable_gpg_signing | default(true)
+    - not git_setup_dotfiles_enable | default(false)
+
+- name: Remove stale ~/.bashrc block from 3.2.1 (git_setup)
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_facts['env']['HOME'] }}/.bashrc"
+    state: absent
+    marker_begin: "BEGIN (git_setup)"
+    marker_end: "END (git_setup)"
+  when:
+    - git_setup_enable_gpg_signing | default(true)
+    - not git_setup_dotfiles_enable | default(false)
+
+- name: Source ~/.bashrc.d from ~/.bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_facts['env']['HOME'] }}/.bashrc"
+    create: true
+    mode: "0644"
+    marker: "# {mark} (bashrc.d)"
+    block: |
+      if [ -d ~/.bashrc.d ]; then
+        for f in ~/.bashrc.d/*.sh; do
+          [ -r "$f" ] && . "$f"
+        done
+        unset f
+      fi
   when:
     - git_setup_enable_gpg_signing | default(true)
     - not git_setup_dotfiles_enable | default(false)

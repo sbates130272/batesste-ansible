@@ -123,13 +123,13 @@
 
 - name: Ensure ~/.bashrc.d directory exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.bashrc.d"
+    path: "{{ ansible_facts['env']['HOME'] }}/.bashrc.d"
     state: directory
     mode: "0755"
 
 - name: Configure Claude environment via bashrc.d
   ansible.builtin.copy:
-    dest: "{{ ansible_env.HOME }}/.bashrc.d/claude.sh"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.bashrc.d/claude.sh"
     content: |
       [ -f ~/.claude/secrets.sh ] && source ~/.claude/secrets.sh
     mode: "0600"
@@ -137,7 +137,7 @@
 
 - name: Configure Claude environment via bashrc.d (unprivileged)
   ansible.builtin.copy:
-    dest: "{{ ansible_env.HOME }}/.bashrc.d/claude.sh"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.bashrc.d/claude.sh"
     content: |
       [ -f ~/.claude/secrets.sh ] && source ~/.claude/secrets.sh
       export NVM_DIR="$HOME/.nvm"

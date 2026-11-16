@@ -4,6 +4,34 @@ sbates130272.batesste Release Notes
 
 .. contents:: Topics
 
+v3.3.1
+======
+
+Release Summary
+----------------
+Patch release: fix INJECT_FACTS_AS_VARS deprecation warnings in
+check_platform and ansible_env.* references across the collection; fix
+~/.bashrc.d snippets never being sourced when dotfiles are disabled.
+
+Bugfixes
+---------
+- ``check_platform`` — drop ``| default(ansible_<x>)`` fallbacks and use
+  only ``ansible_facts['distribution']`` / ``ansible_facts['distribution_release']``
+  throughout. Also convert all bare ``ansible_env.*`` fact references in
+  claude_setup, fave_packages, git_setup, mutt_setup, and amd_llm_exporter
+  to ``ansible_facts['env'][...]``. Eliminates the per-role
+  ``INJECT_FACTS_AS_VARS`` deprecation warning on ansible-core 2.21+ and
+  prevents hard failures at ansible-core 2.24.
+- ``user_setup`` / ``git_setup`` — when dotfiles are disabled, add a
+  sourcing loop for ``~/.bashrc.d/`` to ``~/.bashrc`` so that
+  ``~/.bashrc.d/user_setup.sh`` (``DEBIAN_FRONTEND``) and
+  ``~/.bashrc.d/git_setup.sh`` (``GPG_TTY``) are actually loaded in
+  interactive shells. Both roles use the same ``# {mark} (bashrc.d)``
+  marker so running them together writes only one loop. Also add
+  ``state: absent`` tasks to remove the stale ``blockinfile`` blocks
+  written to ``~/.bashrc`` by 3.2.1 so the settings are not applied twice
+  on upgraded hosts.
+
 v3.3.0
 ======
 
