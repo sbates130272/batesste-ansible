@@ -153,6 +153,33 @@
     - git_setup_enable_gpg_signing | default(true)
     - not git_setup_dotfiles_enable | default(false)
 
+- name: Remove stale ~/.bashrc block from 3.2.1 (git_setup)
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_facts['env']['HOME'] }}/.bashrc"
+    state: absent
+    marker_begin: "BEGIN (git_setup)"
+    marker_end: "END (git_setup)"
+  when:
+    - git_setup_enable_gpg_signing | default(true)
+    - not git_setup_dotfiles_enable | default(false)
+
+- name: Source ~/.bashrc.d from ~/.bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_facts['env']['HOME'] }}/.bashrc"
+    create: true
+    mode: "0644"
+    marker: "# {mark} (bashrc.d)"
+    block: |
+      if [ -d ~/.bashrc.d ]; then
+        for f in ~/.bashrc.d/*.sh; do
+          [ -r "$f" ] && . "$f"
+        done
+        unset f
+      fi
+  when:
+    - git_setup_enable_gpg_signing | default(true)
+    - not git_setup_dotfiles_enable | default(false)
+
 - name: Configure default merge behavior
   community.general.git_config:
     name: pull.rebase

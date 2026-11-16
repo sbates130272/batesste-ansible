@@ -142,6 +142,29 @@
     mode: "0600"
   when: not user_setup_dotfiles_enable | default(false)
 
+- name: Remove stale ~/.bashrc block from 3.2.1 (user_setup)
+  ansible.builtin.blockinfile:
+    path: "{{ user_setup_home }}/.bashrc"
+    state: absent
+    marker_begin: "BEGIN (user_setup)"
+    marker_end: "END (user_setup)"
+  when: not user_setup_dotfiles_enable | default(false)
+
+- name: Source ~/.bashrc.d from ~/.bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ user_setup_home }}/.bashrc"
+    create: true
+    mode: "0644"
+    marker: "# {mark} (bashrc.d)"
+    block: |
+      if [ -d ~/.bashrc.d ]; then
+        for f in ~/.bashrc.d/*.sh; do
+          [ -r "$f" ] && . "$f"
+        done
+        unset f
+      fi
+  when: not user_setup_dotfiles_enable | default(false)
+
 - name: Exec preferred shell for interactive logins (tcsh guard)
   ansible.builtin.blockinfile:
     path: "{{ user_setup_home }}/.tcshrc"

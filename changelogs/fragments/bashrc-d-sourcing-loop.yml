@@ -1,0 +1,16 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+bugfixes:
+  - >-
+    ``user_setup`` / ``git_setup`` — when dotfiles are disabled, add a
+    sourcing loop for ``~/.bashrc.d/`` to ``~/.bashrc`` so that
+    ``~/.bashrc.d/user_setup.sh`` (``DEBIAN_FRONTEND``) and
+    ``~/.bashrc.d/git_setup.sh`` (``GPG_TTY``) are actually loaded in
+    interactive shells.  Both roles use the same ``# {mark} (bashrc.d)``
+    marker so running them together writes only one loop.  Also add
+    ``state: absent`` tasks to remove the stale ``blockinfile`` blocks
+    written to ``~/.bashrc`` by 3.2.1 so the settings are not applied
+    twice on upgraded hosts.
