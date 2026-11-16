@@ -90,7 +90,6 @@
 
 - name: Install my favourite packages on Ubuntu
   ansible.builtin.package:
-    update_cache: true
     name: "{{ fave_packages_ubuntu_extra }}"
   become: true
   when:

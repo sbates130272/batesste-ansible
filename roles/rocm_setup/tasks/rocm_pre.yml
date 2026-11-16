@@ -50,74 +50,63 @@
         and rocm_setup_minimal | bool
         and rocm_setup_therock_rocm_version == 'latest'
       }}
+    rocm_setup_need_amdgpu_dkms_latest: >-
+      {{
+        rocm_setup_repo_stream == 'therock'
+        and rocm_setup_install_kernel_driver | bool
+        and not rocm_setup_wsl_enabled | bool
+        and rocm_setup_amdgpu_driver_version == 'latest'
+      }}
+    rocm_setup_need_any_latest: >-
+      {{
+        rocm_setup_rocm_version == 'latest'
+        or (rocm_setup_repo_stream != 'therock' and rocm_setup_wsl_mode != 'legacy' and rocm_setup_amdgpu_version == 'latest')
+        or (rocm_setup_repo_stream != 'therock' and not rocm_setup_wsl_enabled and rocm_setup_graphics_version == 'latest')
+        or ((rocm_setup_install_metrics_exporter | default(false)) and rocm_setup_metrics_exporter_version | default('latest') == 'latest')
+        or (rocm_setup_repo_stream == 'therock' and rocm_setup_minimal | bool)
+        or (rocm_setup_repo_stream == 'therock' and rocm_setup_install_kernel_driver | bool and not rocm_setup_wsl_enabled | bool and rocm_setup_amdgpu_driver_version == 'latest')
+      }}
 
-- name: Run the rocm-latest script and register results
+- name: Run rocm-latest once for all version lookups
   ansible.builtin.command:
     cmd: rocm-latest
   environment:
-    QUIET: "true"
-    ONLY_ONE: ROCM
+    ONLY_ONE: ALL
     RADEON_REPO: "https://{{ rocm_setup_repo_base_url }}"
     REPO_STREAM: "{{ rocm_setup_repo_stream }}"
+    WSL_INSTALL: "{{ 'true' if rocm_setup_wsl_mode == 'legacy' else 'false' }}"
     THEROCK_CHANNEL: "{{ rocm_setup_therock_channel }}"
     DISTRO: "{{ ansible_facts['distribution_release'] }}"
-  register: rocm_latest_version
+  register: _rocm_latest_all_raw
   changed_when: false
+  when: rocm_setup_need_any_latest
+
+- name: Parse version facts from consolidated rocm-latest run
+  ansible.builtin.set_fact:
+    _rocm_latest_all: "{{ _rocm_latest_all_raw.stdout | from_yaml }}"
   when:
-    - rocm_setup_need_rocm_latest
-    - rocm_setup_wsl_mode != 'legacy'
+    - rocm_setup_need_any_latest
+    - _rocm_latest_all_raw is not skipped
 
-- name: Run the rocm-latest script and register results (legacy wsl)
-  ansible.builtin.command:
-    cmd: rocm-latest
-  environment:
-    QUIET: "true"
-    ONLY_ONE: ROCM
-    WSL_INSTALL: "true"
-    RADEON_REPO: "https://{{ rocm_setup_repo_base_url }}"
-    REPO_STREAM: "{{ rocm_setup_repo_stream }}"
-  register: rocm_latest_wsl_version
-  changed_when: false
+- name: Populate register-shaped version variables from consolidated rocm-latest run
+  ansible.builtin.set_fact:
+    rocm_latest_version:
+      stdout: "{{ _rocm_latest_all.rocm_version | default('') }}"
+    rocm_latest_wsl_version:
+      stdout: "{{ _rocm_latest_all.rocm_version | default('') }}"
+    amdgpu_latest_version:
+      stdout: "{{ _rocm_latest_all.amdgpu_version | default('') }}"
+    graphics_latest_version:
+      stdout: "{{ _rocm_latest_all.graphics_version | default('') }}"
+    metrics_exporter_latest_version:
+      stdout: "{{ _rocm_latest_all.metrics_exporter_version | default('') }}"
+    rocm_setup_therock_version_latest:
+      stdout: "{{ _rocm_latest_all.therock_rocm_version | default('') }}"
+    rocm_setup_amdgpu_dkms_version:
+      stdout: "{{ _rocm_latest_all.amdgpu_version | default('') }}"
   when:
-    - rocm_setup_need_rocm_latest
-    - rocm_setup_wsl_mode == 'legacy'
-    - rocm_setup_repo_stream != 'therock'
-
-- name: Run the rocm-latest script for AMDGPU version
-  ansible.builtin.command:
-    cmd: rocm-latest
-  environment:
-    QUIET: "true"
-    ONLY_ONE: AMDGPU
-    RADEON_REPO: "https://{{ rocm_setup_repo_base_url }}"
-    REPO_STREAM: "{{ rocm_setup_repo_stream }}"
-  register: amdgpu_latest_version
-  changed_when: false
-  when: rocm_setup_need_amdgpu_latest
-
-- name: Run the rocm-latest script for graphics version
-  ansible.builtin.command:
-    cmd: rocm-latest
-  environment:
-    QUIET: "true"
-    ONLY_ONE: GRAPHICS
-    RADEON_REPO: "https://{{ rocm_setup_repo_base_url }}"
-    REPO_STREAM: "{{ rocm_setup_repo_stream }}"
-  register: graphics_latest_version
-  changed_when: false
-  when: rocm_setup_need_graphics_latest
-
-- name: Run the rocm-latest script for device-metrics-exporter version
-  ansible.builtin.command:
-    cmd: rocm-latest
-  environment:
-    QUIET: "true"
-    ONLY_ONE: METRICS_EXPORTER
-    RADEON_REPO: "https://{{ rocm_setup_repo_base_url }}"
-    REPO_STREAM: "{{ rocm_setup_repo_stream }}"
-  register: metrics_exporter_latest_version
-  changed_when: false
-  when: rocm_setup_need_metrics_exporter_latest
+    - rocm_setup_need_any_latest
+    - _rocm_latest_all is defined
 
 - name: Print the rocm package version
   ansible.builtin.debug:
@@ -249,20 +238,6 @@
     - metrics_exporter_latest_version.stdout | default('') !=
         (rocm_setup_metrics_exporter_version | default('latest'))
 
-- name: Run rocm-latest for therock versioned package suffix
-  ansible.builtin.command:
-    cmd: rocm-latest
-  environment:
-    QUIET: "true"
-    ONLY_ONE: THEROCK_ROCM_VERSION
-    THEROCK_CHANNEL: "{{ rocm_setup_therock_channel }}"
-    DISTRO: "{{ ansible_facts['distribution_release'] }}"
-  register: rocm_setup_therock_version_latest
-  changed_when: false
-  when:
-    - rocm_setup_repo_stream == 'therock'
-    - rocm_setup_minimal | bool
-
 - name: Resolve rocm_setup_therock_rocm_version from latest
   ansible.builtin.set_fact:
     rocm_setup_therock_rocm_version: "{{ rocm_setup_therock_version_latest.stdout }}"
@@ -303,25 +278,9 @@
   when: rocm_setup_install_metrics_exporter | default(false)
 
 # --- TheRock stream: AMDGPU kernel driver version resolution ---
-# amdgpu-dkms packages live on repo.radeon.com/amdgpu/ independently of the
-# ROCm userspace release on repo.amd.com.  rocm-latest AMDGPU_DKMS scrapes
-# the same directory listing as the legacy AMDGPU path.
-
-- name: Run the rocm-latest script for therock amdgpu-dkms version
-  ansible.builtin.command:
-    cmd: rocm-latest
-  environment:
-    QUIET: "true"
-    ONLY_ONE: AMDGPU_DKMS
-    RADEON_REPO: "https://{{ rocm_setup_repo_base_url }}"
-    DISTRO: "{{ ansible_facts['distribution_release'] }}"
-  register: rocm_setup_amdgpu_dkms_version
-  changed_when: false
-  when:
-    - rocm_setup_repo_stream == 'therock'
-    - rocm_setup_install_kernel_driver
-    - not rocm_setup_wsl_enabled
-    - rocm_setup_amdgpu_driver_version == 'latest'
+# amdgpu-dkms lives on repo.radeon.com/amdgpu/ independently of the ROCm
+# userspace release on repo.amd.com. rocm_setup_amdgpu_dkms_version is
+# populated by the consolidated rocm-latest ALL call above.
 
 - name: Resolve latest amdgpu driver version from script
   ansible.builtin.set_fact:

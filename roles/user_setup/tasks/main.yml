@@ -218,26 +218,17 @@
     - user_setup_disable_snap | default(true)
     - not user_setup_unprivileged | default(false)
 
-- name: Ensure SSH config file exists for user and create a Host * when absent
-  ansible.builtin.lineinfile:
+- name: Ensure SSH client settings exist in user config
+  ansible.builtin.blockinfile:
     path: "{{ user_setup_home }}/.ssh/config"
-    line: Host *
     state: present
     create: true
     mode: "0644"
-  when: not user_setup_dotfiles_owns_ssh | default(false)
-
-- name: Set important values in user's ssh config file
-  ansible.builtin.lineinfile:
-    path: "{{ user_setup_home }}/.ssh/config"
-    line: "{{ item }}"
-    insertafter: Host *
-    state: present
-    create: false
-  loop:
-    - ServerAliveInterval 60
-    - ServerAliveCountMax 30
-    - StrictHostKeyChecking accept-new
+    block: |
+      Host *
+        ServerAliveInterval 60
+        ServerAliveCountMax 30
+        StrictHostKeyChecking accept-new
   when: not user_setup_dotfiles_owns_ssh | default(false)
 
 - name: Ensure Projects directory exists for dotfiles clone
