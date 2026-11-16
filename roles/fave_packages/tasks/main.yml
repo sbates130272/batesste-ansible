@@ -209,7 +209,7 @@
 - name: Install ansible tools via uv
   ansible.builtin.command:
     cmd: "uv tool install {{ item }}"
-    creates: "{{ ansible_env.HOME }}/.local/bin/{{ item }}"
+    creates: "{{ ansible_facts['env']['HOME'] }}/.local/bin/{{ item }}"
   loop:
     - ansible
     - ansible-lint

@@ -48,7 +48,7 @@
   become_user: "{{ amd_llm_exporter_user }}"
   environment:
     VIRTUAL_ENV: "{{ amd_llm_exporter_install_dir }}/venv"
-    PATH: "{{ amd_llm_exporter_install_dir }}/venv/bin:{{ ansible_env.PATH }}"
+    PATH: "{{ amd_llm_exporter_install_dir }}/venv/bin:{{ ansible_facts['env']['PATH'] }}"
   changed_when: false
 
 - name: Install Python dependencies in venv

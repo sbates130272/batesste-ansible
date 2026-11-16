@@ -114,13 +114,13 @@
 
 - name: Ensure ~/.bashrc.d directory exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.bashrc.d"
+    path: "{{ ansible_facts['env']['HOME'] }}/.bashrc.d"
     state: directory
     mode: "0755"
 
 - name: Install mutt shell environment via bashrc.d
   ansible.builtin.copy:
-    dest: "{{ ansible_env.HOME }}/.bashrc.d/mutt.sh"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.bashrc.d/mutt.sh"
     content: |
       export EMAIL=sbates@raithlin.com
       export MAIL=~/.mutt/MAIL
@@ -142,7 +142,7 @@
 
 - name: Install mutt git-sendemail config via gitconfig.local
   ansible.builtin.copy:
-    dest: "{{ ansible_env.HOME }}/.gitconfig.local"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.gitconfig.local"
     content: |
       [sendemail]
           sendmailcmd = ~/.mutt/scripts/git-sendmail.sh

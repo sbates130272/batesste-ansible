@@ -136,7 +136,7 @@
 
 - name: Ensure ~/.bashrc.d directory exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.bashrc.d"
+    path: "{{ ansible_facts['env']['HOME'] }}/.bashrc.d"
     state: directory
     mode: "0755"
   when:
@@ -145,7 +145,7 @@
 
 - name: Configure gpg-agent via bashrc.d
   ansible.builtin.copy:
-    dest: "{{ ansible_env.HOME }}/.bashrc.d/git_setup.sh"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.bashrc.d/git_setup.sh"
     content: |
       [ -t 1 ] && GPG_TTY=$(tty) && export GPG_TTY
     mode: "0600"
