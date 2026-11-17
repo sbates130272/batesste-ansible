@@ -90,7 +90,6 @@
 
 - name: Install my favourite packages on Ubuntu
   ansible.builtin.package:
-    update_cache: true
     name: "{{ fave_packages_ubuntu_extra }}"
   become: true
   when:
@@ -120,11 +119,13 @@
           Authorization: "{{ 'Bearer ' + fave_packages_github_api_token if fave_packages_github_api_token | length > 0 else omit }}"
       register: fave_packages_uv_latest_release
       changed_when: false
+      failed_when: false
 
     - name: Set uv resolved version
       ansible.builtin.set_fact:
         fave_packages_uv_resolved_version: >-
           {{ fave_packages_uv_latest_release.json.tag_name | regex_replace('^v', '') }}
+      when: fave_packages_uv_latest_release.status == 200
 
     - name: Check if uv binary is present
       ansible.builtin.stat:
@@ -153,9 +154,10 @@
 
     - name: Download and install uv binaries
       when: >-
-        not fave_packages_uv_binary_stat.stat.exists or
+        fave_packages_uv_resolved_version is defined and
+        (not fave_packages_uv_binary_stat.stat.exists or
         not fave_packages_uv_version_file_stat.stat.exists or
-        (fave_packages_uv_current_version | default('')) != fave_packages_uv_resolved_version
+        (fave_packages_uv_current_version | default('')) != fave_packages_uv_resolved_version)
       block:
         - name: Create temporary directory for uv download
           ansible.builtin.tempfile:

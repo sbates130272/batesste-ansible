@@ -194,3 +194,37 @@ if [ "${ONLY_ONE}" == "METRICS_EXPORTER" ] || [ "${ONLY_ONE}" == "false" ]; then
         echo "Device Metrics Exporter latest: ${METRICS_EXPORTER_VERSION}."
     fi
 fi
+
+# ALL mode: single invocation that emits all version facts as a YAML mapping.
+# Ansible uses this to replace multiple sequential rocm-latest calls, reducing
+# SSH round-trips from N to 1. THEROCK_ROCM_VERSION is derived from the same
+# APT Packages fetch as ROCM with no additional HTTP call.
+if [ "${ONLY_ONE}" == "ALL" ]; then
+    if [ "${REPO_STREAM}" == "therock" ]; then
+        THEROCK_PACKAGES_URL="${THEROCK_REPO_BASE}/rocm/core/packages/${THEROCK_DISTRO_PATH}/dists/${THEROCK_SUITE}/main/binary-amd64/Packages"
+        ROCM_VERSION=$(parse_apt_packages "${THEROCK_PACKAGES_URL}" "${THEROCK_ROCM_PACKAGE}")
+        THEROCK_ROCM_VERSION=$(echo "${ROCM_VERSION}" | grep -oE '^[0-9]+\.[0-9]+')
+    elif [ "${WSL_INSTALL}" == "true" ]; then
+        ROCM_VERSION=$(wsl_version "${WSL_REMOTE}")
+        THEROCK_ROCM_VERSION=""
+    else
+        ROCM_VERSION=$(parse_repo "${ROCM_REMOTE}")
+        THEROCK_ROCM_VERSION=""
+    fi
+    if [ "${WSL_INSTALL}" == "true" ]; then
+        AMDGPU_VERSION="none"
+    else
+        AMDGPU_VERSION=$(parse_repo "${AMDGPU_REMOTE}")
+    fi
+    if [ "${WSL_INSTALL}" == "true" ] || [ "${REPO_STREAM}" == "therock" ]; then
+        GRAPHICS_VERSION="none"
+    else
+        GRAPHICS_VERSION=$(parse_repo "${GRAPHICS_REMOTE}")
+    fi
+    METRICS_EXPORTER_VERSION=$(parse_repo "${METRICS_EXPORTER_REMOTE}")
+    echo "rocm_version: \"${ROCM_VERSION}\""
+    echo "amdgpu_version: \"${AMDGPU_VERSION}\""
+    echo "graphics_version: \"${GRAPHICS_VERSION}\""
+    echo "metrics_exporter_version: \"${METRICS_EXPORTER_VERSION}\""
+    echo "therock_rocm_version: \"${THEROCK_ROCM_VERSION}\""
+fi

@@ -49,6 +49,7 @@
 - name: Install the desired kernel packages
   ansible.builtin.package:
     update_cache: true
+    cache_valid_time: 600
     name: >-
       {{ ['linux-headers-' + ansible_facts['kernel']]
          + (['linux-modules-extra-' + ansible_facts['kernel']]
@@ -59,6 +60,7 @@
 - name: Install the desired RDMA packages
   ansible.builtin.package:
     update_cache: true
+    cache_valid_time: 600
     name:
       - ibutils
       - ibverbs-utils
@@ -81,6 +83,7 @@
   become: true
   failed_when: false
   changed_when: false
+  when: rdma_setup_update_pciids | default(false)
 
 # Reboot again so RDMA kernel modules can load.
 - name: Perform another reboot to allow modules to load

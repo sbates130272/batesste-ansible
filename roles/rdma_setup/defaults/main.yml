@@ -8,12 +8,16 @@ rdma_setup_reboot_timeout: 60
 
 # Skip apt safe-upgrade/autoremove pass. Set to true in CI where full distro
 # upgrades are slow and unnecessary.
-rdma_setup_skip_system_upgrade: false
+rdma_setup_skip_system_upgrade: true
 rdma_detect_output_file: /tmp/rdma-detect.status
 rdma_detect_script_dest: /usr/local/bin/rdma-detect
 
 # Enable MOTD showing RDMA/InfiniBand devices
 rdma_setup_motd: false
+
+# Run update-pciids to refresh /usr/share/misc/pci.ids. Set true only on
+# hosts with hardware that benefits from a refreshed PCI ID database.
+rdma_setup_update_pciids: false
 
 # Optional: install Prometheus rdma_exporter (https://github.com/yuuki/rdma_exporter)
 rdma_setup_install_rdma_exporter: false
