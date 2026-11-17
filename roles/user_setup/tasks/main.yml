@@ -214,6 +214,7 @@
     - /var/snap
     - /var/lib/snapd
   become: true
+  failed_when: false
   when:
     - user_setup_disable_snap | default(true)
     - not user_setup_unprivileged | default(false)
