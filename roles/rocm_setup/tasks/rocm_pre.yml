@@ -223,8 +223,10 @@
       latest ({{ graphics_latest_version.stdout }}). Update
       rocm_setup_graphics_version or set it to 'latest'.
   when:
+    - rocm_setup_repo_stream != 'therock'
+    - not rocm_setup_wsl_enabled
     - not rocm_setup_need_graphics_latest
-    - graphics_latest_version.stdout is defined
+    - graphics_latest_version.stdout | default('') not in ['', 'none']
     - graphics_latest_version.stdout != rocm_setup_graphics_version
 
 - name: Fail if pinned metrics-exporter version is not the latest available
@@ -234,9 +236,9 @@
       is not the latest ({{ metrics_exporter_latest_version.stdout }}). Update
       rocm_setup_metrics_exporter_version or set it to 'latest'.
   when:
-    - not rocm_setup_need_metrics_exporter_latest
     - rocm_setup_install_metrics_exporter | default(false)
-    - metrics_exporter_latest_version.stdout is defined
+    - not rocm_setup_need_metrics_exporter_latest
+    - metrics_exporter_latest_version.stdout | default('') not in ['', 'none']
     - metrics_exporter_latest_version.stdout | default('') !=
         (rocm_setup_metrics_exporter_version | default('latest'))
 
