@@ -210,8 +210,10 @@
       ({{ amdgpu_latest_version.stdout }}). Update rocm_setup_amdgpu_version or
       set it to 'latest'.
   when:
+    - rocm_setup_repo_stream != 'therock'
+    - rocm_setup_wsl_mode != 'legacy'
     - not rocm_setup_need_amdgpu_latest
-    - amdgpu_latest_version.stdout is defined
+    - amdgpu_latest_version.stdout | default('') not in ['', 'none']
     - amdgpu_latest_version.stdout != rocm_setup_amdgpu_version
 
 - name: Fail if pinned graphics version is not the latest available
