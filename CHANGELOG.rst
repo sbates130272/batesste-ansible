@@ -4,6 +4,44 @@ sbates130272.batesste Release Notes
 
 .. contents:: Topics
 
+v3.4.0
+======
+
+Release Summary
+----------------
+Performance release: reduce SSH round-trips and redundant apt-cache refreshes
+for new-target provisioning; fix rocm_setup staleness-check side-effects,
+user_setup snap removal on read-only mounts, and fave_packages GitHub API
+rate-limit handling.
+
+Minor Changes
+--------------
+- ``ansible.cfg`` — enable ``pipelining = True``, eliminating one SSH fork per
+  task across all roles.
+- ``rocm_setup`` — consolidate 5 sequential ``rocm-latest`` invocations into a
+  single ``ONLY_ONE=ALL`` call that emits all versions as YAML in one pass.
+- ``rdma_setup`` — add ``cache_valid_time: 600`` to package tasks; gate
+  ``update-pciids`` behind an opt-in ``rdma_setup_update_pciids`` flag
+  (default ``false``); flip ``rdma_setup_skip_system_upgrade`` default to
+  ``true``.
+- ``user_setup`` — consolidate 3 sequential ``lineinfile`` SSH config tasks into
+  1 ``blockinfile``.
+- ``fave_packages`` — drop redundant ``update_cache`` on the ubuntu-extra
+  install task.
+
+Bugfixes
+---------
+- ``rocm_setup`` — guard all version staleness checks against ALL-mode
+  side-effects; add explicit stream guards so therock/wsl modes do not
+  incorrectly trigger staleness logic.
+- ``user_setup`` — add ``failed_when: false`` to snap data directory removal so
+  read-only squashfs bind-mounts on GitHub Actions runners do not abort the
+  play.
+- ``fave_packages`` — tolerate GitHub API rate-limit on uv version lookup;
+  ``failed_when: false`` on the URI task with a ``is defined`` guard on the
+  download block so uv install is skipped rather than aborting the play when
+  the API is unavailable.
+
 v3.3.1
 ======
 
