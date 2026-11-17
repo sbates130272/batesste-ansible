@@ -64,7 +64,10 @@
         or (rocm_setup_repo_stream != 'therock' and not rocm_setup_wsl_enabled and rocm_setup_graphics_version == 'latest')
         or ((rocm_setup_install_metrics_exporter | default(false)) and rocm_setup_metrics_exporter_version | default('latest') == 'latest')
         or (rocm_setup_repo_stream == 'therock' and rocm_setup_minimal | bool)
-        or (rocm_setup_repo_stream == 'therock' and rocm_setup_install_kernel_driver | bool and not rocm_setup_wsl_enabled | bool and rocm_setup_amdgpu_driver_version == 'latest')
+        or (rocm_setup_repo_stream == 'therock'
+            and rocm_setup_install_kernel_driver | bool
+            and not rocm_setup_wsl_enabled | bool
+            and rocm_setup_amdgpu_driver_version == 'latest')
       }}
 
 - name: Run rocm-latest once for all version lookups
