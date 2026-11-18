@@ -172,7 +172,7 @@ rocm_setup_github_api_token: "{{ lookup('env', 'GITHUB_TOKEN') | default('') }}"
 
 # xrocmtop - btop-style terminal UI for AMD ROCm and Vulkan GPU monitoring
 # https://github.com/argakiig/xrocmtop
-# Install by default; set to false to skip.
+# Opt-in; set to true to install.
 rocm_setup_install_xrocmtop: false
 rocm_setup_xrocmtop_version: latest
 rocm_setup_xrocmtop_install_dir: /usr/local/bin
@@ -197,11 +197,11 @@ rocm_setup_metrics_exporter_open_firewall: true
 
 # ROCm-CLI: local AI on AMD GPUs — one binary, zero setup
 # https://github.com/ROCm/rocm-cli
-# Install by default; set to false to skip.
-# Channel: 'nightly' (current only option until a stable release is published)
-#          or 'release' (default, used once stable releases exist).
+# Opt-in; set to true to install.
+# Channel: 'release' (latest stable), 'nightly' (rolling prerelease) or an
+#          explicit release tag such as 'v0.3.0' to pin a version.
 rocm_setup_install_rocm_cli: false
-rocm_setup_rocm_cli_channel: nightly
+rocm_setup_rocm_cli_channel: release
 
 # Install hipFile packages via apt (ROCm 7.14+).
 # TheRock stream (repo.amd.com): amdrocm-hipfile, amdrocm-hipfile-dev (unversioned meta-packages)

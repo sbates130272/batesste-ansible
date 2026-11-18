@@ -400,7 +400,7 @@
 - name: Install ROCm-CLI for user
   ansible.builtin.import_tasks:
     file: rocm_cli.yml
-  when: rocm_setup_install_rocm_cli
+  when: rocm_setup_install_rocm_cli | bool
 
 - name: Build, install and test rocm-xio
   ansible.builtin.import_tasks:
