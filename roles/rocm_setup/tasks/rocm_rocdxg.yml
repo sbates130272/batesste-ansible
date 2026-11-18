@@ -58,7 +58,7 @@
     or 'Successfully installed' in (rocm_setup_wsl_win_sdk_winget.stderr | default(''))
   failed_when: false
   when:
-    - rocm_setup_wsl_install_win_sdk | default(true)
+    - rocm_setup_wsl_install_win_sdk | default(true) | bool
     - rocm_setup_wsl_win_sdk_path | default('') | length == 0
     - rocm_setup_wsl_win_sdk_precheck.stdout | trim | length == 0
 
@@ -70,7 +70,7 @@
       {{ rocm_setup_wsl_win_sdk_winget.stderr | default('') }}
   when:
     - rocm_setup_wsl_win_sdk_winget is defined
-    - not rocm_setup_wsl_win_sdk_winget.skipped | default(false)
+    - not rocm_setup_wsl_win_sdk_winget.skipped | default(false) | bool
     - rocm_setup_wsl_win_sdk_winget is changed
       or (rocm_setup_wsl_win_sdk_winget.rc | default(0)) != 0
 

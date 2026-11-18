@@ -54,14 +54,14 @@
       - mutt
     state: present
   become: true
-  when: fave_packages_desktop_enable | default(true)
+  when: fave_packages_desktop_enable | default(true) | bool
 
 - name: Install linux-generic kernel meta-package
   ansible.builtin.package:
     name: linux-generic
     state: present
   become: true
-  when: fave_packages_linux_generic_enable | default(false)
+  when: fave_packages_linux_generic_enable | default(false) | bool
 
 - name: Install prometheus-node-exporter
   ansible.builtin.package:
@@ -70,7 +70,7 @@
       - prometheus-node-exporter-collectors
     state: present
   become: true
-  when: fave_packages_node_exporter_enable | default(true)
+  when: fave_packages_node_exporter_enable | default(true) | bool
 
 - name: Set ubuntu extra package list (skip git-email if git >= 2.43)
   ansible.builtin.set_fact:
@@ -97,7 +97,7 @@
     - ansible_facts['distribution_release'] in ['noble', 'resolute']
 
 - name: Install and manage uv
-  when: fave_packages_uv_enable | default(true)
+  when: fave_packages_uv_enable | default(true) | bool
   block:
     - name: Set uv architecture for GitHub asset
       ansible.builtin.set_fact:
@@ -150,7 +150,7 @@
           {{ fave_packages_uv_version_content.content | b64decode | trim }}
       when: >-
         fave_packages_uv_version_file_stat.stat.exists and
-        not (fave_packages_uv_version_content.failed | default(false))
+        not (fave_packages_uv_version_content.failed | default(false) | bool)
 
     - name: Download and install uv binaries
       when: >-
@@ -215,7 +215,7 @@
   loop:
     - ansible
     - ansible-lint
-  when: fave_packages_ansible_enable | default(true)
+  when: fave_packages_ansible_enable | default(true) | bool
 
 - name: Install tmuxinator
   ansible.builtin.package:
@@ -223,7 +223,7 @@
     state: present
   become: true
   when:
-    - fave_packages_tmuxinator_enable | default(true)
+    - fave_packages_tmuxinator_enable | default(true) | bool
     - ansible_facts['distribution'] == "Ubuntu"
     - ansible_facts['distribution_release'] in ['noble', 'resolute']
 
@@ -236,4 +236,4 @@
     mode: '0644'
   become: true
   notify: Restart prometheus-node-exporter
-  when: fave_packages_node_exporter_enable | default(true)
+  when: fave_packages_node_exporter_enable | default(true) | bool

@@ -32,4 +32,4 @@
     dest: ~/.tmux/plugins/tpm
     version: master
     update: true
-  when: tmux_scripts_tpm_enable | default(true)
+  when: tmux_scripts_tpm_enable | default(true) | bool

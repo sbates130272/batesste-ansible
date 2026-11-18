@@ -26,7 +26,7 @@
   become: true
   when:
     - rocm_setup_wsl_mode != 'legacy'
-    - rocm_setup_wsl_mode != 'rocdxg' or rocm_setup_wsl_run_hip_check | default(true)
+    - rocm_setup_wsl_mode != 'rocdxg' or rocm_setup_wsl_run_hip_check | default(true) | bool
 
 - name: Compile and run HIP hello-world check
   ansible.builtin.shell:
@@ -48,7 +48,7 @@
   changed_when: false
   when:
     - rocm_setup_wsl_mode != 'legacy'
-    - rocm_setup_wsl_mode != 'rocdxg' or rocm_setup_wsl_run_hip_check | default(true)
+    - rocm_setup_wsl_mode != 'rocdxg' or rocm_setup_wsl_run_hip_check | default(true) | bool
 
 - name: Confirm HIP hello-world ran on the GPU
   ansible.builtin.assert:
@@ -61,4 +61,4 @@
       {{ rocm_setup_hip_check.stderr | default('') }}
   when:
     - rocm_setup_hip_check is defined
-    - not rocm_setup_hip_check.skipped | default(false)
+    - not rocm_setup_hip_check.skipped | default(false) | bool

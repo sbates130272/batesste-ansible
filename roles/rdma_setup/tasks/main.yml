@@ -83,7 +83,7 @@
   become: true
   failed_when: false
   changed_when: false
-  when: rdma_setup_update_pciids | default(false)
+  when: rdma_setup_update_pciids | default(false) | bool
 
 # Reboot again so RDMA kernel modules can load.
 - name: Perform another reboot to allow modules to load
