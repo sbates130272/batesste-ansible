@@ -54,7 +54,7 @@
       {{ rdma_exporter_version_content.content | b64decode | trim }}
   when: >-
     rdma_exporter_version_file_stat.stat.exists and
-    not (rdma_exporter_version_content.failed | default(false))
+    not (rdma_exporter_version_content.failed | default(false) | bool)
 
 - name: Set rdma_exporter download URL
   ansible.builtin.set_fact:

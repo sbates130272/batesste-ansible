@@ -1,0 +1,21 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+minor_changes:
+  - rocm_setup - default ``rocm_setup_rocm_cli_channel`` to ``release`` now that
+    stable ROCm-CLI releases exist; ``nightly`` and explicit tags such as
+    ``v0.3.0`` are also accepted.
+  - rocm_setup - install ``curl``, ``openssl`` and ``tar`` before running the
+    ROCm-CLI installer, which needs them to download, verify and unpack the
+    release bundle.
+bugfixes:
+  - rocm_setup - the ROCm-CLI install task reported a change on every run; it
+    now reports one only when the installed binaries differ.
+  - rocm_setup - stop the ROCm-CLI installer from editing the user's shell
+    profile.
+  - rocm_setup - coerce ``rocm_setup_install_rocm_cli`` with ``| bool`` so a
+    value passed with ``-e`` works.
+  - rocm_setup - the role test no longer expects the ROCm-CLI binary when the
+    install is left at its default of off.

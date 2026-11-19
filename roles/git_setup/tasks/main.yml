@@ -25,13 +25,13 @@
     state: present
   become: true
   when:
-    - git_setup_install_gh | default(true)
-    - not git_setup_unprivileged | default(false)
+    - git_setup_install_gh | default(true) | bool
+    - not git_setup_unprivileged | default(false) | bool
 
 - name: Check if GitHub token is available
   ansible.builtin.set_fact:
     git_setup_gh_token_available: "{{ git_setup_gh_token | default('') | length > 0 }}"
-  when: git_setup_gh_authenticate | default(false)
+  when: git_setup_gh_authenticate | default(false) | bool
 
 - name: Authenticate GitHub CLI with token
   ansible.builtin.shell: |
@@ -44,8 +44,8 @@
   changed_when: true
   failed_when: false
   when:
-    - git_setup_gh_authenticate | default(false)
-    - git_setup_gh_token_available | default(false)
+    - git_setup_gh_authenticate | default(false) | bool
+    - git_setup_gh_token_available | default(false) | bool
 
 - name: Verify GitHub CLI authentication
   ansible.builtin.command: gh auth status
@@ -53,22 +53,22 @@
   changed_when: false
   failed_when: false
   when:
-    - git_setup_gh_authenticate | default(false)
-    - git_setup_gh_token_available | default(false)
+    - git_setup_gh_authenticate | default(false) | bool
+    - git_setup_gh_token_available | default(false) | bool
 
 - name: Display GitHub CLI authentication status
   ansible.builtin.debug:
     msg: "{{ git_setup_gh_status.stderr_lines | default(['Authentication check skipped']) }}"
   when:
-    - git_setup_gh_authenticate | default(false)
-    - git_setup_gh_token_available | default(false)
+    - git_setup_gh_authenticate | default(false) | bool
+    - git_setup_gh_token_available | default(false) | bool
 
 - name: Warn if GitHub CLI authentication failed
   ansible.builtin.debug:
     msg: "WARNING: GitHub CLI authentication failed. Token may be invalid or gh auth command failed."
   when:
-    - git_setup_gh_authenticate | default(false)
-    - git_setup_gh_token_available | default(false)
+    - git_setup_gh_authenticate | default(false) | bool
+    - git_setup_gh_token_available | default(false) | bool
     - git_setup_gh_status is defined
     - git_setup_gh_status.rc != 0
 
@@ -80,7 +80,7 @@
     msg: >-
       git_setup_user_name and git_setup_user_email must be set in host_vars or
       group_vars. Set git_setup_dotfiles_enable: true if dotfiles owns .gitconfig.
-  when: not git_setup_dotfiles_enable | default(false)
+  when: not git_setup_dotfiles_enable | default(false) | bool
 
 - name: Copy over gnupg folder to ensure PGP keys are on target(s)
   ansible.posix.synchronize:
@@ -91,29 +91,29 @@
       - --exclude=*~
       - --exclude=*.conf
   when:
-    - git_setup_enable_gpg_signing | default(true)
-    - git_setup_deploy_gnupg | default(false)
+    - git_setup_enable_gpg_signing | default(true) | bool
+    - git_setup_deploy_gnupg | default(false) | bool
 
 - name: Configure emacs as git editor
   community.general.git_config:
     name: core.editor
     value: emacs
     scope: global
-  when: not git_setup_dotfiles_enable | default(false)
+  when: not git_setup_dotfiles_enable | default(false) | bool
 
 - name: Configure git user name
   community.general.git_config:
     name: user.name
     value: "{{ git_setup_user_name }}"
     scope: global
-  when: not git_setup_dotfiles_enable | default(false)
+  when: not git_setup_dotfiles_enable | default(false) | bool
 
 - name: Configure git user email
   community.general.git_config:
     name: user.email
     value: "{{ git_setup_user_email }}"
     scope: global
-  when: not git_setup_dotfiles_enable | default(false)
+  when: not git_setup_dotfiles_enable | default(false) | bool
 
 - name: Configure PGP signing for all commits
   community.general.git_config:
@@ -121,8 +121,8 @@
     value: "true"
     scope: global
   when:
-    - git_setup_enable_gpg_signing | default(true)
-    - not git_setup_dotfiles_enable | default(false)
+    - git_setup_enable_gpg_signing | default(true) | bool
+    - not git_setup_dotfiles_enable | default(false) | bool
 
 - name: Configure PGP signing key
   community.general.git_config:
@@ -130,9 +130,9 @@
     value: "{{ git_setup_signingkey }}"
     scope: global
   when:
-    - git_setup_enable_gpg_signing | default(true)
+    - git_setup_enable_gpg_signing | default(true) | bool
     - git_setup_signingkey | default("") | length > 0
-    - not git_setup_dotfiles_enable | default(false)
+    - not git_setup_dotfiles_enable | default(false) | bool
 
 - name: Ensure ~/.bashrc.d directory exists
   ansible.builtin.file:
@@ -140,8 +140,8 @@
     state: directory
     mode: "0755"
   when:
-    - git_setup_enable_gpg_signing | default(true)
-    - not git_setup_dotfiles_enable | default(false)
+    - git_setup_enable_gpg_signing | default(true) | bool
+    - not git_setup_dotfiles_enable | default(false) | bool
 
 - name: Configure gpg-agent via bashrc.d
   ansible.builtin.copy:
@@ -150,8 +150,8 @@
       [ -t 1 ] && GPG_TTY=$(tty) && export GPG_TTY
     mode: "0600"
   when:
-    - git_setup_enable_gpg_signing | default(true)
-    - not git_setup_dotfiles_enable | default(false)
+    - git_setup_enable_gpg_signing | default(true) | bool
+    - not git_setup_dotfiles_enable | default(false) | bool
 
 - name: Remove stale ~/.bashrc block from 3.2.1 (git_setup)
   ansible.builtin.blockinfile:
@@ -160,8 +160,8 @@
     marker_begin: "BEGIN (git_setup)"
     marker_end: "END (git_setup)"
   when:
-    - git_setup_enable_gpg_signing | default(true)
-    - not git_setup_dotfiles_enable | default(false)
+    - git_setup_enable_gpg_signing | default(true) | bool
+    - not git_setup_dotfiles_enable | default(false) | bool
 
 - name: Source ~/.bashrc.d from ~/.bashrc
   ansible.builtin.blockinfile:
@@ -177,19 +177,19 @@
         unset f
       fi
   when:
-    - git_setup_enable_gpg_signing | default(true)
-    - not git_setup_dotfiles_enable | default(false)
+    - git_setup_enable_gpg_signing | default(true) | bool
+    - not git_setup_dotfiles_enable | default(false) | bool
 
 - name: Configure default merge behavior
   community.general.git_config:
     name: pull.rebase
     value: "false"
     scope: global
-  when: not git_setup_dotfiles_enable | default(false)
+  when: not git_setup_dotfiles_enable | default(false) | bool
 
 - name: Configure default branch to main
   community.general.git_config:
     name: init.defaultBranch
     value: "main"
     scope: global
-  when: not git_setup_dotfiles_enable | default(false)
+  when: not git_setup_dotfiles_enable | default(false) | bool

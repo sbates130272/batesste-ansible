@@ -34,11 +34,11 @@
         msg: >-
           {{ ansible_facts['distribution'] }} is not supported by this role.
           Set check_platform_fail_on_unsupported: false to skip instead.
-      when: check_platform_fail_on_unsupported | default(true)
+      when: check_platform_fail_on_unsupported | default(true) | bool
 
     - name: End host when distribution is not supported (non-fatal mode)
       ansible.builtin.meta: end_host
-      when: not (check_platform_fail_on_unsupported | default(true))
+      when: not (check_platform_fail_on_unsupported | default(true) | bool)
 
 - name: Set a fact that contains the supported releases
   ansible.builtin.set_fact:
@@ -61,8 +61,8 @@
           {{ ansible_facts['distribution_release'] }} is not a supported release for
           {{ ansible_facts['distribution'] }}. Supported: {{ check_platform_supported_releases }}.
           Set check_platform_fail_on_unsupported: false to skip instead.
-      when: check_platform_fail_on_unsupported | default(true)
+      when: check_platform_fail_on_unsupported | default(true) | bool
 
     - name: End host when release is not supported (non-fatal mode)
       ansible.builtin.meta: end_host
-      when: not (check_platform_fail_on_unsupported | default(true))
+      when: not (check_platform_fail_on_unsupported | default(true) | bool)

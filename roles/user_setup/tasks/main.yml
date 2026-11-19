@@ -24,7 +24,7 @@
     - users
     - admin
   become: true
-  when: not user_setup_unprivileged | default(false)
+  when: not user_setup_unprivileged | default(false) | bool
 
 - name: Create (or update) an account for the specified user
   ansible.builtin.user:
@@ -35,17 +35,17 @@
     shell: /bin/bash
   become: true
   register: user_setup_user_result
-  when: not user_setup_unprivileged | default(false)
+  when: not user_setup_unprivileged | default(false) | bool
 
 - name: Set target user home directory fact
   ansible.builtin.set_fact:
     user_setup_home: "{{ user_setup_user_result.home }}"
-  when: not user_setup_unprivileged | default(false)
+  when: not user_setup_unprivileged | default(false) | bool
 
 - name: Set user home fact from environment (unprivileged fallback)
   ansible.builtin.set_fact:
     user_setup_home: "{{ ansible_facts['env'].HOME }}"
-  when: user_setup_unprivileged | default(false)
+  when: user_setup_unprivileged | default(false) | bool
 
 - name: Set authorized key for the user from local file
   ansible.posix.authorized_key:
@@ -66,7 +66,7 @@
       # Added by Ansible
       {{ username }} ALL=(ALL) NOPASSWD:ALL
   become: true
-  when: not user_setup_unprivileged | default(false)
+  when: not user_setup_unprivileged | default(false) | bool
 
 - name: Copy SSH private key
   ansible.builtin.copy:
@@ -77,7 +77,7 @@
   no_log: true
   become: true
   become_user: "{{ username }}"
-  when: user_setup_deploy_ssh_key | default(true)
+  when: user_setup_deploy_ssh_key | default(true) | bool
 
 - name: Copy SSH public key
   ansible.builtin.copy:
@@ -87,7 +87,7 @@
     mode: "0644"
   become: true
   become_user: "{{ username }}"
-  when: user_setup_deploy_ssh_key | default(true)
+  when: user_setup_deploy_ssh_key | default(true) | bool
 
 - name: Ensure users can access dmesg without sudo # noqa: args[module]
   ansible.builtin.blockinfile:
@@ -100,7 +100,7 @@
     block: |
       kernel.dmesg_restrict = 0
   become: true
-  when: not user_setup_unprivileged | default(false)
+  when: not user_setup_unprivileged | default(false) | bool
   notify: Reload procps
 
 - name: Ensure systemd-networkd-wait-online drop-in directory exists
@@ -111,7 +111,7 @@
     group: root
     mode: '0755'
   become: true
-  when: not user_setup_unprivileged | default(false)
+  when: not user_setup_unprivileged | default(false) | bool
 
 - name: Disable systemd-networkd-wait-online to improve boot time
   ansible.builtin.copy:
@@ -124,7 +124,7 @@
     group: root
     mode: '0644'
   become: true
-  when: not user_setup_unprivileged | default(false)
+  when: not user_setup_unprivileged | default(false) | bool
   notify: Reload systemd daemon
 
 - name: Ensure ~/.bashrc.d directory exists
@@ -132,7 +132,7 @@
     path: "{{ user_setup_home }}/.bashrc.d"
     state: directory
     mode: "0755"
-  when: not user_setup_dotfiles_enable | default(false)
+  when: not user_setup_dotfiles_enable | default(false) | bool
 
 - name: Ensure package install is non-interactive
   ansible.builtin.copy:
@@ -140,7 +140,7 @@
     content: |
       export DEBIAN_FRONTEND=noninteractive
     mode: "0600"
-  when: not user_setup_dotfiles_enable | default(false)
+  when: not user_setup_dotfiles_enable | default(false) | bool
 
 - name: Remove stale ~/.bashrc block from 3.2.1 (user_setup)
   ansible.builtin.blockinfile:
@@ -148,7 +148,7 @@
     state: absent
     marker_begin: "BEGIN (user_setup)"
     marker_end: "END (user_setup)"
-  when: not user_setup_dotfiles_enable | default(false)
+  when: not user_setup_dotfiles_enable | default(false) | bool
 
 - name: Source ~/.bashrc.d from ~/.bashrc
   ansible.builtin.blockinfile:
@@ -163,7 +163,7 @@
         done
         unset f
       fi
-  when: not user_setup_dotfiles_enable | default(false)
+  when: not user_setup_dotfiles_enable | default(false) | bool
 
 - name: Exec preferred shell for interactive logins (tcsh guard)
   ansible.builtin.blockinfile:
@@ -181,7 +181,7 @@
   community.general.timezone:
     name: "{{ user_setup_timezone }}"
   become: true
-  when: not user_setup_unprivileged | default(false)
+  when: not user_setup_unprivileged | default(false) | bool
 
 - name: Remove snapd package
   ansible.builtin.package:
@@ -189,8 +189,8 @@
     state: absent
   become: true
   when:
-    - user_setup_disable_snap | default(true)
-    - not user_setup_unprivileged | default(false)
+    - user_setup_disable_snap | default(true) | bool
+    - not user_setup_unprivileged | default(false) | bool
 
 - name: Mask snapd units to prevent reactivation after any future package install
   ansible.builtin.systemd:
@@ -202,8 +202,8 @@
     - snapd.seeded
   become: true
   when:
-    - user_setup_disable_snap | default(true)
-    - not user_setup_unprivileged | default(false)
+    - user_setup_disable_snap | default(true) | bool
+    - not user_setup_unprivileged | default(false) | bool
 
 - name: Remove snap data directories
   ansible.builtin.file:
@@ -216,8 +216,8 @@
   become: true
   failed_when: false
   when:
-    - user_setup_disable_snap | default(true)
-    - not user_setup_unprivileged | default(false)
+    - user_setup_disable_snap | default(true) | bool
+    - not user_setup_unprivileged | default(false) | bool
 
 - name: Ensure SSH client settings exist in user config
   ansible.builtin.blockinfile:
@@ -230,14 +230,14 @@
         ServerAliveInterval 60
         ServerAliveCountMax 30
         StrictHostKeyChecking accept-new
-  when: not user_setup_dotfiles_owns_ssh | default(false)
+  when: not user_setup_dotfiles_owns_ssh | default(false) | bool
 
 - name: Ensure Projects directory exists for dotfiles clone
   ansible.builtin.file:
     path: "{{ user_setup_home }}/Projects"
     state: directory
     mode: "0755"
-  when: user_setup_dotfiles_enable | default(false)
+  when: user_setup_dotfiles_enable | default(false) | bool
 
 - name: Install AMD corporate root CA cert for ZScaler HTTPS interception
   ansible.builtin.copy:
@@ -249,16 +249,16 @@
   become: true
   notify: Update CA certificates
   when:
-    - user_setup_dotfiles_enable | default(false)
-    - user_setup_install_amd_ca | default(false)
-    - not user_setup_unprivileged | default(false)
+    - user_setup_dotfiles_enable | default(false) | bool
+    - user_setup_install_amd_ca | default(false) | bool
+    - not user_setup_unprivileged | default(false) | bool
 
 - name: Flush handlers so CA bundle is rebuilt before git clone
   ansible.builtin.meta: flush_handlers
   when:
-    - user_setup_dotfiles_enable | default(false)
-    - user_setup_install_amd_ca | default(false)
-    - not user_setup_unprivileged | default(false)
+    - user_setup_dotfiles_enable | default(false) | bool
+    - user_setup_install_amd_ca | default(false) | bool
+    - not user_setup_unprivileged | default(false) | bool
 
 - name: Resolve latest dotfiles release tag from GitHub API
   ansible.builtin.uri:
@@ -269,7 +269,7 @@
       Authorization: "{{ 'Bearer ' + user_setup_github_api_token if user_setup_github_api_token | length > 0 else omit }}"
   register: _dotfiles_latest_release
   when:
-    - user_setup_dotfiles_enable | default(false)
+    - user_setup_dotfiles_enable | default(false) | bool
     - user_setup_dotfiles_version == "latest"
 
 - name: Clone batesste-dotfiles repo
@@ -286,7 +286,7 @@
     force: true
   environment:
     GIT_SSL_CAINFO: "{{ user_setup_git_ssl_cainfo | default('/etc/ssl/certs/ca-certificates.crt') }}"
-  when: user_setup_dotfiles_enable | default(false)
+  when: user_setup_dotfiles_enable | default(false) | bool
 
 - name: Install GNU stow, git-crypt, and gettext-base for dotfiles management
   ansible.builtin.package:
@@ -297,12 +297,12 @@
     state: present
   become: true
   when:
-    - user_setup_dotfiles_enable | default(false)
-    - not user_setup_unprivileged | default(false)
+    - user_setup_dotfiles_enable | default(false) | bool
+    - not user_setup_unprivileged | default(false) | bool
 
 - name: Import GPG private key for git-crypt unlock
   when:
-    - user_setup_dotfiles_enable | default(false)
+    - user_setup_dotfiles_enable | default(false) | bool
     - user_setup_gpg_private_key | length > 0
   no_log: true
   block:
@@ -336,7 +336,7 @@
     chdir: "{{ user_setup_dotfiles_dest }}"
   changed_when: false
   when:
-    - user_setup_dotfiles_enable | default(false)
+    - user_setup_dotfiles_enable | default(false) | bool
     - user_setup_gpg_private_key | length > 0
 
 - name: Run dotfiles install.sh to stow selected packages
@@ -356,7 +356,7 @@
     NO_PROXY: "{{ '' if user_setup_dotfiles_proxy_url | default('') else omit }}"
   changed_when: true
   when:
-    - user_setup_dotfiles_enable | default(false)
+    - user_setup_dotfiles_enable | default(false) | bool
     - user_setup_gpg_private_key | length > 0
 
 
@@ -365,7 +365,7 @@
     path: "{{ user_setup_home }}/.emacs.d"
     state: directory
     mode: "0755"
-  when: not user_setup_dotfiles_owns_emacs | default(false)
+  when: not user_setup_dotfiles_owns_emacs | default(false) | bool
 
 - name: Copy Emacs init.el config file
   ansible.builtin.copy:
@@ -373,7 +373,7 @@
     src: init.el
     dest: "{{ user_setup_home }}/.emacs.d/init.el"
     mode: "0644"
-  when: not user_setup_dotfiles_owns_emacs | default(false)
+  when: not user_setup_dotfiles_owns_emacs | default(false) | bool
 
 - name: Copy .emacs config file
   ansible.builtin.copy:
@@ -381,7 +381,7 @@
     src: .emacs
     dest: "{{ user_setup_home }}/.emacs"
     mode: "0644"
-  when: not user_setup_dotfiles_owns_emacs | default(false)
+  when: not user_setup_dotfiles_owns_emacs | default(false) | bool
 
 - name: Check if Projects is already a mount point
   ansible.builtin.command:
@@ -400,7 +400,7 @@
   become: true
   when:
     - user_setup_vm_fstab
-    - not user_setup_unprivileged | default(false)
+    - not user_setup_unprivileged | default(false) | bool
     - user_setup_projects_mountpoint.rc != 0
 
 - name: Add an entry in fstab for VM virtio-fs
@@ -411,7 +411,7 @@
   become: true
   when:
     - user_setup_vm_fstab
-    - not user_setup_unprivileged | default(false)
+    - not user_setup_unprivileged | default(false) | bool
 
 - name: Perform a systemctl daemon-reload and start of mount
   ansible.builtin.systemd:
@@ -426,7 +426,7 @@
     - "'not found' not in (user_setup_mount_start_result.msg | default('') | lower)"
   when:
     - user_setup_vm_fstab
-    - not user_setup_unprivileged | default(false)
+    - not user_setup_unprivileged | default(false) | bool
 
 - name: Install driverctl for MOTD driver overrides display
   ansible.builtin.package:
@@ -435,7 +435,7 @@
   become: true
   when:
     - user_setup_motd
-    - not user_setup_unprivileged | default(false)
+    - not user_setup_unprivileged | default(false) | bool
 
 - name: Copy driver overrides MOTD script
   ansible.builtin.copy:
@@ -447,4 +447,4 @@
   become: true
   when:
     - user_setup_motd
-    - not user_setup_unprivileged | default(false)
+    - not user_setup_unprivileged | default(false) | bool

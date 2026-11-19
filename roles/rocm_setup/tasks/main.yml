@@ -17,12 +17,12 @@
   ansible.builtin.set_fact:
     rocm_setup_wsl_mode: >-
       {{
-        'legacy' if (rocm_setup_wsl_install | default(false)
+        'legacy' if (rocm_setup_wsl_install | default(false) | bool
                      and rocm_setup_wsl | default(false) in [false, none, ''])
-        else rocm_setup_wsl | default(false)
+        else rocm_setup_wsl | default(false) | bool
       }}
     rocm_setup_wsl_enabled: "{{
-        ('legacy' if (rocm_setup_wsl_install | default(false)
+        ('legacy' if (rocm_setup_wsl_install | default(false) | bool
                        and rocm_setup_wsl | default(false) in [false, none, ''])
          else rocm_setup_wsl | default(false)) in ['legacy', 'rocdxg']
       }}"
@@ -211,6 +211,13 @@
   become: true
   when: rocm_setup_extra_packages | default([]) | length > 0
 
+- name: Autoremove orphaned ROCm deps left by older same-stream versions
+  ansible.builtin.apt:
+    autoremove: true
+    purge: true
+  become: true
+  when: rocm_setup_autoremove_rocm | bool
+
 - name: Discover therock versioned install prefix
   ansible.builtin.shell:
     cmd: |
@@ -266,7 +273,7 @@
   become: true
   failed_when: false
   changed_when: false
-  when: rocm_setup_update_pciids | default(false)
+  when: rocm_setup_update_pciids | default(false) | bool
 
 - name: Install extra kernel-related packages (e.g. linux-modules-extra-aws)
   ansible.builtin.package:
@@ -357,6 +364,47 @@
     msg: "amdgpu-dkms has been installed/upgraded"
   when: not rocm_setup_wsl_enabled and rocm_setup_amdgpu_dkms_install.changed
 
+- name: Find installed kernel versions
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      dpkg-query -W -f='${Package}\n' 'linux-image-*' 2>/dev/null |
+      grep -oE '[0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[a-z]+' || true
+    executable: /bin/bash
+  register: rocm_setup_installed_kernels
+  changed_when: false
+  become: true
+  when:
+    - not rocm_setup_wsl_enabled
+    - rocm_setup_install_kernel_driver
+    - rocm_setup_cleanup_stale_dkms | bool
+
+- name: Find stale amdgpu DKMS module trees
+  ansible.builtin.find:
+    paths: /lib/modules
+    patterns: "amdgpu.ko*"
+    recurse: true
+    file_type: file
+  register: rocm_setup_dkms_ko_files
+  become: true
+  when:
+    - not rocm_setup_wsl_enabled
+    - rocm_setup_install_kernel_driver
+    - rocm_setup_cleanup_stale_dkms | bool
+
+- name: Remove stale amdgpu DKMS module trees for absent kernels
+  ansible.builtin.file:
+    path: "{{ item | regex_replace('/updates/dkms/amdgpu.*', '') }}"
+    state: absent
+  loop: "{{ rocm_setup_dkms_ko_files.files | default([]) | map(attribute='path') | list }}"
+  when:
+    - not rocm_setup_wsl_enabled
+    - rocm_setup_install_kernel_driver
+    - rocm_setup_cleanup_stale_dkms | bool
+    - (item | regex_search('/lib/modules/([^/]+)/', '\\1') | first | default(''))
+      not in (rocm_setup_installed_kernels.stdout_lines | default([]))
+  become: true
+
 - name: Perform a reboot to allow changes to take effect
   ansible.builtin.reboot:
     reboot_timeout: "{{ rocm_setup_reboot_timeout }}"
@@ -400,7 +448,7 @@
 - name: Install ROCm-CLI for user
   ansible.builtin.import_tasks:
     file: rocm_cli.yml
-  when: rocm_setup_install_rocm_cli
+  when: rocm_setup_install_rocm_cli | bool
 
 - name: Build, install and test rocm-xio
   ansible.builtin.import_tasks:

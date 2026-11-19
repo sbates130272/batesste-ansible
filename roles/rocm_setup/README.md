@@ -69,13 +69,13 @@ rocm_setup_metrics_exporter_config_path: /etc/metrics/config.json
 rocm_setup_metrics_exporter_open_firewall: true
 
 # xrocmtop: btop-style terminal UI for AMD ROCm and Vulkan GPU monitoring
-rocm_setup_install_xrocmtop: true
+rocm_setup_install_xrocmtop: false
 rocm_setup_xrocmtop_version: latest
 rocm_setup_xrocmtop_install_dir: /usr/local/bin
 
 # ROCm-CLI: local AI on AMD GPUs — one binary, zero setup
-rocm_setup_install_rocm_cli: true
-rocm_setup_rocm_cli_channel: nightly
+rocm_setup_install_rocm_cli: false
+rocm_setup_rocm_cli_channel: release
 
 # Extra kernel packages installed before amdgpu-dkms
 rocm_setup_extra_kernel_packages: []
@@ -333,14 +333,9 @@ glibc build; no Rust toolchain required on the target host).
 > **Note:** `xrocmtop` relies on the `amdgpu` kernel driver and will **not**
 > work on WSL2-based Linux environments, where that driver is unavailable.
 
-To install (default):
+It is not installed by default. To install:
 ```yaml
 rocm_setup_install_xrocmtop: true
-```
-
-To disable:
-```yaml
-rocm_setup_install_xrocmtop: false
 ```
 
 To pin a specific version instead of always pulling the latest:
@@ -356,28 +351,34 @@ as a single prebuilt binary (`rocm` and `rocmd`) with a full-screen TUI
 dashboard for GPU telemetry, model serving, and chat.
 
 The installer fetches a prebuilt bundle from GitHub releases, verifies its
-SHA-256 checksum, and installs the binaries into `~/.local/bin` for the
-configured `rocm_setup_user`. It also adds `~/.local/bin` to the user's shell
-`PATH`.
+SHA-256 checksum and signature, and installs the binaries into `~/.local/bin`
+for the configured `rocm_setup_user`. The role installs `curl`, `openssl` and
+`tar`, which the installer needs.
 
-> **Note:** Only nightly builds are published today, so the default channel is
-> `nightly`. Once a stable release is available, switch to `release`.
+The role does not edit the user's shell profile. Make sure `~/.local/bin` is
+on `PATH` (the stock Ubuntu `~/.profile` adds it when the directory exists).
 
-To install (default):
+It is not installed by default. To install the latest stable release:
 ```yaml
 rocm_setup_install_rocm_cli: true
-rocm_setup_rocm_cli_channel: nightly
 ```
 
-To disable:
-```yaml
-rocm_setup_install_rocm_cli: false
-```
+`rocm_setup_rocm_cli_channel` selects what is installed:
 
-To switch to the release channel once stable releases exist:
-```yaml
-rocm_setup_rocm_cli_channel: release
-```
+| Value | Installs |
+| --- | --- |
+| `release` (default) | the latest stable release |
+| `nightly` | the rolling nightly prerelease |
+| a tag such as `v0.3.0` | that release, pinned |
+
+The installer always reinstalls, so the task re-downloads the bundle on every
+run. It reports a change only when the installed binaries differ afterwards.
+
+The role installs only the CLI. It never runs `rocm install sdk`, which
+installs a separate, per-user ROCm runtime managed by the CLI (the newest
+stable ROCm by default since v0.3.0). That runtime is independent of the
+system ROCm this role installs under `/opt/rocm`. Use
+`rocm install sdk --version <x>` to pin it.
 
 # Testing
 

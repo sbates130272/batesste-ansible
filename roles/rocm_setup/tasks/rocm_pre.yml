@@ -41,7 +41,7 @@
       }}
     rocm_setup_need_metrics_exporter_latest: >-
       {{
-        (rocm_setup_install_metrics_exporter | default(false))
+        (rocm_setup_install_metrics_exporter | default(false) | bool)
         and (rocm_setup_metrics_exporter_version | default('latest') == 'latest')
       }}
     rocm_setup_need_therock_version_latest: >-
@@ -62,7 +62,7 @@
         rocm_setup_rocm_version == 'latest'
         or (rocm_setup_repo_stream != 'therock' and rocm_setup_wsl_mode != 'legacy' and rocm_setup_amdgpu_version == 'latest')
         or (rocm_setup_repo_stream != 'therock' and not rocm_setup_wsl_enabled and rocm_setup_graphics_version == 'latest')
-        or ((rocm_setup_install_metrics_exporter | default(false)) and rocm_setup_metrics_exporter_version | default('latest') == 'latest')
+        or ((rocm_setup_install_metrics_exporter | default(false) | bool) and rocm_setup_metrics_exporter_version | default('latest') == 'latest')
         or (rocm_setup_repo_stream == 'therock' and rocm_setup_minimal | bool)
         or (rocm_setup_repo_stream == 'therock'
             and rocm_setup_install_kernel_driver | bool
@@ -239,7 +239,7 @@
       is not the latest ({{ metrics_exporter_latest_version.stdout }}). Update
       rocm_setup_metrics_exporter_version or set it to 'latest'.
   when:
-    - rocm_setup_install_metrics_exporter | default(false)
+    - rocm_setup_install_metrics_exporter | default(false) | bool
     - not rocm_setup_need_metrics_exporter_latest
     - metrics_exporter_latest_version.stdout | default('') not in ['', 'none']
     - metrics_exporter_latest_version.stdout | default('') !=
@@ -282,7 +282,7 @@
   ansible.builtin.debug:
     msg: "rocm_setup_metrics_exporter_version: {{
       rocm_setup_metrics_exporter_version }}"
-  when: rocm_setup_install_metrics_exporter | default(false)
+  when: rocm_setup_install_metrics_exporter | default(false) | bool
 
 # --- TheRock stream: AMDGPU kernel driver version resolution ---
 # amdgpu-dkms lives on repo.radeon.com/amdgpu/ independently of the ROCm

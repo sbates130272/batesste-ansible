@@ -33,7 +33,7 @@
   changed_when: true
   when:
     - nvmeof_setup_target_interface | length > 0
-    - nvmeof_target_iface_exists.stat.exists | default(false)
+    - nvmeof_target_iface_exists.stat.exists | default(false) | bool
 
 - name: Wait for target RDMA interface to have static IP
   ansible.builtin.shell: |
@@ -100,11 +100,11 @@
     cmd: journalctl -u dnsmasq -n 30 --no-pager
   register: nvmeof_dnsmasq_journal
   changed_when: false
-  when: nvmeof_dnsmasq_start.failed | default(false)
+  when: nvmeof_dnsmasq_start.failed | default(false) | bool
 
 - name: Fail with dnsmasq start error and journal
   ansible.builtin.fail:
     msg: >-
       dnsmasq failed to start. {{ nvmeof_dnsmasq_start.msg | default('') }}
       Journal: {{ nvmeof_dnsmasq_journal.stdout_lines | default([]) }}
-  when: nvmeof_dnsmasq_start.failed | default(false)
+  when: nvmeof_dnsmasq_start.failed | default(false) | bool
