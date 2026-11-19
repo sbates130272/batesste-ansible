@@ -80,6 +80,14 @@ rocm_setup_skip_system_upgrade: true
 # Purge packages from the competing ROCm stream when switching streams.
 # Set to false to manage both installs manually.
 rocm_setup_purge_other_stream: true
+
+# Remove amdgpu DKMS module trees for kernels no longer installed.
+# Safe to run on every play; only acts when stale trees exist.
+rocm_setup_cleanup_stale_dkms: true
+
+# Run apt-get autoremove after ROCm package install to drop orphaned deps
+# left behind by older ROCm versions on the same stream.
+rocm_setup_autoremove_rocm: true
 rocm_setup_legacy_package_pattern: >-
   ^(rocm[0-9]|hsa-rocr|amdgpu-install|rock-dkms)
 rocm_setup_therock_package_pattern: >-
