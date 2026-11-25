@@ -19,7 +19,7 @@
       {{
         'legacy' if (rocm_setup_wsl_install | default(false) | bool
                      and rocm_setup_wsl | default(false) in [false, none, ''])
-        else rocm_setup_wsl | default(false) | bool
+        else rocm_setup_wsl | default(false)
       }}
     rocm_setup_wsl_enabled: "{{
         ('legacy' if (rocm_setup_wsl_install | default(false) | bool

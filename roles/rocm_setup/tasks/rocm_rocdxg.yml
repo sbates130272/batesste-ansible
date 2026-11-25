@@ -338,6 +338,11 @@
       [Service]
       ExecStart=
       ExecStart={{ rocm_setup_wsl_gpuagent_wsl_bin_dir }}/gpuagent-wsl -s /var/run/gpuagent.sock
+      Environment=HSA_ENABLE_DXG_DETECTION=1
+      Environment=LD_LIBRARY_PATH=/opt/rocm-wsl/lib:/opt/rocm/lib:/opt/rocm/lib64:/usr/lib/wsl/lib:/usr/local/metrics/lib
+      {% if rocm_setup_wsl_hsa_override_gfx_version | default('') | length > 0 %}
+      Environment=HSA_OVERRIDE_GFX_VERSION={{ rocm_setup_wsl_hsa_override_gfx_version }}
+      {% endif %}
   become: true
   notify: Restart gpuagent
   when: rocm_setup_install_metrics_exporter | bool
