@@ -16,5 +16,9 @@ minor_changes:
     ``/etc/apt/sources.list.d`` and warn about ``*.disabled`` source
     lists. The homelan maintain playbook enables it.
   - >-
+    maintain - the homelan play now starts with a safe apt upgrade,
+    warns when a kernel update is installed or waiting on a reboot,
+    and ends with an apt autoremove.
+  - >-
     maintain - the homelan lemonade play no longer excludes
     ``amd-laptop``.
