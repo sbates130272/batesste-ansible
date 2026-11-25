@@ -224,15 +224,16 @@
 #   b) hosted .deb from sbates130272/batesste-ansible GitHub release —
 #      current path until AMD publishes a package.
 
-- name: Check whether upstream gpuagent-wsl apt package is available
+- name: Check whether upstream gpuagent-wsl apt package is installable
   ansible.builtin.shell:
     cmd: |
       set -o pipefail
-      apt-cache show {{ rocm_setup_wsl_gpuagent_wsl_pkg }} 2>/dev/null | grep -q '^Package:'
+      apt-get -s install {{ rocm_setup_wsl_gpuagent_wsl_pkg }} 2>/dev/null | grep -q '^Inst '
     executable: /bin/bash
   register: rocm_setup_wsl_gpuagent_pkg_check
   changed_when: false
   failed_when: false
+  become: true
   when: rocm_setup_install_metrics_exporter | bool
 
 - name: Install gpuagent-wsl from upstream apt package
@@ -288,7 +289,7 @@
 
 - name: Install gpuagent-wsl hosted .deb
   ansible.builtin.command:
-    cmd: dpkg -i --force-depends /tmp/{{ rocm_setup_wsl_gpuagent_deb_asset }}
+    cmd: dpkg -i /tmp/{{ rocm_setup_wsl_gpuagent_deb_asset }}
   become: true
   changed_when: true
   when:
@@ -337,6 +338,11 @@
       [Service]
       ExecStart=
       ExecStart={{ rocm_setup_wsl_gpuagent_wsl_bin_dir }}/gpuagent-wsl -s /var/run/gpuagent.sock
+      Environment=HSA_ENABLE_DXG_DETECTION=1
+      Environment=LD_LIBRARY_PATH=/opt/rocm-wsl/lib:/opt/rocm/lib:/opt/rocm/lib64:/usr/lib/wsl/lib:/usr/local/metrics/lib
+      {% if rocm_setup_wsl_hsa_override_gfx_version | default('') | length > 0 %}
+      Environment=HSA_OVERRIDE_GFX_VERSION={{ rocm_setup_wsl_hsa_override_gfx_version }}
+      {% endif %}
   become: true
   notify: Restart gpuagent
   when: rocm_setup_install_metrics_exporter | bool
