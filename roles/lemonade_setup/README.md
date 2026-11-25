@@ -55,8 +55,9 @@ The default is `deb`.
 | `lemonade_setup_log_level`            | `"info"`                               |
 | `lemonade_setup_max_loaded_models`    | `3`                                    |
 | `lemonade_setup_ctx_size`             | `131072`                               |
-| `lemonade_setup_no_broadcast`         | `true`                                 |
+| `lemonade_setup_broadcast`            | `false`                                |
 | `lemonade_setup_inhibit_suspend`      | `true`                                 |
+| `lemonade_setup_allowed_origins`      | `[]`                                   |
 | `lemonade_setup_llamacpp_backend`     | `"rocm"`                               |
 | `lemonade_setup_run_rocm_setup`       | `true`                                 |
 | `lemonade_setup_start_service`        | `true`                                 |
@@ -87,6 +88,30 @@ On those hosts run the equivalent command manually on Windows:
 ```powershell
 tailscale serve --bg --https=13305 http://127.0.0.1:13305
 ```
+
+### Allowed origins
+
+lemond validates the `Origin` header of browser requests and answers
+`403 {"error": "Origin not allowed"}` before it looks at any API key.
+Loopback and same-origin requests pass by default, but a TLS frontend
+such as `tailscale serve` presents an external `https://` origin that
+must be allowlisted. Clients that send no `Origin` header (curl, the
+`lemonade` CLI, server-side SDKs) are not affected.
+
+When `lemonade_setup_tailscale_serve` is true the role appends
+`https://<node>.<tailnet>.ts.net:<https_port>` to
+`lemonade_setup_allowed_origins` automatically. Hosts where tailscale
+runs outside Linux must list the origin themselves:
+
+```yaml
+lemonade_setup_allowed_origins:
+  - https://snoc-gaming.example.ts.net:13305
+```
+
+A non-empty list is authoritative: direct LAN origins that browsers use
+must be listed too. Wildcards such as `http://192.168.1.50:*` and
+`https://*.example.com` are supported. An empty resulting list leaves
+the existing `allowed_origins` setting untouched.
 
 ### Source Build
 

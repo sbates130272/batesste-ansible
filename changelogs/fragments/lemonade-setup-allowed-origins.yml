@@ -1,0 +1,12 @@
+---
+breaking_changes:
+  - >-
+    lemonade_setup - ``lemonade_setup_no_broadcast`` is replaced by
+    ``lemonade_setup_broadcast`` (inverted, default ``false``) to
+    match the upstream ``broadcast`` config key.
+bugfixes:
+  - >-
+    lemonade_setup - set lemond ``allowed_origins`` so browser
+    requests through ``tailscale serve`` are no longer rejected with
+    403 "Origin not allowed". The host's ts.net origin is added
+    automatically and ``lemonade_setup_allowed_origins`` lists extras.

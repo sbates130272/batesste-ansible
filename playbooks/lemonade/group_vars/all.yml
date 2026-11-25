@@ -8,5 +8,5 @@ lemonade_setup_port: 13305
 lemonade_setup_log_level: info
 lemonade_setup_max_loaded_models: 3
 lemonade_setup_ctx_size: 65536
-lemonade_setup_no_broadcast: true
+lemonade_setup_broadcast: false
 lemonade_setup_inhibit_suspend: true
