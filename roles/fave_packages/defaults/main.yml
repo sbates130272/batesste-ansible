@@ -17,5 +17,25 @@ fave_packages_node_exporter_enable: true   # prometheus-node-exporter
 fave_packages_tmuxinator_enable: true      # tmuxinator session layout manager
 fave_packages_uv_enable: true              # uv from GitHub releases (astral-sh/uv)
 
+# Remove editor backups and package-manager leftovers from
+# /etc/apt/sources.list.d before installing packages.  Off by default
+# because it deletes files; the maintain playbooks turn it on.  Files
+# ending in .list or .sources are never removed.  Add "*.disabled" to
+# the patterns to also drop sources parked by a release upgrade.
+fave_packages_apt_sources_cleanup_enable: false
+fave_packages_apt_sources_cleanup_patterns:
+  - "*~"
+  - "*.bak"
+  - "*.save"
+  - "*.orig"
+  - "*.distUpgrade"
+  - "*.dpkg-old"
+  - "*.dpkg-dist"
+  - "*.dpkg-bak"
+  - "*.dpkg-new"
+  - "*.dpkg-tmp"
+  - "*.ucf-old"
+  - "*.ucf-dist"
+
 # GitHub API token for releases/latest lookups. Defaults to GITHUB_TOKEN env var.
 fave_packages_github_api_token: "{{ lookup('env', 'GITHUB_TOKEN') | default('') }}"

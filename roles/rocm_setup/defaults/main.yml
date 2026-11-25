@@ -243,6 +243,13 @@ rocm_setup_minimal_packages:
 # additional ROCm components without overriding rocm_setup_minimal_packages.
 rocm_setup_extra_packages: []
 
+# apt state for the ROCm package set and rocm_setup_extra_packages.
+# 'latest' upgrades an existing install whenever the repo publishes a newer
+# version: the unversioned amdrocm meta-package moves to the next release
+# (e.g. 10.1 -> 10.2) and versioned packages pick up patch revisions.
+# Set to 'present' to leave an installed version alone.
+rocm_setup_package_state: latest
+
 # rocm-xio: source-built GPU IO library (RDMA/NVMe direct GPU IO).
 # Set rocm_setup_install_xio: true to clone, build, and optionally run
 # validation checks and performance tests for rocm-xio.

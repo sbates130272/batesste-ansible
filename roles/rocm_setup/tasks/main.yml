@@ -200,6 +200,7 @@
     update_cache: true
     cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
     name: "{{ rocm_setup_packages }}"
+    state: "{{ rocm_setup_package_state }}"
   become: true
   when: rocm_setup_packages | length > 0
 
@@ -208,6 +209,7 @@
     update_cache: true
     cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
     name: "{{ rocm_setup_extra_packages }}"
+    state: "{{ rocm_setup_package_state }}"
   become: true
   when: rocm_setup_extra_packages | default([]) | length > 0
 

@@ -63,6 +63,8 @@ fave_packages_node_exporter_extra_args: ""
 | `fave_packages_node_exporter_extra_args` | `--collector.wifi` | Extra CLI flags for `prometheus-node-exporter` |
 | `fave_packages_uv_enable` | `true` | Install `uv` and `uvx` from GitHub releases |
 | `fave_packages_github_api_token` | `$GITHUB_TOKEN` env | Bearer token for GitHub API release lookups (uv) |
+| `fave_packages_apt_sources_cleanup_enable` | `false` | Remove editor backups and package-manager leftovers from `/etc/apt/sources.list.d` and print a warning listing any `*.disabled` source lists, which are kept (the maintain playbook enables it) |
+| `fave_packages_apt_sources_cleanup_patterns` | `*~`, `*.bak`, `*.save`, `*.orig`, `*.distUpgrade`, `*.dpkg-*`, `*.ucf-*` | Glob patterns to remove; `*.list` and `*.sources` files are never removed |
 
 ## Example Playbook
 

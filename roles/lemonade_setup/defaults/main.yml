@@ -6,6 +6,11 @@
 # Installation method: "deb", "source", or "snap"
 lemonade_setup_install_method: "deb"
 
+# apt state for lemonade-server (deb install method).  "latest" upgrades
+# to each new PPA release and restarts lemond; set "present" to leave an
+# installed version alone.  The snap method follows snapd's own refresh.
+lemonade_setup_package_state: "latest"
+
 # API authentication.  Both keys are written to
 # /etc/lemonade/lemonade-auth.env and injected into lemond via a
 # systemd drop-in.  LEMONADE_API_KEY gates all inference and model

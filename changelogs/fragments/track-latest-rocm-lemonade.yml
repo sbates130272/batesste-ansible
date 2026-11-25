@@ -1,0 +1,20 @@
+---
+minor_changes:
+  - >-
+    rocm_setup - add ``rocm_setup_package_state`` (default ``latest``)
+    so an existing install is upgraded when the repo publishes a newer
+    ROCm release. Previously the package task had no state and never
+    upgraded an installed ``amdrocm``.
+  - >-
+    lemonade_setup - add ``lemonade_setup_package_state`` (default
+    ``latest``) so the deb install method upgrades ``lemonade-server``
+    to each new PPA release and restarts lemond.
+  - >-
+    fave_packages - add opt-in
+    ``fave_packages_apt_sources_cleanup_enable`` to remove editor
+    backups and package-manager leftovers from
+    ``/etc/apt/sources.list.d`` and warn about ``*.disabled`` source
+    lists. The homelan maintain playbook enables it.
+  - >-
+    maintain - the homelan lemonade play no longer excludes
+    ``amd-laptop``.
