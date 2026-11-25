@@ -28,6 +28,9 @@ lemonade_setup_run_rocm_setup: false
 # tailscale runs natively on Windows; `tailscale serve` must be
 # configured manually: tailscale serve --bg --https=13305 http://127.0.0.1:13305
 lemonade_setup_tailscale_serve: false
+# Not derived by the role while lemonade_setup_tailscale_serve is false.
+lemonade_setup_allowed_origins:
+  - https://snoc-gaming.fold-leaffish.ts.net:13305
 lemonade_setup_backends:
   - llamacpp:rocm
   - llamacpp:vulkan

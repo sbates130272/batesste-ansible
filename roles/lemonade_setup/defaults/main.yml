@@ -20,8 +20,18 @@ lemonade_setup_port: 13305
 lemonade_setup_log_level: "info"
 lemonade_setup_max_loaded_models: 3
 lemonade_setup_ctx_size: 65536
-lemonade_setup_no_broadcast: true
+lemonade_setup_broadcast: false
 lemonade_setup_inhibit_suspend: true
+
+# Browser origins allowed to call lemond (CORS / Origin validation).
+# lemond answers 403 "Origin not allowed" before checking any API key
+# when a request's Origin is not loopback, same-origin or listed here.
+# When lemonade_setup_tailscale_serve is true the host's
+# https://<node>.<tailnet>.ts.net:<https_port> origin is appended
+# automatically; hosts where tailscale serve runs outside Linux must
+# list that origin here.  A non-empty list is authoritative, so include
+# any direct LAN origins that browsers use as well.
+lemonade_setup_allowed_origins: []
 
 # llama.cpp backend: "rocm", "vulkan", "cpu", or "metal"
 lemonade_setup_llamacpp_backend: "rocm"

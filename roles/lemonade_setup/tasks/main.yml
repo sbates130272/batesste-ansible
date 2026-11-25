@@ -94,6 +94,26 @@
     - Reload systemd
     - Restart lemond
 
+- name: Query tailscale node DNS name for allowed origins
+  ansible.builtin.command:
+    cmd: tailscale status --json
+  register: lemonade_setup_ts_status
+  changed_when: false
+  when: lemonade_setup_tailscale_serve
+
+- name: Build lemond allowed origins list
+  ansible.builtin.set_fact:
+    lemonade_setup_allowed_origins_fact: >-
+      {{ (lemonade_setup_allowed_origins
+      + ([lemonade_setup_ts_origin] if lemonade_setup_tailscale_serve else []))
+      | unique }}
+  vars:
+    lemonade_setup_ts_origin: >-
+      https://{{ (lemonade_setup_ts_status.stdout | from_json).Self.DNSName
+      | regex_replace('\.$', '') }}{{ ''
+      if (lemonade_setup_tailscale_https_port | int) == 443
+      else ':' ~ lemonade_setup_tailscale_https_port }}
+
 - name: Apply lemonade server configuration via config set
   ansible.builtin.command:
     cmd: >-
@@ -102,8 +122,11 @@
       log_level={{ lemonade_setup_log_level }}
       max_loaded_models={{ lemonade_setup_max_loaded_models }}
       ctx_size={{ lemonade_setup_ctx_size }}
-      no_broadcast={{ lemonade_setup_no_broadcast | lower }}
+      broadcast={{ lemonade_setup_broadcast | lower }}
       inhibit_suspend={{ lemonade_setup_inhibit_suspend | lower }}
+      {% if lemonade_setup_allowed_origins_fact | length > 0 %}
+      allowed_origins={{ lemonade_setup_allowed_origins_fact | join(',') | quote }}
+      {% endif %}
       llamacpp.backend={{ lemonade_setup_llamacpp_backend }}
       llamacpp.rocm_bin={{ lemonade_setup_llamacpp_rocm_bin }}
       {% if lemonade_setup_llamacpp_rocm_args %}
