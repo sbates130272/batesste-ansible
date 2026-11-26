@@ -326,6 +326,39 @@ If you prefer not to install the exporter on systems without AMD hardware:
 rocm_setup_install_metrics_exporter: false
 ```
 
+## ROCm version metrics (node-exporter textfile collector)
+
+The role installs `/usr/local/bin/rocm-version.sh` with an hourly
+`rocm-version.timer`. It writes `rocm-version.prom` into the directory
+node-exporter reads textfiles from, and the role refreshes it at the
+end of every run so an upgrade shows up immediately.
+
+| Series | Meaning |
+| --- | --- |
+| `rocm_version_present` | `1` when a ROCm stack was found, else `0` |
+| `rocm_version_info{version}` | ROCm release, e.g. `10.2.0` |
+| `rocm_hip_version_info{hip_version}` | HIP runtime version from `hipconfig --version` |
+| `rocm_version_prefix_mismatch{version}` | `/opt/rocm` resolves to a different release than `PATH` |
+| `amdgpu_dkms_present` | `1` when an amdgpu DKMS module is built for the running kernel |
+| `amdgpu_dkms_kernel_mismatch` | amdgpu is built by DKMS, but not for the running kernel |
+| `amdgpu_dkms_version_info{dkms_version}` | amdgpu driver release, e.g. `31.70.0.0` |
+| `amdgpu_dkms_package_info{package_version}` | `amdgpu-dkms` version as dpkg records it |
+| `amdgpu_dkms_module_info{module_version}` | DKMS tree version built for the running kernel |
+
+The collector finds ROCm through `hipconfig` on `PATH`, then
+`/opt/rocm/bin`, then the newest `/opt/rocm/core-<ver>` prefix. The
+last case covers a minimal therock install, which has no
+`/opt/rocm/bin` or `/opt/rocm/core` alternatives links.
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `rocm_setup_install_version_collector` | `true` | Install the collector and its timer |
+| `rocm_setup_version_collector_textfile_dir` | `""` | Output directory; empty detects the one node-exporter reads |
+
+It is skipped on hosts without `prometheus-node-exporter` (installed
+by the `fave_packages` role), and the role does not change
+node-exporter's own configuration.
+
 ## xrocmtop
 
 This role can optionally install [xrocmtop](https://github.com/argakiig/xrocmtop),
