@@ -154,6 +154,8 @@
     rocm_setup_packages: >-
       {{
         (rocm_setup_minimal_packages
+         + (['amdrocm-amdsmi' ~ rocm_setup_therock_rocm_version]
+            if rocm_setup_install_metrics_exporter | bool else [])
          if (rocm_setup_minimal | bool
              and rocm_setup_repo_stream == 'therock'
              and rocm_setup_wsl_mode in [false, 'rocdxg'])
@@ -200,6 +202,7 @@
     update_cache: true
     cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
     name: "{{ rocm_setup_packages }}"
+    state: "{{ rocm_setup_package_state }}"
   become: true
   when: rocm_setup_packages | length > 0
 
@@ -208,6 +211,7 @@
     update_cache: true
     cache_valid_time: "{{ rocm_setup_apt_cache_valid_time }}"
     name: "{{ rocm_setup_extra_packages }}"
+    state: "{{ rocm_setup_package_state }}"
   become: true
   when: rocm_setup_extra_packages | default([]) | length > 0
 
@@ -217,6 +221,39 @@
     purge: true
   become: true
   when: rocm_setup_autoremove_rocm | bool
+
+# Purging an old therock release leaves /opt/rocm/core-<ver> behind, holding
+# only files dpkg never owned (Python __pycache__).  A prefix that no installed
+# package owns any more belongs to a release that is gone.
+- name: Find therock versioned install prefixes
+  ansible.builtin.find:
+    paths: /opt/rocm
+    patterns: "core-*"
+    file_type: directory
+  register: rocm_setup_therock_prefixes
+  when:
+    - rocm_setup_repo_stream == 'therock'
+    - rocm_setup_cleanup_stale_prefixes | bool
+
+- name: Check which therock prefixes an installed package still owns
+  ansible.builtin.command:
+    cmd: dpkg -S {{ item.path | quote }}
+  loop: "{{ rocm_setup_therock_prefixes.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path }}"
+  register: rocm_setup_therock_prefix_owners
+  changed_when: false
+  failed_when: false
+
+- name: Remove therock prefixes left behind by purged releases
+  ansible.builtin.file:
+    path: "{{ item.item.path }}"
+    state: absent
+  loop: "{{ rocm_setup_therock_prefix_owners.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item.path }}"
+  become: true
+  when: item.rc != 0
 
 - name: Discover therock versioned install prefix
   ansible.builtin.shell:

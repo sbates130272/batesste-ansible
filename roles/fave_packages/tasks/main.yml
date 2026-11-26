@@ -14,6 +14,12 @@
   vars:
     calling_role_path: "{{ fave_packages_calling_role_path_fact }}"  # noqa var-naming
 
+- name: Clean leftover files out of the apt sources directory
+  ansible.builtin.include_tasks: apt-sources-cleanup.yml
+  when:
+    - fave_packages_apt_sources_cleanup_enable | bool
+    - ansible_facts['os_family'] == "Debian"
+
 - name: Install base packages
   ansible.builtin.package:
     update_cache: true

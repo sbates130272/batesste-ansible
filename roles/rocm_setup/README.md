@@ -178,6 +178,13 @@ The `rocm_setup_rocm_version`, `rocm_setup_amdgpu_version`, and
 - Specific version (e.g., `6.3.0` or `1.4.2`) - Installs that exact
   version.
 
+`rocm_setup_package_state` (default `latest`) controls whether an
+existing install is upgraded. With `latest`, each run moves the
+unversioned `amdrocm` meta-package to the newest release the repo
+publishes (for example 10.1 to 10.2) and picks up patch revisions of
+versioned packages. Set it to `present` to leave an installed version
+alone.
+
 ## Replacing ROCm Versions
 
 Installing a new ROCm version replaces the existing installation. This

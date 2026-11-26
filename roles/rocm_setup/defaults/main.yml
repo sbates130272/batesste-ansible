@@ -85,6 +85,11 @@ rocm_setup_purge_other_stream: true
 # Safe to run on every play; only acts when stale trees exist.
 rocm_setup_cleanup_stale_dkms: true
 
+# Remove /opt/rocm/core-<ver> directories that no installed package owns.
+# Purging an old therock release leaves them behind with unowned files
+# (Python __pycache__) in them.  Therock stream only.
+rocm_setup_cleanup_stale_prefixes: true
+
 # Run apt-get autoremove after ROCm package install to drop orphaned deps
 # left behind by older ROCm versions on the same stream.
 rocm_setup_autoremove_rocm: true
@@ -232,7 +237,9 @@ rocm_setup_minimal: false
 # amdrocm-llvm-dev<ver> provides HIP headers and ROCm compiler dev tools.
 # amdrocm-runtime<ver> provides the HSA runtime and HIP runtime libraries.
 # These three transitively pull in amdrocm-sysdeps (all-target bitcode + comgr)
-# and amdrocm-base (HSA loader, amd-smi) — no per-gfx-target package required.
+# and amdrocm-base (HSA loader) — no per-gfx-target package required.
+# libamd_smi is not part of this set: when rocm_setup_install_metrics_exporter
+# is true the role appends amdrocm-amdsmi<ver>, which gpuagent links against.
 rocm_setup_minimal_packages:
   - "amdrocm-llvm{{ rocm_setup_therock_rocm_version }}"
   - "amdrocm-llvm-dev{{ rocm_setup_therock_rocm_version }}"
@@ -242,6 +249,13 @@ rocm_setup_minimal_packages:
 # Extra packages installed after the main package set. Use to layer on
 # additional ROCm components without overriding rocm_setup_minimal_packages.
 rocm_setup_extra_packages: []
+
+# apt state for the ROCm package set and rocm_setup_extra_packages.
+# 'latest' upgrades an existing install whenever the repo publishes a newer
+# version: the unversioned amdrocm meta-package moves to the next release
+# (e.g. 10.1 -> 10.2) and versioned packages pick up patch revisions.
+# Set to 'present' to leave an installed version alone.
+rocm_setup_package_state: latest
 
 # rocm-xio: source-built GPU IO library (RDMA/NVMe direct GPU IO).
 # Set rocm_setup_install_xio: true to clone, build, and optionally run

@@ -10,9 +10,41 @@
 - name: Update packages (homelan)
   hosts: homelan
   gather_facts: true
+  pre_tasks:
+    - name: Apply safe package upgrades
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: safe
+      become: true
+      register: maintain_safe_upgrade
+
+    - name: Read the packages that are waiting on a reboot
+      ansible.builtin.command:
+        cmd: cat /var/run/reboot-required.pkgs
+      register: maintain_reboot_pkgs
+      changed_when: false
+      failed_when: false
+
+    # This play never reboots, so a new kernel stays inactive (and amdgpu-dkms
+    # is not exercised against it) until someone reboots the host.
+    - name: Warn when a kernel update is installed or pending
+      ansible.builtin.debug:
+        msg: >-
+          WARNING: kernel update on {{ inventory_hostname }} needs a reboot.
+          Running {{ ansible_facts['kernel'] }}; updated or pending:
+          {{ maintain_kernel_pkgs | join(', ') }}.
+      vars:
+        maintain_kernel_pkgs: >-
+          {{ ((maintain_safe_upgrade.stdout | default(''))
+          ~ ' ' ~ (maintain_reboot_pkgs.stdout | default('')))
+          | regex_findall('linux-(?:image|modules|headers)-[0-9][A-Za-z0-9.+~-]*')
+          | unique | sort }}
+      when: maintain_kernel_pkgs | length > 0
   roles:
     - role: fave_packages
       become: true
+      vars:
+        fave_packages_apt_sources_cleanup_enable: true
 
 - name: Deploy dotfiles (homelan)
   import_playbook: ../dotfiles/deploy.yml
@@ -26,7 +58,7 @@
     - role: tmux_scripts
 
 - name: Update lemonade servers
-  hosts: lemonade_servers:!amd-laptop
+  hosts: lemonade_servers
   gather_facts: true
   roles:
     - role: lemonade_setup
@@ -43,3 +75,12 @@
   gather_facts: true
   roles:
     - role: rocm_setup
+
+- name: Remove packages that are no longer needed (homelan)
+  hosts: homelan
+  gather_facts: false
+  tasks:
+    - name: Autoremove orphaned packages
+      ansible.builtin.apt:
+        autoremove: true
+      become: true

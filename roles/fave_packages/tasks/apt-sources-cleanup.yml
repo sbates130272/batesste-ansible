@@ -1,0 +1,54 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Remove editor backups and package-manager leftovers from the apt
+# sources directory.  apt only reads *.list and *.sources there, so the
+# matched files are inert, but they hold stale repo definitions that are
+# easy to mistake for live ones.
+
+- name: Find leftover files in the apt sources directory
+  ansible.builtin.find:
+    paths: /etc/apt/sources.list.d
+    patterns: "{{ fave_packages_apt_sources_cleanup_patterns }}"
+    excludes:
+      - "*.list"
+      - "*.sources"
+    file_type: file
+    hidden: true
+  register: fave_packages_apt_sources_leftovers
+  become: true
+
+- name: Remove leftover files from the apt sources directory
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ fave_packages_apt_sources_leftovers.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  become: true
+
+# A release upgrade parks third-party sources as *.disabled.  They may be
+# deliberate, so report them rather than delete them.
+- name: Find disabled apt source lists
+  ansible.builtin.find:
+    paths: /etc/apt/sources.list.d
+    patterns: "*.disabled"
+    file_type: file
+    hidden: true
+  register: fave_packages_apt_sources_disabled
+  become: true
+
+- name: Warn about disabled apt source lists
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: {{ fave_packages_apt_sources_disabled.files | length }}
+      disabled apt source list(s) on {{ inventory_hostname }}:
+      {{ fave_packages_apt_sources_disabled.files
+      | map(attribute='path') | sort | join(', ') }}.
+      Re-enable or delete them by hand, or add "*.disabled" to
+      fave_packages_apt_sources_cleanup_patterns to remove them.
+  when:
+    - fave_packages_apt_sources_disabled.files | length > 0
+    - "'*.disabled' not in fave_packages_apt_sources_cleanup_patterns"

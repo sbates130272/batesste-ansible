@@ -1,0 +1,34 @@
+---
+bugfixes:
+  - >-
+    rocm_setup - a minimal therock install now includes
+    ``amdrocm-amdsmi<ver>`` when the metrics exporter is enabled.
+    Without it gpuagent could not load ``libamd_smi`` and the exporter
+    crash-looped.
+minor_changes:
+  - >-
+    rocm_setup - add ``rocm_setup_package_state`` (default ``latest``)
+    so an existing install is upgraded when the repo publishes a newer
+    ROCm release. Previously the package task had no state and never
+    upgraded an installed ``amdrocm``.
+  - >-
+    rocm_setup - add ``rocm_setup_cleanup_stale_prefixes`` (default
+    ``true``) to remove ``/opt/rocm/core-<ver>`` directories that no
+    installed package owns after an old therock release is purged.
+  - >-
+    lemonade_setup - add ``lemonade_setup_package_state`` (default
+    ``latest``) so the deb install method upgrades ``lemonade-server``
+    to each new PPA release and restarts lemond.
+  - >-
+    fave_packages - add opt-in
+    ``fave_packages_apt_sources_cleanup_enable`` to remove editor
+    backups and package-manager leftovers from
+    ``/etc/apt/sources.list.d`` and warn about ``*.disabled`` source
+    lists. The homelan maintain playbook enables it.
+  - >-
+    maintain - the homelan play now starts with a safe apt upgrade,
+    warns when a kernel update is installed or waiting on a reboot,
+    and ends with an apt autoremove.
+  - >-
+    maintain - the homelan lemonade play no longer excludes
+    ``amd-laptop``.

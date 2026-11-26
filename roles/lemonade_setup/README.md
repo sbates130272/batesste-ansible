@@ -44,6 +44,11 @@ No separate exporter process is required or wanted.
 
 The default is `deb`.
 
+With the `deb` method, `lemonade_setup_package_state` (default
+`"latest"`) upgrades `lemonade-server` to each new PPA release and
+restarts lemond. Set it to `"present"` to leave an installed version
+alone.
+
 ## Role Variables
 
 ### General

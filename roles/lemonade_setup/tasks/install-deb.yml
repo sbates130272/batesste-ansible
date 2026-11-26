@@ -75,5 +75,6 @@
 - name: Install lemonade-server package
   ansible.builtin.package:
     name: lemonade-server
-    state: present
+    state: "{{ lemonade_setup_package_state }}"
   become: true
+  notify: Restart lemond
