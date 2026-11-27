@@ -114,6 +114,23 @@
       if (lemonade_setup_tailscale_https_port | int) == 443
       else ':' ~ lemonade_setup_tailscale_https_port }}
 
+# "config set" prints output even when nothing changes, so compare the
+# server's configuration before and after to decide whether to restart.
+# The output is not logged in case it carries API keys.
+- name: Read lemonade server configuration before config set
+  ansible.builtin.command:
+    cmd: lemonade config
+  environment:
+    LEMONADE_API_KEY: "{{ lemonade_setup_api_key }}"
+    LEMONADE_ADMIN_API_KEY: "{{ lemonade_setup_admin_api_key }}"
+    LEMONADE_PORT: "{{ lemonade_setup_port }}"
+  become: true
+  become_user: lemonade
+  register: lemonade_setup_config_before
+  changed_when: false
+  failed_when: false
+  no_log: true
+
 - name: Apply lemonade server configuration via config set
   ansible.builtin.command:
     cmd: >-
@@ -138,8 +155,24 @@
     LEMONADE_PORT: "{{ lemonade_setup_port }}"
   become: true
   become_user: lemonade
-  register: lemonade_setup_config_result
-  changed_when: lemonade_setup_config_result.stdout != ''
+  changed_when: false
+
+- name: Read lemonade server configuration after config set
+  ansible.builtin.command:
+    cmd: lemonade config
+  environment:
+    LEMONADE_API_KEY: "{{ lemonade_setup_api_key }}"
+    LEMONADE_ADMIN_API_KEY: "{{ lemonade_setup_admin_api_key }}"
+    LEMONADE_PORT: "{{ lemonade_setup_port }}"
+  become: true
+  become_user: lemonade
+  register: lemonade_setup_config_after
+  changed_when: >-
+    lemonade_setup_config_before.rc != 0
+    or lemonade_setup_config_after.rc != 0
+    or lemonade_setup_config_before.stdout != lemonade_setup_config_after.stdout
+  failed_when: false
+  no_log: true
   notify: Restart lemond
 
 - name: Flush handlers to apply systemd changes
