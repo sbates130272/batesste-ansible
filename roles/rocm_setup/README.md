@@ -347,8 +347,18 @@ end of every run so an upgrade shows up immediately.
 
 The collector finds ROCm through `hipconfig` on `PATH`, then
 `/opt/rocm/bin`, then the newest `/opt/rocm/core-<ver>` prefix. The
-last case covers a minimal therock install, which has no
-`/opt/rocm/bin` or `/opt/rocm/core` alternatives links.
+last case covers a therock prefix that has no `/opt/rocm/bin` or
+`/opt/rocm/core` alternatives links.
+
+On the full install those links come from the `amdrocm-core`
+metapackage. A minimal therock install (`rocm_setup_minimal: true`)
+skips that package, so the role registers the same alternatives itself:
+`/opt/rocm/{bin,lib,include,llvm,amdgcn,libexec,share}`, `/opt/rocm/core`,
+`/opt/rocm/core-<major>`, and `/usr/bin` links for `hipcc`, `hipconfig`,
+`amdclang` and the other tools present in the prefix. A path that already
+exists and is not an alternatives link is left alone.
+`/etc/profile.d/rocm.sh` exports
+`ROCM_PATH`, `PATH` and `LD_LIBRARY_PATH` for the versioned prefix.
 
 | Variable | Default | Description |
 | --- | --- | --- |

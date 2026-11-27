@@ -76,6 +76,82 @@
   roles:
     - role: rocm_setup
 
+- name: Housekeeping (homelan)
+  hosts: homelan
+  gather_facts: false
+  become: true
+  handlers:
+    # Running the unit proves the config now parses and clears a failed state.
+    - name: Run logrotate
+      ansible.builtin.systemd_service:
+        name: logrotate.service
+        state: started
+  tasks:
+    # logrotate reads every file in /etc/logrotate.d that is not on its
+    # taboo list, so a backup copy or a conffile left by a renamed package
+    # defines the same log twice and the whole run fails.
+    - name: Find backup copies in the logrotate config directory
+      ansible.builtin.find:
+        paths: /etc/logrotate.d
+        patterns:
+          - "*~"
+          - "*.bak"
+          - "*.save"
+          - "*.orig"
+          - "*.dpkg-*"
+          - "*.ucf-*"
+        file_type: file
+        hidden: true
+      register: maintain_logrotate_backups
+
+    - name: Find logrotate configs that dpkg marks obsolete
+      ansible.builtin.shell:
+        cmd: >-
+          set -o pipefail;
+          dpkg-query -W -f='${Conffiles}\n'
+          | awk '$1 ~ "^/etc/logrotate.d/" && $NF == "obsolete" {print $1}'
+        executable: /bin/bash
+      register: maintain_logrotate_obsolete
+      changed_when: false
+      check_mode: false
+
+    - name: Remove the stale logrotate configs
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop: >-
+        {{ (maintain_logrotate_backups.files | map(attribute='path') | list)
+           + maintain_logrotate_obsolete.stdout_lines }}
+      notify: Run logrotate
+
+    # ipmitool pulls in openipmi, whose init script fails on every boot of
+    # a machine without a BMC.
+    - name: Check for the openipmi init script and an IPMI device
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - /etc/init.d/openipmi
+        - /dev/ipmi0
+      register: maintain_ipmi_stat
+
+    - name: Disable openipmi where there is no IPMI device
+      ansible.builtin.systemd_service:
+        name: openipmi.service
+        enabled: false
+        state: stopped
+      when:
+        - maintain_ipmi_stat.results[0].stat.exists
+        - not maintain_ipmi_stat.results[1].stat.exists
+
+    - name: Clear the failed state openipmi left behind
+      ansible.builtin.command:
+        cmd: systemctl reset-failed openipmi.service
+      changed_when: false
+      failed_when: false
+      when:
+        - maintain_ipmi_stat.results[0].stat.exists
+        - not maintain_ipmi_stat.results[1].stat.exists
+
 - name: Remove packages that are no longer needed (homelan)
   hosts: homelan
   gather_facts: false

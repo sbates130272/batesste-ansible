@@ -14,12 +14,21 @@
     mode: "0755"
   become: true
 
+# The keyserver's armored response is not byte-stable, so a repeat download
+# reports changed.  The dearmored keyring below is only ever created once,
+# so fetch the key only when that keyring is missing.
+- name: Check for the dearmored lemonade-team keyring
+  ansible.builtin.stat:
+    path: /usr/share/keyrings/lemonade-team.gpg
+  register: lemonade_setup_keyring_stat
+
 - name: Download lemonade-team PPA signing key
   ansible.builtin.get_url:
     url: "{{ lemonade_setup_ppa_key_url }}"
     dest: /etc/apt/keyrings/lemonade-team.asc
     mode: "0644"
   become: true
+  when: not lemonade_setup_keyring_stat.stat.exists
 
 - name: Dearmor lemonade-team PPA signing key
   ansible.builtin.command:
@@ -41,11 +50,15 @@
   register: lemonade_setup_dpkg_arch
   changed_when: false
 
-- name: Remove all lemonade-team source files before writing canonical one
-  ansible.builtin.shell:
-    cmd: rm -f /etc/apt/sources.list.d/lemonade*.list /etc/apt/sources.list.d/lemonade*.sources
+- name: Remove lemonade-team source files other than the canonical one
+  ansible.builtin.command:
+    cmd: >-
+      find /etc/apt/sources.list.d -maxdepth 1 -name 'lemonade*'
+      ( -name '*.list' -o -name '*.sources' )
+      ! -name lemonade-team.sources -print -delete
   become: true
-  changed_when: false
+  register: lemonade_setup_stale_sources
+  changed_when: lemonade_setup_stale_sources.stdout | length > 0
 
 - name: Write lemonade-team deb822 sources file
   ansible.builtin.copy:

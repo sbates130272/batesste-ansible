@@ -215,6 +215,17 @@
   become: true
   when: rocm_setup_extra_packages | default([]) | length > 0
 
+# therock ships rocminfo in amdrocm-base.  The Ubuntu package is an older
+# release that links the distro HSA runtime and shadows it in /usr/bin.
+- name: Remove the distro rocminfo package on the therock stream
+  ansible.builtin.package:
+    name: rocminfo
+    state: absent
+  become: true
+  when:
+    - rocm_setup_repo_stream == 'therock'
+    - rocm_setup_wsl_mode != 'legacy'
+
 - name: Autoremove orphaned ROCm deps left by older same-stream versions
   ansible.builtin.apt:
     autoremove: true
@@ -271,6 +282,54 @@
   when:
     - rocm_setup_repo_stream == 'therock'
     - rocm_setup_therock_prefix_raw.stdout | default('') | trim | length > 0
+
+# The versionless /opt/rocm/{bin,lib,include,...} links and the /usr/bin tool
+# links come from the postinst of the amdrocm-core metapackage, which a
+# minimal install skips.  Register them under the same alternative names at a
+# priority far below the package's, so a later install of the metapackage
+# takes the slots over.
+- name: Register versionless /opt/rocm alternatives on a minimal therock install
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      prefix={{ rocm_setup_therock_prefix | quote }}
+      if [[ ! "${prefix##*/}" =~ ^core-([0-9]+)\.([0-9]+) ]]; then
+        echo "unexpected therock prefix: ${prefix}" >&2
+        exit 1
+      fi
+      major="${BASH_REMATCH[1]}"
+      priority=$(( major * 100 + BASH_REMATCH[2] ))
+      register() {
+        local link="$1" name="$2" target="$3" current
+        [ -e "$target" ] || return 0
+        current="$(update-alternatives --list "$name" 2>/dev/null || true)"
+        if grep -qxF "$target" <<<"$current"; then
+          return 0
+        fi
+        if [ -e "$link" ] && [ "$(readlink "$link" || true)" != "/etc/alternatives/$name" ]; then
+          return 0
+        fi
+        update-alternatives --install "$link" "$name" "$target" "$priority" >/dev/null
+        echo "registered $link"
+      }
+      register /opt/rocm/core core "$prefix"
+      register "/opt/rocm/core-${major}" "core-${major}" "$prefix"
+      for d in bin lib include llvm amdgcn libexec share; do
+        register "/opt/rocm/$d" "rocm-$d" "$prefix/$d"
+      done
+      for b in hipcc hipconfig hipify-clang rocminfo amd-smi rocm-smi \
+               rocm_agent_enumerator amdclang amdclang++ amdclang-cl \
+               amdclang-cpp amdflang amdlld; do
+        register "/usr/bin/$b" "$b" "$prefix/bin/$b"
+      done
+    executable: /bin/bash
+  register: rocm_setup_therock_alternatives
+  changed_when: "'registered' in rocm_setup_therock_alternatives.stdout"
+  become: true
+  when:
+    - rocm_setup_repo_stream == 'therock'
+    - rocm_setup_minimal | bool
+    - rocm_setup_therock_prefix is defined
 
 - name: Update the library linker with rocm library paths
   ansible.builtin.copy:

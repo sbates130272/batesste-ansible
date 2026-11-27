@@ -8,6 +8,10 @@
         . /etc/profile.d/rocm-wsl-env.sh
         set +a
       fi
+      {% elif rocm_setup_repo_stream == 'therock' %}
+      if [ -f /etc/profile.d/rocm.sh ]; then
+        . /etc/profile.d/rocm.sh
+      fi
       {% endif %}
       rocminfo
     executable: /bin/bash
@@ -37,6 +41,10 @@
         set -a
         . /etc/profile.d/rocm-wsl-env.sh
         set +a
+      fi
+      {% elif rocm_setup_repo_stream == 'therock' %}
+      if [ -f /etc/profile.d/rocm.sh ]; then
+        . /etc/profile.d/rocm.sh
       fi
       {% endif %}
       hipcc -o /tmp/hip-hello-world /tmp/hip-hello-world.cpp

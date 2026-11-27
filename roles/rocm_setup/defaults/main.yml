@@ -245,17 +245,18 @@ rocm_setup_hipfile_fio_install_dir: /opt/fio-hipfile
 rocm_setup_minimal: false
 # Minimal therock package set (tracks rocm_setup_therock_rocm_version).
 # amdrocm-llvm<ver> provides the ROCm compiler toolchain (hipcc, clang).
-# amdrocm-llvm-dev<ver> provides HIP headers and ROCm compiler dev tools.
+# amdrocm-llvm-dev<ver> provides the ROCm compiler dev tools.
 # amdrocm-runtime<ver> provides the HSA runtime and HIP runtime libraries.
-# These three transitively pull in amdrocm-sysdeps (all-target bitcode + comgr)
-# and amdrocm-base (HSA loader) — no per-gfx-target package required.
+# amdrocm-runtime-dev<ver> provides the HIP headers (hip/hip_runtime.h).
+# These transitively pull in amdrocm-sysdeps (all-target bitcode + comgr)
+# and amdrocm-base (HSA loader, rocminfo) — no per-gfx-target package required.
 # libamd_smi is not part of this set: when rocm_setup_install_metrics_exporter
 # is true the role appends amdrocm-amdsmi<ver>, which gpuagent links against.
 rocm_setup_minimal_packages:
   - "amdrocm-llvm{{ rocm_setup_therock_rocm_version }}"
   - "amdrocm-llvm-dev{{ rocm_setup_therock_rocm_version }}"
   - "amdrocm-runtime{{ rocm_setup_therock_rocm_version }}"
-  - rocminfo
+  - "amdrocm-runtime-dev{{ rocm_setup_therock_rocm_version }}"
 
 # Extra packages installed after the main package set. Use to layer on
 # additional ROCm components without overriding rocm_setup_minimal_packages.

@@ -6,3 +6,13 @@
 ansible_user: batesste
 username: batesste
 user_setup_motd: true
+
+fave_packages_extra_packages:
+  - bind9
+  - certbot
+  - ffmpeg
+  - nginx
+  - prometheus-snmp-exporter
+  - socat
+  - tpm2-tools
+  - wavemon
