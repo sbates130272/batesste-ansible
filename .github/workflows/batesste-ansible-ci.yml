@@ -129,6 +129,9 @@ jobs:
           TARGETS: runners
           HOSTS: playbooks/hosts-ci
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+          # Authenticates the roles' GitHub release lookups; unauthenticated
+          # calls share the runner's 60/hour limit and fail with 403.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run the setup-amd recipe (software roles only, no hardware)
         # Exercises the setup-amd recipe dispatcher with roles that run safely
@@ -156,3 +159,4 @@ jobs:
           TARGETS: runners
           HOSTS: playbooks/hosts-ci
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

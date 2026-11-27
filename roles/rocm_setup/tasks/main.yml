@@ -468,6 +468,11 @@
     file: metrics_exporter.yml
   when: rocm_setup_install_metrics_exporter
 
+- name: Install the rocm-version node-exporter textfile collector
+  ansible.builtin.import_tasks:
+    file: version_collector.yml
+  when: rocm_setup_install_version_collector | bool
+
 - name: Install xrocmtop AMD GPU monitoring tool
   ansible.builtin.import_tasks:
     file: xrocmtop.yml

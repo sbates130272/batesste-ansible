@@ -1,0 +1,14 @@
+# Copyright (c) Advanced Micro Devices, Inc. All rights reserved.
+#
+# SPDX-License-Identifier: MIT
+#
+# Managed by Ansible (rocm_setup) — do not edit manually.
+
+[Unit]
+Description=Publish the ROCm/HIP and amdgpu DKMS versions as node-exporter textfile metrics
+
+[Service]
+Type=oneshot
+Environment=TEXTFILE_DIR={{ rocm_setup_version_collector_dir }}
+ExecStart=/usr/local/bin/rocm-version.sh
+User=root

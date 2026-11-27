@@ -208,6 +208,17 @@ rocm_setup_metrics_exporter_port: 5000
 rocm_setup_metrics_exporter_config_path: /etc/metrics/config.json
 rocm_setup_metrics_exporter_open_firewall: true
 
+# rocm-version: node-exporter textfile collector publishing the ROCm release
+# (rocm_version_info), the HIP runtime version and the amdgpu DKMS versions.
+# Installs /usr/local/bin/rocm-version.sh plus an hourly systemd timer and
+# refreshes the metrics at the end of every run.  Skipped automatically on
+# hosts without prometheus-node-exporter.
+rocm_setup_install_version_collector: true
+# Directory the collector writes rocm-version.prom to.  Empty means detect
+# the directory node-exporter actually reads (ARGS, unit, then the binary's
+# compiled-in default).
+rocm_setup_version_collector_textfile_dir: ""
+
 # ROCm-CLI: local AI on AMD GPUs — one binary, zero setup
 # https://github.com/ROCm/rocm-cli
 # Opt-in; set to true to install.

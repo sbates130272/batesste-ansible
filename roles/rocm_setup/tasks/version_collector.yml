@@ -1,0 +1,106 @@
+---
+# Copyright (c) Stephen Bates. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Install the rocm-version node-exporter textfile collector: a script plus
+# an hourly systemd timer that publishes the ROCm release, the HIP runtime
+# version and the amdgpu DKMS versions as rocm_version_* / amdgpu_dkms_*
+# series.  Skipped on hosts without prometheus-node-exporter, since nothing
+# would read the output.
+
+- name: Check whether prometheus-node-exporter is installed
+  ansible.builtin.stat:
+    path: /usr/bin/prometheus-node-exporter
+  register: rocm_setup_node_exporter_bin
+
+- name: Install the rocm-version textfile collector
+  when: rocm_setup_node_exporter_bin.stat.exists
+  block:
+    # Resolved in the order node-exporter itself resolves the flag: ARGS in
+    # /etc/default, then the unit and its drop-ins, then the binary's
+    # compiled-in default.  Writing anywhere else produces a correct file
+    # that nobody scrapes.
+    - name: Detect the node-exporter textfile directory
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          pat='s/.*--collector\.textfile\.directory[= ]"\?\([^" ]*\).*/\1/p'
+          dir="$(sed -n "$pat" /etc/default/prometheus-node-exporter 2>/dev/null | tail -1)"
+          [ -n "$dir" ] || dir="$(systemctl cat prometheus-node-exporter.service 2>/dev/null \
+            | grep -v '^#' | sed -n "$pat" | tail -1)"
+          [ -n "$dir" ] || dir="$(/usr/bin/prometheus-node-exporter --help 2>&1 \
+            | sed -n "$pat" | head -1)"
+          echo "$dir"
+        executable: /bin/bash
+      register: rocm_setup_textfile_dir_detected
+      changed_when: false
+      when: rocm_setup_version_collector_textfile_dir | length == 0
+
+    - name: Set the rocm-version collector output directory
+      ansible.builtin.set_fact:
+        rocm_setup_version_collector_dir: >-
+          {{ rocm_setup_version_collector_textfile_dir
+          or (rocm_setup_textfile_dir_detected.stdout | default('') | trim)
+          or '/var/lib/prometheus/node-exporter' }}
+
+    # No owner or mode: the directory belongs to the node-exporter package
+    # and some hosts have loosened it for other collectors.
+    - name: Ensure the node-exporter textfile directory exists  # noqa risky-file-permissions
+      ansible.builtin.file:
+        path: "{{ rocm_setup_version_collector_dir }}"
+        state: directory
+      become: true
+
+    - name: Install the rocm-version collector script
+      ansible.builtin.copy:
+        src: rocm-version.sh
+        dest: /usr/local/bin/rocm-version.sh
+        owner: root
+        group: root
+        mode: "0755"
+      become: true
+
+    - name: Install the rocm-version service unit
+      ansible.builtin.template:
+        src: rocm-version.service.j2
+        dest: /etc/systemd/system/rocm-version.service
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+
+    - name: Install the rocm-version timer unit
+      ansible.builtin.copy:
+        src: rocm-version.timer
+        dest: /etc/systemd/system/rocm-version.timer
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+
+    # Hosts set up by the old batesste-homesetup deploy-agent.sh carry this
+    # drop-in.  The service unit now sets TEXTFILE_DIR itself, and a drop-in
+    # would silently override it.
+    - name: Remove the legacy textfile-dir drop-in
+      ansible.builtin.file:
+        path: /etc/systemd/system/rocm-version.service.d
+        state: absent
+      become: true
+
+    - name: Enable and start the rocm-version timer
+      ansible.builtin.systemd:
+        name: rocm-version.timer
+        enabled: true
+        state: started
+        daemon_reload: true
+      become: true
+
+    # Run on every play, not only when a file changed: the role may just
+    # have upgraded ROCm, and the timer would otherwise leave the old
+    # version published for up to an hour.
+    - name: Publish the ROCm version metrics now  # noqa command-instead-of-module
+      ansible.builtin.command:
+        cmd: systemctl start rocm-version.service
+      become: true
+      changed_when: false

@@ -1,0 +1,20 @@
+# Copyright (c) Advanced Micro Devices, Inc. All rights reserved.
+#
+# SPDX-License-Identifier: MIT
+#
+# Managed by Ansible (rocm_setup) — do not edit manually.
+
+[Unit]
+Description=Periodically refresh the ROCm/HIP version textfile metric
+
+[Timer]
+# A ROCm version changes on upgrade and never otherwise, so this
+# is deliberately slow. OnBootSec is the one that matters: it
+# republishes after a reboot, since the textfile lives under
+# /var/lib and survives, but a stale file after a ROCm upgrade
+# plus reboot would otherwise persist until the next hourly tick.
+OnBootSec=2min
+OnUnitActiveSec=1h
+
+[Install]
+WantedBy=timers.target

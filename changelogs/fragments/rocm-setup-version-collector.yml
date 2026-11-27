@@ -1,0 +1,15 @@
+---
+minor_changes:
+  - >-
+    rocm_setup - install the ``rocm-version`` node-exporter textfile
+    collector (script plus hourly systemd timer) that publishes
+    ``rocm_version_info``, ``rocm_hip_version_info`` and the
+    ``amdgpu_dkms_*`` series, and refresh it at the end of every run.
+    Controlled by ``rocm_setup_install_version_collector`` (default
+    ``true``); skipped on hosts without ``prometheus-node-exporter``.
+    The collector previously lived in the batesste-homesetup repo.
+bugfixes:
+  - >-
+    rocm_setup - the ``rocm-version`` collector now finds ROCm under
+    the newest ``/opt/rocm/core-<ver>`` prefix, so a minimal therock
+    install no longer reports ``rocm_version_present 0``.
