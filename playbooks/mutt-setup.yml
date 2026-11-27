@@ -1,0 +1,11 @@
+---
+# Copyright (c) Stephen Bates, 2026
+#
+# SPDX-License-Identifier: Apache-2.0
+
+- name: Setup mutt on target hosts
+  hosts: "{{ targets }}"
+  gather_facts: true
+  roles:
+    - role: sbates130272.batesste.mutt_setup
+      become: false
