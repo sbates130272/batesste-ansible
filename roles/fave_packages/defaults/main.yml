@@ -10,12 +10,17 @@
 fave_packages_node_exporter_extra_args: "--collector.wifi"
 
 # Per-component enable flags. Set false to skip that component.
-fave_packages_ansible_enable: true         # ansible, ansible-lint
+fave_packages_ansible_enable: true         # ansible, ansible-core, ansible-lint via uv
 fave_packages_desktop_enable: true         # emacs-nox, gnuplot, mutt
 fave_packages_linux_generic_enable: false  # linux-generic meta-package (off by default)
 fave_packages_node_exporter_enable: true   # prometheus-node-exporter
 fave_packages_tmuxinator_enable: true      # tmuxinator session layout manager
 fave_packages_uv_enable: true              # uv from GitHub releases (astral-sh/uv)
+
+# Set system-certs = true in the login user's ~/.config/uv/uv.toml so uv
+# trusts the system certificate store.  Needed behind a TLS-inspecting
+# proxy such as ZScaler, whose CA is not in uv's bundled list.
+fave_packages_uv_system_certs: false
 
 # Remove editor backups and package-manager leftovers from
 # /etc/apt/sources.list.d before installing packages.  Off by default
@@ -39,3 +44,7 @@ fave_packages_apt_sources_cleanup_patterns:
 
 # GitHub API token for releases/latest lookups. Defaults to GITHUB_TOKEN env var.
 fave_packages_github_api_token: "{{ lookup('env', 'GITHUB_TOKEN') | default('') }}"
+
+# Host-specific extra apt packages to install alongside the base set.
+# Set in host_vars or group_vars; the default installs nothing extra.
+fave_packages_extra_packages: []

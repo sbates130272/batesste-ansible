@@ -16,108 +16,126 @@
 
 - name: Clean leftover files out of the apt sources directory
   ansible.builtin.include_tasks: apt-sources-cleanup.yml
-  when:
-    - fave_packages_apt_sources_cleanup_enable | bool
-    - ansible_facts['os_family'] == "Debian"
+  when: fave_packages_apt_sources_cleanup_enable | bool
 
-- name: Install base packages
-  ansible.builtin.package:
+# Removing pipx or the apt ansible packages on the controller would delete
+# the ansible that is running this play.  Leave them alone until the play
+# runs from the uv-managed ansible this role installs further down.
+- name: Check whether this play runs from an ansible the role would remove
+  ansible.builtin.set_fact:
+    fave_packages_ansible_in_use: >-
+      {{ ansible_connection == 'local'
+         and '/uv/tools/' not in ansible_playbook_python }}
+
+- name: Warn that the superseded ansible is left in place on the controller
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: {{ inventory_hostname }} is running this play from
+      {{ ansible_playbook_python }}, so pipx and the apt ansible packages
+      are left in place.  Run the play again to finish the move to uv.
+  when: fave_packages_ansible_in_use | bool
+
+# The inventory sets ansible_become for every host, which overrides the
+# become keyword, so the user-level tasks also clear it as a task var.
+- name: Remove the links pipx left in the login user's home
+  ansible.builtin.shell:
+    cmd: >-
+      find ~/.local/bin ~/.local/share/man -type l
+      -lname '*/.local/share/pipx/*' -print -delete 2>/dev/null || true
+  become: false
+  vars:
+    ansible_become: false
+  register: fave_packages_pipx_links
+  changed_when: fave_packages_pipx_links.stdout | length > 0
+  when: not fave_packages_ansible_in_use | bool
+
+- name: Remove the pipx home directory
+  ansible.builtin.file:
+    path: ~/.local/share/pipx
+    state: absent
+  become: false
+  vars:
+    ansible_become: false
+  when: not fave_packages_ansible_in_use | bool
+
+- name: Remove apt packages superseded by uv
+  ansible.builtin.apt:
+    name: >-
+      {{ ['pipx']
+         + (['ansible', 'ansible-core', 'ansible-lint']
+            if fave_packages_ansible_enable | bool
+               and fave_packages_uv_enable | bool else []) }}
+    state: absent
+  become: true
+  when: not fave_packages_ansible_in_use | bool
+
+- name: Install packages
+  ansible.builtin.apt:
+    name: >-
+      {{ fave_packages_base
+         + (fave_packages_desktop
+            if fave_packages_desktop_enable | bool else [])
+         + (['linux-generic']
+            if fave_packages_linux_generic_enable | bool else [])
+         + (fave_packages_node_exporter
+            if fave_packages_node_exporter_enable | bool else [])
+         + (['tmuxinator']
+            if fave_packages_tmuxinator_enable | bool else [])
+         + fave_packages_extra_packages }}
+    state: present
     update_cache: true
-    name:
+    cache_valid_time: 3600
+  become: true
+  vars:
+    fave_packages_base:
       - aspell
       - bmon
       - build-essential
       - cmake
       - driverctl
+      - elpa-cmake-mode
+      - elpa-rust-mode
       - expect
       - fio
       - gettext-base
+      - gh
       - git
       - git-crypt
       - git-extras
       - gpg-agent
+      - jq
       - libaio-dev
       - liburing-dev
       - python-is-python3
       - python3
-      - pipx
+      - python3-jinja2
       - python3-pip
+      - python3-pytest
       - python3-venv
       - ripgrep
+      - shellcheck
       - stow
       - sysstat
       - tmux
       - tree
+      - virtiofsd
       - xfsprogs
-    state: present
-  become: true
-
-- name: Install desktop/editor packages
-  ansible.builtin.package:
-    name:
+    fave_packages_desktop:
       - emacs-nox
       - gnuplot
       - mutt
-    state: present
-  become: true
-  when: fave_packages_desktop_enable | default(true) | bool
-
-- name: Install linux-generic kernel meta-package
-  ansible.builtin.package:
-    name: linux-generic
-    state: present
-  become: true
-  when: fave_packages_linux_generic_enable | default(false) | bool
-
-- name: Install prometheus-node-exporter
-  ansible.builtin.package:
-    name:
+    fave_packages_node_exporter:
       - prometheus-node-exporter
       - prometheus-node-exporter-collectors
-    state: present
-  become: true
-  when: fave_packages_node_exporter_enable | default(true) | bool
 
-- name: Set ubuntu extra package list (skip git-email if git >= 2.43)
-  ansible.builtin.set_fact:
-    fave_packages_ubuntu_extra: "{{ _base_ubuntu + (_git_email_if_ok | default([])) }}"
+- name: Install or update uv
+  when: fave_packages_uv_enable | bool
   vars:
-    _base_ubuntu:
-      - elpa-cmake-mode
-      - elpa-rust-mode
-      - virtiofsd
-    _git_ver: "{{ (ansible_facts.packages['git'] | default([]) | first
-      | default({})).version | default('99') }}"
-    _install_git_email: "{{ _git_ver is version('2.43', '<') }}"
-    _git_email_if_ok: "{{ ['git-email'] if _install_git_email else [] }}"
-  when:
-    - ansible_facts['distribution'] == "Ubuntu"
-    - ansible_facts['distribution_release'] in ['noble', 'resolute']
-
-- name: Install my favourite packages on Ubuntu
-  ansible.builtin.package:
-    name: "{{ fave_packages_ubuntu_extra }}"
-  become: true
-  when:
-    - ansible_facts['distribution'] == "Ubuntu"
-    - ansible_facts['distribution_release'] in ['noble', 'resolute']
-
-- name: Install and manage uv
-  when: fave_packages_uv_enable | default(true) | bool
+    fave_packages_uv_latest: >-
+      {{ fave_packages_uv_latest_release.json.tag_name | default('')
+         | regex_replace('^v', '') }}
   block:
-    - name: Set uv architecture for GitHub asset
-      ansible.builtin.set_fact:
-        fave_packages_uv_arch: >-
-          {{ 'x86_64-unknown-linux-gnu' if ansible_facts['architecture'] == 'x86_64'
-             else 'aarch64-unknown-linux-gnu' if ansible_facts['architecture'] == 'aarch64'
-             else '' }}
-
-    - name: Fail on unsupported architecture for uv
-      ansible.builtin.fail:
-        msg: "uv not available for arch {{ ansible_facts['architecture'] }}"
-      when: fave_packages_uv_arch == ''
-
-    - name: Get latest uv version from GitHub API
+    - name: Look up the latest uv release
       ansible.builtin.uri:
         url: https://api.github.com/repos/astral-sh/uv/releases/latest
         return_content: true
@@ -126,112 +144,77 @@
       register: fave_packages_uv_latest_release
       changed_when: false
       failed_when: false
+      check_mode: false
 
-    - name: Set uv resolved version
-      ansible.builtin.set_fact:
-        fave_packages_uv_resolved_version: >-
-          {{ fave_packages_uv_latest_release.json.tag_name | regex_replace('^v', '') }}
-      when: fave_packages_uv_latest_release.status == 200
+    - name: Read the installed uv version
+      ansible.builtin.command:
+        cmd: /usr/local/bin/uv --version
+      register: fave_packages_uv_installed
+      changed_when: false
+      failed_when: false
+      check_mode: false
 
-    - name: Check if uv binary is present
-      ansible.builtin.stat:
-        path: /usr/local/bin/uv
-      register: fave_packages_uv_binary_stat
+    - name: Install uv and uvx into /usr/local/bin
+      ansible.builtin.unarchive:
+        src: >-
+          https://github.com/astral-sh/uv/releases/download/{{
+          fave_packages_uv_latest }}/uv-{{
+          ansible_facts['architecture'] }}-unknown-linux-gnu.tar.gz
+        dest: /usr/local/bin
+        remote_src: true
+        extra_opts:
+          - --strip-components=1
+        owner: root
+        group: root
+        mode: '0755'
+      become: true
+      when:
+        - fave_packages_uv_latest_release.status | default(0) == 200
+        - (fave_packages_uv_installed.stdout | default('')).split()[1:2]
+          != [fave_packages_uv_latest]
 
-    - name: Check if uv version file is present
-      ansible.builtin.stat:
+    - name: Remove the version file earlier releases of this role wrote
+      ansible.builtin.file:
         path: /usr/local/bin/.uv_version
-      register: fave_packages_uv_version_file_stat
-
-    - name: Read installed uv version
-      ansible.builtin.slurp:
-        src: /usr/local/bin/.uv_version
-      register: fave_packages_uv_version_content
-      when: fave_packages_uv_version_file_stat.stat.exists
+        state: absent
       become: true
 
-    - name: Set current uv version fact
-      ansible.builtin.set_fact:
-        fave_packages_uv_current_version: >-
-          {{ fave_packages_uv_version_content.content | b64decode | trim }}
-      when: >-
-        fave_packages_uv_version_file_stat.stat.exists and
-        not (fave_packages_uv_version_content.failed | default(false) | bool)
-
-    - name: Download and install uv binaries
-      when: >-
-        fave_packages_uv_resolved_version is defined and
-        (not fave_packages_uv_binary_stat.stat.exists or
-        not fave_packages_uv_version_file_stat.stat.exists or
-        (fave_packages_uv_current_version | default('')) != fave_packages_uv_resolved_version)
-      block:
-        - name: Create temporary directory for uv download
-          ansible.builtin.tempfile:
-            state: directory
-            suffix: uv
-          register: fave_packages_uv_temp_dir
-
-        - name: Download uv release tarball
-          ansible.builtin.get_url:
-            url: >-
-              https://github.com/astral-sh/uv/releases/download/{{ fave_packages_uv_resolved_version
-              }}/uv-{{ fave_packages_uv_arch }}.tar.gz
-            dest: "{{ fave_packages_uv_temp_dir.path }}/uv.tar.gz"
-            mode: '0644'
-
-        - name: Unarchive uv tarball
-          ansible.builtin.unarchive:
-            src: "{{ fave_packages_uv_temp_dir.path }}/uv.tar.gz"
-            dest: "{{ fave_packages_uv_temp_dir.path }}"
-            remote_src: true
-          become: true
-
-        - name: Copy uv binaries to install directory
-          ansible.builtin.copy:
-            src: "{{ fave_packages_uv_temp_dir.path }}/uv-{{ fave_packages_uv_arch }}/{{ item }}"
-            dest: "/usr/local/bin/{{ item }}"
-            mode: '0755'
-            owner: root
-            group: root
-            remote_src: true
-          become: true
-          loop:
-            - uv
-            - uvx
-
-        - name: Write uv version file
-          ansible.builtin.copy:
-            content: "{{ fave_packages_uv_resolved_version }}\n"
-            dest: /usr/local/bin/.uv_version
-            mode: '0644'
-            owner: root
-            group: root
-          become: true
-
-        - name: Remove temporary uv directory
-          ansible.builtin.file:
-            path: "{{ fave_packages_uv_temp_dir.path }}"
-            state: absent
-          become: true
-
-- name: Install ansible tools via uv
-  ansible.builtin.command:
-    cmd: "uv tool install {{ item }}"
-    creates: "{{ ansible_facts['env']['HOME'] }}/.local/bin/{{ item }}"
-  loop:
-    - ansible
-    - ansible-lint
-  when: fave_packages_ansible_enable | default(true) | bool
-
-- name: Install tmuxinator
-  ansible.builtin.package:
-    name: tmuxinator
-    state: present
-  become: true
+# A top-level key must come before any [table] in the file.
+- name: Make uv trust the system certificate store for the login user
+  ansible.builtin.lineinfile:
+    path: ~/.config/uv/uv.toml
+    regexp: '^(system-certs|native-tls)\s*='
+    line: system-certs = true
+    insertbefore: BOF
+    create: true
+    mode: '0644'
+  become: false
+  vars:
+    ansible_become: false
   when:
-    - fave_packages_tmuxinator_enable | default(true) | bool
-    - ansible_facts['distribution'] == "Ubuntu"
-    - ansible_facts['distribution_release'] in ['noble', 'resolute']
+    - fave_packages_uv_enable | bool
+    - fave_packages_uv_system_certs | bool
+
+# One uv tool environment holds ansible, ansible-core and ansible-lint, so
+# ansible-lint runs against the same ansible the user does, plus jmespath
+# for the json_query filter (see requirements.txt).  It must be
+# installed as the login user, never root, whatever become the caller or
+# the inventory applies.
+- name: Install ansible and ansible-lint for the login user via uv
+  ansible.builtin.command:
+    argv: >-
+      {{ ['uv', 'tool', 'install']
+         + (['--force'] if fave_packages_ansible_in_use | bool else [])
+         + ['--with-executables-from', 'ansible-core,ansible-lint',
+            '--with', 'jmespath', 'ansible'] }}
+  become: false
+  vars:
+    ansible_become: false
+  register: fave_packages_uv_ansible
+  changed_when: "'already installed' not in fave_packages_uv_ansible.stderr"
+  when:
+    - fave_packages_ansible_enable | bool
+    - fave_packages_uv_enable | bool
 
 - name: Configure node exporter extra collectors
   ansible.builtin.template:
@@ -242,4 +225,4 @@
     mode: '0644'
   become: true
   notify: Restart prometheus-node-exporter
-  when: fave_packages_node_exporter_enable | default(true) | bool
+  when: fave_packages_node_exporter_enable | bool
